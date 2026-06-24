@@ -60,4 +60,23 @@ class ApiHelper {
     }
     return null;
   }
+
+  static List<Map<String, dynamic>> dataList(dynamic responseData) {
+    if (responseData is! Map) {
+      throw const FormatException('Invalid response');
+    }
+
+    final root = Map<String, dynamic>.from(responseData);
+    if (!isSuccessResponse(root)) {
+      throw Exception(responseMessage(root) ?? 'Request failed');
+    }
+
+    final data = root['data'];
+    if (data is! List) return [];
+
+    return data
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
 }

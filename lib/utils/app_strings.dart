@@ -432,6 +432,7 @@ class AppStrings {
   /// Notification
 
   static const String notifications = "Notifications";
+  static const String noNotificationsFound = "No Notifications Found";
   static const String showing = "Showing";
   static const String yourReferralCode = "Your Referral Code";
   static const String totalEarnings = "Total Earnings";
@@ -536,6 +537,8 @@ class AppStrings {
 
 //   My Appointments
   static const String all = "All";
+  static const String read = "Read";
+  static const String unread = "Unread";
   static const String pending = "Pending";
   static const String started = "Started";
   static const String completedPaid = "Completed Paid";

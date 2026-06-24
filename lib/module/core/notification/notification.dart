@@ -1,3 +1,4 @@
+import 'package:ezhandy_user/module/core/notification/controller/notification_controller.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/widgets/Slideable/slideable.dart';
 import 'package:ezhandy_user/widgets/dropdown/custom_dropdown.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -19,8 +21,14 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  String? filterStartValue;
-  var filterList = ["All", "Weekly", "Monthly"];
+  final NotificationController _controller = Get.put(NotificationController());
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.fetchNotifications();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -43,24 +51,38 @@ class _NotificationScreenState extends State<NotificationScreen> {
               // 20.verticalSpace,
               filterRowWidget(),
               Expanded(
-                child: ListView.separated(
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  itemCount: 10,
-                  itemBuilder: (context, index) {
-                    // final item = notifications[index];
-                    return SlidableWidget(
-                      child: notificationWidget(
-                        image: AssetPath.infoIcon,
-                        title: "Lorem Ipsum Dolor",
-                        description:
-                            "Lorem Ipsum is simply dummy text of the printing and typesetting",
-                        date: DateTime(2023, 12, 29, 16, 45),
-                      ),
+                child: Obx(
+                  () {
+                    final items = _controller.filteredNotifications;
+                    if (!_controller.isLoading.value && items.isEmpty) {
+                      return const EmptyMessage(
+                        message: AppStrings.noNotificationsFound,
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return SlidableWidget(
+                          child: GestureDetector(
+                            onTap: () => _controller.markAsRead(item),
+                            child: notificationWidget(
+                              image: AssetPath.infoIcon,
+                              title: item.title ?? '',
+                              description: item.description ?? '',
+                              date: item.createdAt ?? DateTime.now(),
+                              isRead: item.isRead,
+                            ),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) {
+                        return 20.verticalSpace;
+                      },
                     );
-                  },
-                  separatorBuilder: (context, index) {
-                    return 20.verticalSpace;
                   },
                 ),
               ),
@@ -70,7 +92,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ));
   }
 
-  Widget notificationWidget({image, title, description, date}) {
+  Widget notificationWidget({
+    image,
+    title,
+    description,
+    date,
+    bool isRead = true,
+  }) {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.white, // 👈 Make the card white
@@ -81,7 +109,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
       padding: EdgeInsets.all(12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             width: 40.w,
@@ -117,7 +145,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ),
               ],
             ),
-          )
+          ),
+          if (!isRead) ...[
+            SizedBox(width: 8.w),
+            Container(
+              width: 8.w,
+              height: 8.w,
+              decoration: const BoxDecoration(
+                color: AppColors.orange,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -132,20 +171,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget filterDropDown() {
-    return CustomDropDown2(
-      width: 110.w, // 👈 Controls button width
-      dropDownWidth: 150.w, // 👈 Controls dropdown menu width
-      dropDownData: filterList,
-      borderColor: AppColors.transparent,
-      hintText: "All",
-      dropdownValue: filterStartValue,
-      dropdownListColor: AppColors.white,
-      hintTextColor: AppColors.black,
-      onChanged: (value) {
-        setState(() {
-          filterStartValue = value.toString();
-        });
-      },
+    return Obx(
+      () => CustomDropDown2(
+        width: 110.w,
+        dropDownWidth: 150.w,
+        dropDownData: NotificationController.filterOptions,
+        borderColor: AppColors.transparent,
+        hintText: AppStrings.all,
+        dropdownValue: _controller.selectedFilter.value,
+        dropdownListColor: AppColors.white,
+        hintTextColor: AppColors.black,
+        onChanged: (value) {
+          _controller.setFilter(value.toString());
+        },
+      ),
     );
   }
 }
