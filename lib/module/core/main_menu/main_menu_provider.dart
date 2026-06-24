@@ -8,6 +8,7 @@ import 'package:ezhandy_user/module/core/main_menu/drawer_screen.dart';
 import 'package:ezhandy_user/module/core/menu/view/menu.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
@@ -17,6 +18,7 @@ import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
+import 'package:ezhandy_user/utils/system_ui_style.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
   GlobalKey<ScaffoldState> globalkey = new GlobalKey<ScaffoldState>();
 
@@ -55,7 +57,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   void initState() {
     HomeController.i.selectedTab.value = 0;
-
+    AppSystemUi.applyDarkContent();
     super.initState();
   }
 
@@ -82,7 +84,10 @@ class _MainMenuState extends State<MainMenu> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Obx(() {
-        return GestureDetector(
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: AppSystemUi.darkContent,
+          sized: false,
+          child: GestureDetector(
             onTap: () {
               // FocusScope.of(context).unfocus();
             },
@@ -95,7 +100,9 @@ class _MainMenuState extends State<MainMenu> {
                       child: withoutSafeArea(),
                     )
                   : withoutSafeArea(),
-            ));
+            ),
+          ),
+        );
       }),
     );
   }

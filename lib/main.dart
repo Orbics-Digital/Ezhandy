@@ -11,6 +11,7 @@ import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/constant.dart';
 import 'package:ezhandy_user/utils/keyboard_dismiss_overser.dart';
 import 'package:ezhandy_user/utils/scroll_view.dart';
+import 'package:ezhandy_user/utils/system_ui_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,7 +28,7 @@ Future<void> main() async {
   await AuthController.i.restoreSession();
   await NotificationController.i.fetchUnreadCount();
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle());
+  AppSystemUi.applyDarkContent();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(MyApp());
 }
@@ -71,14 +72,15 @@ class MyApp extends StatelessWidget {
 
             theme: ThemeData(
                 useMaterial3: false,
-                // primaryColor: Colors.blue, // Set your primary color here
-                // scaffoldBackgroundColor: Colors.white,
-                scaffoldBackgroundColor: AppColors.black,
+                scaffoldBackgroundColor: AppColors.white,
                 fontFamily: AppStrings.montserrat,
                 primarySwatch: customColor,
                 unselectedWidgetColor: AppColors.transparent,
                 colorScheme: ColorScheme.fromSwatch()
-                    .copyWith(primary: AppColors.orange)),
+                    .copyWith(primary: AppColors.orange),
+                appBarTheme: const AppBarTheme(
+                  systemOverlayStyle: AppSystemUi.darkContent,
+                )),
             navigatorObservers: [
               KeyboardDismissObserver(),
               BotToastNavigatorObserver()
@@ -86,12 +88,16 @@ class MyApp extends StatelessWidget {
             navigatorKey: Constants.navigatorKey,
             builder: (context, child) {
               child = botToastBuilder(context, child);
-              return ScrollConfiguration(
-                  behavior: MyScrollBehavior(),
-                  child: MediaQuery(
-                      data: MediaQuery.of(context)
-                          .copyWith(textScaler: TextScaler.linear(1.0)),
-                      child: child));
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: AppSystemUi.darkContent,
+                sized: false,
+                child: ScrollConfiguration(
+                    behavior: MyScrollBehavior(),
+                    child: MediaQuery(
+                        data: MediaQuery.of(context)
+                            .copyWith(textScaler: TextScaler.linear(1.0)),
+                        child: child)),
+              );
             },
           );
         });

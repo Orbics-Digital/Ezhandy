@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:ezhandy_user/utils/app_colors.dart';
+import 'package:ezhandy_user/utils/system_ui_style.dart';
 import 'package:ezhandy_user/widgets/app_bars/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // ignore: must_be_immutable
@@ -52,7 +54,10 @@ FloatingActionButtonLocation? floatingActionButtonLocation;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppSystemUi.darkContent,
+      sized: false,
+      child: Container(
         width: 1.sw,
         height: 1.sh,
         decoration: BoxDecoration(
@@ -68,7 +73,9 @@ FloatingActionButtonLocation? floatingActionButtonLocation;
               FocusScope.of(context).unfocus();
               // FocusManager.instance.primaryFocus?.unfocus();
             },
-            child: (is_bottomNav == false ? scaffoldWidget(context) : child)));
+            child: (is_bottomNav == false ? scaffoldWidget(context) : child)),
+      ),
+    );
   }
 
   Widget scaffoldWidget(context) {

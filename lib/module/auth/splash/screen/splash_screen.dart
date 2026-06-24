@@ -8,7 +8,9 @@ import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
 import 'package:entry/entry.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ezhandy_user/utils/system_ui_style.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _initSharedPreference();
     registeredNotificationListener();
     socketConnect();
+    AppSystemUi.applyLightContent();
     Timer(const Duration(seconds: 4), () => _onComplete());
     super.initState();
   }
@@ -51,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _onComplete() {
+    AppSystemUi.applyDarkContent();
     final destination = AuthController.i.user.value != null
         ? AppRoutes.mainMenuScreenRoute
         : AppRoutes.loginScreenRoute;
@@ -59,17 +63,21 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Container(
-        width: 1.sw,
-        height: 1.sh,
-        decoration: const BoxDecoration(
-          color: AppColors.black
-            // image: DecorationImage(
-            //     image: AssetImage(AssetPath.splashImage), fit: BoxFit.cover)
-                ),
-        child: logoWidget(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppSystemUi.lightContent,
+      sized: false,
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: Container(
+          width: 1.sw,
+          height: 1.sh,
+          decoration: const BoxDecoration(
+            color: AppColors.black
+              // image: DecorationImage(
+              //     image: AssetImage(AssetPath.splashImage), fit: BoxFit.cover)
+                  ),
+          child: logoWidget(),
+        ),
       ),
     );
   }
