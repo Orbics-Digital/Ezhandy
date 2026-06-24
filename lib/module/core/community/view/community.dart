@@ -22,6 +22,7 @@ import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/widgets/Slideable/slideable.dart';
 import 'package:ezhandy_user/widgets/dropdown/custom_dropdown.dart';
+import 'package:ezhandy_user/widgets/notification/notification_badge_icon.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 //
 
@@ -114,17 +115,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
           fontSize: 20.sp,
         ),
         Spacer(),
-        notificationWidget(context)
+        const NotificationBadgeIcon(),
       ],
-    );
-  }
-
-  GestureDetector notificationWidget(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        AppNavigation.navigateTo(context, AppRoutes.notificationScreenRoute);
-      },
-      child: Image.asset(AssetPath.bellIcon, width: 20.w, height: 20.h),
     );
   }
 

@@ -14,6 +14,7 @@ class NotificationController extends GetxController {
 
   final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
   final RxString selectedFilter = AppStrings.all.obs;
+  final RxInt unreadCount = 0.obs;
   final RxBool isLoading = false.obs;
 
   static const filterOptions = [
@@ -35,6 +36,18 @@ class NotificationController extends GetxController {
 
   void setFilter(String value) => selectedFilter.value = value;
 
+  Future<void> fetchUnreadCount() async {
+    try {
+      unreadCount.value = await _repository.getUnreadCount();
+    } on DioException catch (_) {
+      unreadCount.value = 0;
+    } catch (_) {
+      unreadCount.value = 0;
+    }
+  }
+
+  void clearUnreadCount() => unreadCount.value = 0;
+
   Future<void> markAsRead(NotificationModel notification) async {
     if (notification.isRead || notification.id == null) return;
 
@@ -45,6 +58,7 @@ class NotificationController extends GetxController {
     try {
       await _repository.markAsRead(notification.id!);
       notifications[index] = notification.copyWith(isRead: true);
+      await fetchUnreadCount();
     } on DioException catch (e) {
       AppDialogs.showToast(message: ApiHelper.errorMessage(e));
     } catch (e) {
@@ -59,6 +73,7 @@ class NotificationController extends GetxController {
     AppLoader.show();
     try {
       notifications.assignAll(await _repository.getNotifications());
+      await fetchUnreadCount();
     } on DioException catch (e) {
       AppDialogs.showToast(message: ApiHelper.errorMessage(e));
     } catch (e) {

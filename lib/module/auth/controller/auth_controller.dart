@@ -3,6 +3,7 @@ import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/data/auth_repository.dart';
 import 'package:ezhandy_user/module/auth/model/user_model.dart';
+import 'package:ezhandy_user/module/core/notification/controller/notification_controller.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_loader.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
@@ -65,6 +66,8 @@ class AuthController extends GetxController {
       user.value = result.user;
       isLoginSignUp.value = true;
 
+      await NotificationController.i.fetchUnreadCount();
+
       if (context.mounted) {
         AppNavigation.navigateToRemovingAll(
           context,
@@ -114,6 +117,7 @@ class AuthController extends GetxController {
     } finally {
       await SessionStorage.i.clear();
       user.value = null;
+      NotificationController.i.clearUnreadCount();
       isLogoutLoading.value = false;
       AppLoader.hide();
 

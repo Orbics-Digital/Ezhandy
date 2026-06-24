@@ -19,6 +19,13 @@ class NotificationRepository {
         .toList();
   }
 
+  Future<int> getUnreadCount() async {
+    final response =
+        await _client.dio.get(ApiEndpoints.notificationsUnreadCount);
+    final data = ApiHelper.dataObject(response.data);
+    return int.tryParse(data['count']?.toString() ?? '') ?? 0;
+  }
+
   Future<void> markAsRead(String id) async {
     final response =
         await _client.dio.patch(ApiEndpoints.notificationRead(id));

@@ -19,6 +19,7 @@ import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/widgets/Container/image_with_text_container.dart';
+import 'package:ezhandy_user/widgets/notification/notification_badge_icon.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class Home extends StatefulWidget {
@@ -191,17 +192,8 @@ class _HomeState extends State<Home> {
             ],
           ),
           Spacer(),
-          notificationWidget(context)
+          const NotificationBadgeIcon(),
         ]);
-  }
-
-  GestureDetector notificationWidget(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        AppNavigation.navigateTo(context, AppRoutes.notificationScreenRoute);
-      },
-      child: Image.asset(AssetPath.bellIcon, width: 20.w, height: 20.h),
-    );
   }
 
   Widget earnWithUsWidget() {
