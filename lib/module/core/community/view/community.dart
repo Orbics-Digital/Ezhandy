@@ -1,14 +1,18 @@
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
+import 'package:ezhandy_user/module/core/community/controller/community_controller.dart';
+import 'package:ezhandy_user/module/core/community/model/community_post_model.dart';
 import 'package:ezhandy_user/module/core/community/model/reaction_model.dart';
 import 'package:ezhandy_user/module/core/main_menu/main_menu_provider.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/constant.dart';
+import 'package:ezhandy_user/utils/display_helper.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/button_widgets/reaction_button.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:ezhandy_user/widgets/profile_widget/user_image_widget.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
@@ -34,7 +38,20 @@ class CommunityScreen extends StatefulWidget {
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
-  // String? filterStartValue;
+  final CommunityController _controller = Get.find<CommunityController>();
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.fetchPosts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,34 +62,65 @@ class _CommunityScreenState extends State<CommunityScreen> {
           appbarWidget(),
           20.verticalSpace,
           searchTextField(),
-          // 10.verticalSpace,
+          16.verticalSpace,
 
           Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.only(
-                  top: AppPadding.padding20, bottom: AppPadding.padding25),
-              shrinkWrap: true,
-              itemCount: 10,
-              itemBuilder: (context, index) {
-                // final item = notifications[index];
-                return singleWidget(
-                    commentCount:
-                        Constants.formatFacebookCount(int.parse("15000")),
-                    likeCount:
-                        Constants.formatFacebookCount(int.parse("85000")),
-                    day: AppStrings.dummyDate,
-                    name: "john sina",
-                    des: AppStrings.lorem5,
-                    image: null,
-                    onTapComment: () {
-                      AppDialogs.showCommunityCommentsDialog(context);
+            child: Obx(
+              () {
+                final items = _controller.filteredPosts;
+                final isLoading = _controller.isLoading.value;
+
+                if (!isLoading && items.isEmpty) {
+                  return RefreshIndicator(
+                    color: AppColors.orange,
+                    onRefresh: _controller.refreshPosts,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.only(bottom: AppPadding.padding25),
+                      children: const [
+                        SizedBox(height: 120),
+                        EmptyMessage(
+                          message: AppStrings.noCommunityPostsFound,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  color: AppColors.orange,
+                  onRefresh: _controller.refreshPosts,
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(bottom: AppPadding.padding25),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final post = items[index];
+                      return singleWidget(
+                        commentCount: Constants.formatFacebookCount(
+                          post.commentCount,
+                        ),
+                        likeCount: Constants.formatFacebookCount(
+                          post.reactionCounts.total,
+                        ),
+                        day: _formatDate(post.createdAt),
+                        name: DisplayHelper.displayValue(post.user?.fullName),
+                        des: DisplayHelper.displayValue(post.description),
+                        image: post.user?.profileImage,
+                        postImage: post.image,
+                        onTapComment: () {
+                          AppDialogs.showCommunityCommentsDialog(context);
+                        },
+                        ontapLike: () {
+                          AppDialogs.showCommunityLikeDialog(context);
+                        },
+                      );
                     },
-                    ontapLike: () {
-                      AppDialogs.showCommunityLikeDialog(context);
-                    });
-              },
-              separatorBuilder: (context, index) {
-                return 10.verticalSpace;
+                    separatorBuilder: (context, index) {
+                      return 10.verticalSpace;
+                    },
+                  ),
+                );
               },
             ),
           ),
@@ -86,8 +134,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
       label: false,
       prefxicon: AssetPath.searchIcon,
       hint: AppStrings.searchAnything,
+      controller: _searchController,
+      onchange: _controller.setSearchQuery,
       inputFormatters: [LengthLimitingTextInputFormatter(35)],
-      // controller: firstNameController,
     );
   }
 
@@ -120,15 +169,22 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget singleWidget(
-      {day,
-      name,
-      image,
-      des,
-      ontapLike,
-      onTapComment,
-      likeCount,
-      commentCount}) {
+  String _formatDate(DateTime? date) {
+    if (date == null) return '-';
+    return DateFormat('dd MMM yyyy - HH:mm a').format(date.toLocal());
+  }
+
+  Widget singleWidget({
+    day,
+    name,
+    image,
+    postImage,
+    des,
+    ontapLike,
+    onTapComment,
+    likeCount,
+    commentCount,
+  }) {
     return CustomContainer(
       // onTap: ontap,
       child: Column(children: [
@@ -149,6 +205,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ]),
         5.verticalSpace,
         CustomText(text: des),
+        if (postImage != null && postImage.toString().isNotEmpty) ...[
+          10.verticalSpace,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8.r),
+            child: Image.network(
+              postImage,
+              width: double.infinity,
+              height: 180.h,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+        ],
         10.verticalSpace,
         Row(
             mainAxisAlignment: MainAxisAlignment.center,

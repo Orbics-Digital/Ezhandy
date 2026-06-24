@@ -6,6 +6,7 @@ class ApiEndpoints {
   static const String notifications = 'notifications';
   static const String notificationsUnreadCount = 'notifications/unread-count';
   static const String queries = 'queries';
+  static const String communityPosts = 'community/posts';
 
   static String notificationRead(String id) => 'notifications/$id/read';
   static String quickProvider(String providerId) =>
