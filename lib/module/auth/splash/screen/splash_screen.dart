@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
@@ -50,27 +51,10 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _onComplete() {
-    // if ((SharedPreference().getUser()) != null) {
-    //   AuthController.i.appUser.value = SharedPreference().getUser()!;
-    //   // AuthController.i.appUser.value.data!.SocialType.toString()=='phone'?
-    //   // AppConstant.is_phone=true:null;
-    //   AuthController.i.appUser.value.data!.socialType.toString() == 'phone'
-    //       ? AppConstant.is_phone = true
-    //       : null;
-    //   log(AuthController.i.appUser.value.data!.socialType.toString());
-    //   log(AuthController.i.appUser.value.data!.phoneNumber.toString());
-    //   if (AuthController.i.appUser.value.data!.isProfileComplete == 0) {
-    //     Get.offAllNamed(Paths.CREATE_PROFILE_USER_SCREEN_ROUTE,
-    //         arguments: AppStrings.CREATE_PROFILE);
-    //   } else {
-    //     Get.offNamed(Paths.BOTTOM_NAV_BAR_SCREEN_ROUTE);
-    //   }
-    // } else {
-    AppNavigation.navigateToRemovingAll(context, AppRoutes.loginScreenRoute);
-    // AppNavigation.navigateToRemovingAll(
-    //     context, AppRoutes.userMainMenuScreenRoute);
-    //   Get.offAllNamed(Paths.PRE_LOGIN_SCREEN_ROUTE);
-    // }
+    final destination = AuthController.i.user.value != null
+        ? AppRoutes.mainMenuScreenRoute
+        : AppRoutes.loginScreenRoute;
+    AppNavigation.navigateToRemovingAll(context, destination);
   }
 
   @override

@@ -1,175 +1,110 @@
-import 'dart:io';
-
-// import 'package:circular_countdown_timer/circular_countdown_timer.dart';
+import 'package:dio/dio.dart';
+import 'package:ezhandy_user/core/network/api_helper.dart';
+import 'package:ezhandy_user/core/storage/session_storage.dart';
+import 'package:ezhandy_user/module/auth/data/auth_repository.dart';
+import 'package:ezhandy_user/module/auth/model/user_model.dart';
+import 'package:ezhandy_user/utils/app_dialogs.dart';
+import 'package:ezhandy_user/utils/app_loader.dart';
+import 'package:ezhandy_user/utils/app_strings.dart';
+import 'package:ezhandy_user/utils/asset_path.dart';
+import 'package:ezhandy_user/utils/routes/app_navigation.dart';
+import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// import 'package:ezhandy_user/module/auth/AppUser/model/app_user.dart';
-// import 'package:ezhandy_user/module/auth/create_new_password/data/repository/create_new_password_repository.dart';
-// import 'package:ezhandy_user/module/auth/forgot_password/data/repository/forgot_password_repository.dart';
-// import 'package:ezhandy_user/module/auth/horse_profile/data/repository/create_post_repository.dart';
-// import 'package:ezhandy_user/module/auth/horse_profile/data/repository/get_horse_profile_repository.dart';
-// import 'package:ezhandy_user/module/auth/horse_profile/model/horse_model.dart';
-// import 'package:ezhandy_user/module/auth/login/data/repository/sign_in_repository.dart';
-// import 'package:ezhandy_user/module/auth/pre_login/data/social_login_repository.dart';
-// import 'package:ezhandy_user/module/auth/profile/data/repository/create_profile_repository.dart';
-// import 'package:ezhandy_user/module/auth/signup/data/repository/sign_up_repository.dart';
-// import 'package:ezhandy_user/module/auth/verification/data/repository/resend_code_repository.dart';
-// import 'package:ezhandy_user/module/auth/verification/data/repository/verification_repository.dart';
-// import 'package:ezhandy_user/module/core/home/main_menu/data/repository/logout_repository.dart';
-// import 'package:ezhandy_user/module/core/settings/data/repository/delete_account_repository.dart';
-// import 'package:ezhandy_user/module/core/settings/data/repository/get_content_repository.dart';
-// import 'package:ezhandy_user/module/core/settings/data/repository/notification_repository.dart';
-// import 'package:ezhandy_user/module/core/settings/model/content_model.dart';
 
 class AuthController extends GetxController {
   static AuthController get i => Get.find();
 
-  // var appUser = AppUser().obs;
-  // Rx<CountDownController> countDownController = CountDownController().obs;
-  // RxList<HorseModelData?> horseList = RxList<HorseModelData?>();
-  // Rx<HorseModelData> horseDetail = HorseModelData().obs;
-  // Rx<ContentModelData> contentDetail = ContentModelData().obs;
+  final AuthRepository _authRepository = AuthRepository();
 
-  // RxString role = ''.obs;
-  // RxString social = "".obs;
-  // RxBool isTimeComplete = false.obs;
-  RxBool isLoginSignUp = true.obs;
+  final Rxn<UserModel> user = Rxn<UserModel>();
+  final RxBool isLoginLoading = false.obs;
+  final RxBool isLogoutLoading = false.obs;
+  final RxBool isLoginSignUp = true.obs;
 
-  /////-------------------Get API Loader-----------------/////
-  // RxBool horseApi = false.obs;
+  Future<void> restoreSession() async {
+    final session = await SessionStorage.i.load();
+    if (session != null) {
+      user.value = session.user;
+    }
+  }
 
-  // void socialLoginFunction(
-  //   context, {
-  //   String? social_token,
-  //   String? social_type,
-  //   String? firstName,
-  //   String? lastName,
-  // }) {
-  //   SocialLoginRepository().socialLoginFunction(
-  //     context,
-  //     social_token: social_token,
-  //     social_type: social_type,
-  //     firstName: firstName,
-  //     lastName: lastName,
-  //   );
-  // }
+  Future<bool> signIn(
+    BuildContext context, {
+    required String email,
+    required String password,
+  }) async {
+    if (isLoginLoading.value) return false;
 
-  // void signIn(BuildContext context, {String? email, String? password}) {
-  //   SignInRepository().signInRepo(context, email: email, password: password);
-  // }
+    isLoginLoading.value = true;
+    try {
+      final result = await _authRepository.login(
+        email: email.trim(),
+        password: password,
+      );
 
-  // void signUp(BuildContext context, {String? email, String? password, String? confirmPassword}) {
-  //   SignUpRepository().signUpRepo(context, email: email, password: password, confirmPassword: confirmPassword);
-  // }
+      await SessionStorage.i.save(token: result.token, user: result.user);
+      user.value = result.user;
+      isLoginSignUp.value = true;
 
-  // void forgotPassword(BuildContext context, {String? email}) {
-  //   ForgotPasswordRepository().forgotPasswordRepo(context, email: email);
-  // }
+      if (context.mounted) {
+        AppNavigation.navigateToRemovingAll(
+          context,
+          AppRoutes.mainMenuScreenRoute,
+        );
+      }
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isLoginLoading.value = false;
+    }
+  }
 
-  // void verifyUser({
-  //   String? email,
-  //   String? password,
-  //   String? type,
-  //   String? code,
-  //   BuildContext? context,
-  // }) {
-  //   VerificationRepository().verifyUserRepo(context, email: email, password: password, code: code, type: type);
-  // }
+  void showLogoutConfirmation(BuildContext context) {
+    AppDialogs.showSuccessDialog(
+      context,
+      description: AppStrings.confirmationDialogLogoutDescription,
+      title: AppStrings.logout,
+      image: AssetPath.alertIcon,
+      isDoneShow: false,
+      btnTxt1: AppStrings.no,
+      onTap1: () => AppNavigation.navigatorPop(context),
+      btnTxt2: AppStrings.yes,
+      onTap2: () {
+        AppNavigation.navigatorPop(context);
+        logout(context);
+      },
+    );
+  }
 
-  // void resendCode({String? email, String? type}) {
-  //   ResendCodeRepository().resendCodeRepo(email: email, type: type);
-  // }
+  Future<void> logout(BuildContext context) async {
+    if (isLogoutLoading.value) return;
 
-  // void createNewPassword(context, {String? email, String? pass, String? confirmpass}) {
-  //   CreateNewPasswordRepository().createNewPasswordRepo(context, email: email, pass: pass, confirmpass: confirmpass);
-  // }
+    isLogoutLoading.value = true;
+    AppLoader.show();
+    try {
+      await _authRepository.logout();
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      await SessionStorage.i.clear();
+      user.value = null;
+      isLogoutLoading.value = false;
+      AppLoader.hide();
 
-  // void createProfile({
-  //   String? firstName,
-  //   String? lastName,
-  //   // String? gender,
-  //   String? dob,
-  //   String? address,
-  //   String? city,
-  //   String? state,
-  //   String? country,
-  //   String? about,
-  //   File? profile_image,
-  //   bool? is_edit,
-  //   BuildContext? context,
-  // }) {
-  //   CreateProfileRepository().createProfileRepo(context,
-  //       firstName: firstName,
-  //       lastName: lastName,
-  //       about: about,
-  //       address: address,
-  //       city: city,
-  //       country: country,
-  //       dob: dob,
-  //       // gender: gender,
-  //       profile_image: profile_image,
-  //       state: state,
-  //       is_edit: is_edit);
-  // }
-
-  // void createHorseProfile(
-  //   dynamic context, {
-  //   int? horseId,
-  //   dynamic index,
-  //   String? horseName,
-  //   String? registrationNumber,
-  //   String? height,
-  //   String? weight,
-  //   String? dob,
-  //   String? feed,
-  //   String? maintenanceSupplements,
-  //   // String? scheduledTime,
-  //   // String? scheduledDate,
-  //   // String? type,
-  //   // String? volume,
-  //   List<dynamic>? performanceSupplements,
-  //   List<HorseModelDataHorseImages>? media,
-  //   List<int>? deletedMediaList,
-  //   List<int?>? deletedperformanceSupplementsIdsList,
-  // }) {
-  //   CreateHorseProfileRepository().createHorseProfileRepo(
-  //     context,
-  //     index: index,
-  //     dob: dob,
-  //     deletedMediaList: deletedMediaList,
-  //     feed: feed,
-  //     height: height,
-  //     horseId: horseId,
-  //     horseName: horseName,
-  //     maintenanceSupplements: maintenanceSupplements,
-  //     media: media,
-  //     registrationNumber: registrationNumber,
-  //     performanceSupplements: performanceSupplements,
-  //     performanceSupplementsIds: deletedperformanceSupplementsIdsList,
-  //     // scheduledTime: scheduledTime,
-  //     // type: type,
-  //     // volume: volume,
-  //     weight: weight,
-  //   );
-  // }
-
-  // void horseProfile() {
-  //   GetHorseProfileRepository().horseProfileRepo();
-  // }
-
-  // void getContent() {
-  //   GetContentRepository().getContentRepo();
-  // }
-
-  // void pushNotification() {
-  //   NotificationRepository().notificationRepo();
-  // }
-
-  // void deleteAccount(context) {
-  //   DeleteAccountRepository().deleteAccountRepo(context);
-  // }
-
-  // void logout(context) {
-  //   LogoutRepository().logoutRepo(context);
-  // }
+      if (context.mounted) {
+        AppNavigation.navigateToRemovingAll(
+          context,
+          AppRoutes.loginScreenRoute,
+        );
+      }
+    }
+  }
 }

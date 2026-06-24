@@ -1,4 +1,6 @@
 import 'package:bot_toast/bot_toast.dart';
+import 'package:ezhandy_user/core/network/api_client.dart';
+import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:ezhandy_user/utils/routes/app_router.dart';
@@ -7,35 +9,27 @@ import 'package:ezhandy_user/utils/app_size.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/constant.dart';
 import 'package:ezhandy_user/utils/keyboard_dismiss_overser.dart';
-import 'package:ezhandy_user/utils/routes/app_router.dart';
 import 'package:ezhandy_user/utils/scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 Future<void> main() async {
-  // HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
-  //  Stripe.publishableKey = AppConstant.STRIPE_KEY;
-  // await Firebase.initializeApp();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      // Set the color of the enter key
+  Get.put(ApiClient(), permanent: true);
+  Get.put(SessionStorage(), permanent: true);
+  await SessionStorage.i.init();
+  Get.put(AuthController(), permanent: true);
+  Get.put(HomeController(), permanent: true);
+  await AuthController.i.restoreSession();
 
-      // systemNavigationBarColor:
-      //     AppColors.gradient_3, // Change this color to whatever you want
-      ));
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-      .then((_) {
-    runApp(MyApp());
-  });
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle());
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final AuthController auth_controller = Get.put(AuthController());
-  final HomeController core_controller = Get.put(HomeController());
-
   MyApp({super.key});
   static const MaterialColor customColor = MaterialColor(
     0xFFC52D83,

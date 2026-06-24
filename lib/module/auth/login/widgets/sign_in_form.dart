@@ -1,6 +1,4 @@
 // ignore_for_file: must_be_immutable
-import 'dart:io';
-
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/auth/verification/routing_arguments/otp_verification_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
@@ -12,17 +10,16 @@ import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/utils/validator_extensions.dart';
-import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
 import 'package:ezhandy_user/widgets/switch/animated_switch.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
 import 'package:ezhandy_user/widgets/text_widgets/rich_text_widget.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
-import 'package:ezhandy_user/widgets/toast_dialogs_sheet/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 class SignInForm extends StatefulWidget {
   bool keyboardVisible;
@@ -230,32 +227,26 @@ class _SignInFormState extends State<SignInForm> {
   }
 
   Widget _signInButton({required BuildContext context}) {
-    return CustomButton(
-      text: AppStrings.signIn,
-      onclick: () {
-        if (signInKey.currentState!.validate()) {
-          ToastMessage(toastmsg: AppStrings.signIn);
-          // if (AuthController.i.role.value == RoleType.single.name || AuthController.i.role.value == RoleType.committed.name) {
-          // AppNavigation.navigateToRemovingAll(context, AppRoutes.userMainMenuScreenRoute);
-          // } else {
-          AuthController.i.isLoginSignUp.value = true;
+    return Obx(
+      () => CustomButton(
+        text: AppStrings.signIn,
+        isLoading: AuthController.i.isLoginLoading.value,
+        onclick: () async {
+          FocusScope.of(context).unfocus();
+          if (!signInKey.currentState!.validate()) return;
 
-          AppNavigation.navigateToRemovingAll(
-              context, AppRoutes.mainMenuScreenRoute);
-          // }
-          emailController.clear();
-          passwordController.clear();
-          // AppDialogs.showToast(message: AppStrings.loginSuccessfully);
-          // }
-          // validate_email(emailController.text);
-          // if (error_email == "") {
-          //   AuthController.i.signIn(email: emailController.text);
-          //   // Get.offNamed(Paths.OTP_VERIFICATION_SCREEN_ROUTE);
-          //   AppConstant.is_phone = false;
-        }
+          final success = await AuthController.i.signIn(
+            context,
+            email: emailController.text,
+            password: passwordController.text,
+          );
 
-        FocusScope.of(context).unfocus();
-      },
+          if (success) {
+            emailController.clear();
+            passwordController.clear();
+          }
+        },
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/auth/content/routing_arguments/content_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
@@ -331,22 +332,7 @@ class _MenuState extends State<Menu> {
   }
 
   void _signOutTap() {
-    // AppNavigation.navigatorPop(context);
-    AppDialogs.showSuccessDialog(context,
-        description: AppStrings.confirmationDialogLogoutDescription,
-        title: AppStrings.logout,
-        image: AssetPath.alertIcon,
-        isDoneShow: false,
-        btnTxt1: AppStrings.no,
-        onTap1: () {
-          AppNavigation.navigatorPop(context);
-        },
-        btnTxt2: AppStrings.yes,
-        onTap2: () {
-          AppNavigation.navigateToRemovingAll(
-    // AppNavigation.navigatorPop(context);
-              context, AppRoutes.loginScreenRoute);
-        });
+    AuthController.i.showLogoutConfirmation(context);
   }
 
   void _deleteAccountTap() {

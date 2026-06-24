@@ -13,7 +13,7 @@ class CustomButton extends StatelessWidget {
   final double? fontSize,borderRadius ,height, width, iconsize;
   final Function()? onclick;
   FontWeight? fontWeight;
-  bool? is_spaceBetween, is_shadow;
+  bool? is_spaceBetween, is_shadow, isLoading;
   List<BoxShadow>? boxShadow;
   // bool isGradient;
   EdgeInsetsGeometry? padding;
@@ -35,6 +35,7 @@ class CustomButton extends StatelessWidget {
       this.iconsize,
       this.textcolor,
       this.onclick,
+      this.isLoading = false,
       // this.isGradient = true,
       this.is_shadow = true,
       this.is_spaceBetween = true})
@@ -43,7 +44,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onclick,
+      onTap: isLoading == true ? null : onclick,
       child: Container(
         width: width ?? 1.sw,
         height: height ?? 0.06.sh,
@@ -62,7 +63,18 @@ class CustomButton extends StatelessWidget {
           //     AppShadows.shadow1
           // : AppShadows.shadow1
         ),
-        child: Row(
+        child: isLoading == true
+            ? Center(
+                child: SizedBox(
+                  height: 22.sp,
+                  width: 22.sp,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: textcolor ?? AppColors.white,
+                  ),
+                ),
+              )
+            : Row(
             mainAxisAlignment: is_spaceBetween == true
                 ? MainAxisAlignment.spaceBetween
                 : MainAxisAlignment.center,
