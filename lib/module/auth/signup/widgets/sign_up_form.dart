@@ -82,154 +82,138 @@ class _SignUpFormState extends State<SignUpForm> {
   // bool switchOff = false;
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppPadding.padding16,
       ),
-      child: Column(
-        children: [
-          // Non-scrollable content (e.g., logo)
-          AppLogo(scale: 5.sp),
-          15.verticalSpace,
-          createAccountTextWidget(),
-          5.verticalSpace,
-          CustomText(
-              is_alignLeft: false, text: AppStrings.createYouAccountText),
-          25.verticalSpace,
-          // Scrollable content starts here
-          Expanded(
-            child: SingleChildScrollView(
-              child: Form(
-                key: signUpKey,
-                child: Column(
-                  children: [
-                    CustomText(text: AppStrings.fullName + "*"),
-                    10.verticalSpace,
-                    _fullNameTextField(),
-                    SizedBox(height: 0.02.sh),
-                    CustomText(text: AppStrings.emailAddress + "*"),
-                    10.verticalSpace,
-                    _emailTextField(),
-                    SizedBox(height: 0.02.sh),
-                    CustomText(
-                        text: AppStrings.phoneNumber + AppStrings.optional),
-                    10.verticalSpace,
-                    _phoneNumberTextField(),
-                    SizedBox(height: 0.02.sh),
-                    CustomText(text: AppStrings.language + "*"),
-                    10.verticalSpace,
-                    _languageTextField(),
-                    SizedBox(height: 0.02.sh),
-                    CustomText(text: AppStrings.gender + "*"),
-                    10.verticalSpace,
-                    genderDropDown(),
-                    SizedBox(height: 0.02.sh),
-                    CustomText(text: AppStrings.password + "*"),
-                    10.verticalSpace,
-                    _passwordTextField(),
-                    SizedBox(height: 0.02.sh),
-                    CustomText(text: AppStrings.confirmPassword + "*"),
-                    10.verticalSpace,
-                    _confirmPasswordTextField(),
-                    SizedBox(height: 0.02.sh),
-                    CustomText(
-                      text: "Certifications Details",
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.sp,
-                    ),
-                    20.verticalSpace,
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: EdgeInsets.only(bottom: bottomInset + 25.h),
+        child: Form(
+          key: signUpKey,
+          child: Column(
+            children: [
+              AppLogo(scale: 5.sp),
+              15.verticalSpace,
+              createAccountTextWidget(),
+              5.verticalSpace,
+              CustomText(
+                  is_alignLeft: false, text: AppStrings.createYouAccountText),
+              25.verticalSpace,
+              CustomText(text: AppStrings.fullName + "*"),
+              10.verticalSpace,
+              _fullNameTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.emailAddress + "*"),
+              10.verticalSpace,
+              _emailTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.phoneNumber + AppStrings.optional),
+              10.verticalSpace,
+              _phoneNumberTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.language + "*"),
+              10.verticalSpace,
+              _languageTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.gender + "*"),
+              10.verticalSpace,
+              genderDropDown(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.password + "*"),
+              10.verticalSpace,
+              _passwordTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.confirmPassword + "*"),
+              10.verticalSpace,
+              _confirmPasswordTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(
+                text: "Certifications Details",
+                fontWeight: FontWeight.bold,
+                fontSize: 18.sp,
+              ),
+              20.verticalSpace,
 
-                    /// 📜 Dynamic List of Certification Forms
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: certificates.length,
-                      itemBuilder: (context, index) {
-                        var item = certificates[index];
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: CustomText(
-                                      text: "${AppStrings.insituteName} *"),
-                                ),
-                                if (certificates.length > 1 && index != 0)
-                                  GestureDetector(
-                                    onTap: () => removeCertificate(index),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Image.asset(
-                                          AssetPath.deleteRedIcon,
-                                          scale: 3,
-                                        ),
-                                        5.horizontalSpace,
-                                        CustomText(
-                                          text: AppStrings.delete,
-                                          color: AppColors.pinkDark,
-                                        )
-                                      ],
-                                    ),
-                                  ),
-
-                                // IconButton(
-                                //   icon: const Icon(Icons.delete,
-                                //       color: Colors.red),
-                                //   onPressed: () => removeCertificate(index),
-                                // ),
-                              ],
-                            ),
-                            10.verticalSpace,
-                            _instituteNameTextField(item["institute"]!),
-                            15.verticalSpace,
-                            CustomText(
-                                text: "${AppStrings.certificateTitle} *"),
-                            10.verticalSpace,
-                            _degreeTitleTextField(item["title"]!),
-                            15.verticalSpace,
-                            CustomText(
-                                text: "${AppStrings.certificatePicture} *"),
-                            10.verticalSpace,
-                            _uploadTextField(item["picture"]!),
-                            SizedBox(height: 0.03.sh),
-                            Divider(thickness: 1, color: AppColors.greyBorder),
-                            SizedBox(height: 0.02.sh),
-                          ],
-                        );
-                      },
-                    ),
-
-                    /// ➕ Add More Button
-                    GestureDetector(
-                      onTap: addCertificate,
-                      child: Row(
+              /// 📜 Dynamic List of Certification Forms
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: certificates.length,
+                itemBuilder: (context, index) {
+                  var item = certificates[index];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          const Icon(Icons.add_circle, color: AppColors.orange),
-                          5.horizontalSpace,
-                          CustomText(
-                            text: AppStrings.addMore,
-                            color: AppColors.orange,
+                          Expanded(
+                            child: CustomText(
+                                text: "${AppStrings.insituteName} *"),
                           ),
-                          5.horizontalSpace,
-                          const Expanded(child: Divider(thickness: 2)),
+                          if (certificates.length > 1 && index != 0)
+                            GestureDetector(
+                              onTap: () => removeCertificate(index),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Image.asset(
+                                    AssetPath.deleteRedIcon,
+                                    scale: 3,
+                                  ),
+                                  5.horizontalSpace,
+                                  CustomText(
+                                    text: AppStrings.delete,
+                                    color: AppColors.pinkDark,
+                                  )
+                                ],
+                              ),
+                            ),
                         ],
                       ),
+                      10.verticalSpace,
+                      _instituteNameTextField(item["institute"]!),
+                      15.verticalSpace,
+                      CustomText(text: "${AppStrings.certificateTitle} *"),
+                      10.verticalSpace,
+                      _degreeTitleTextField(item["title"]!),
+                      15.verticalSpace,
+                      CustomText(text: "${AppStrings.certificatePicture} *"),
+                      10.verticalSpace,
+                      _uploadTextField(item["picture"]!),
+                      SizedBox(height: 0.03.sh),
+                      Divider(thickness: 1, color: AppColors.greyBorder),
+                      SizedBox(height: 0.02.sh),
+                    ],
+                  );
+                },
+              ),
+
+              /// ➕ Add More Button
+              GestureDetector(
+                onTap: addCertificate,
+                child: Row(
+                  children: [
+                    const Icon(Icons.add_circle, color: AppColors.orange),
+                    5.horizontalSpace,
+                    CustomText(
+                      text: AppStrings.addMore,
+                      color: AppColors.orange,
                     ),
-                    SizedBox(height: 0.02.sh),
-                    _signUpButton(context: context),
-                    SizedBox(height: 0.02.sh),
+                    5.horizontalSpace,
+                    const Expanded(child: Divider(thickness: 2)),
                   ],
                 ),
               ),
-            ),
+              SizedBox(height: 0.02.sh),
+              _signUpButton(context: context),
+              SizedBox(height: 0.02.sh),
+              if (!widget.keyboardVisible) alreadyHaveAnAccountWidget(),
+            ],
           ),
-          Visibility(
-              visible: !widget.keyboardVisible,
-              child: alreadyHaveAnAccountWidget()),
-          Visibility(visible: !widget.keyboardVisible, child: 25.verticalSpace)
-        ],
+        ),
       ),
     );
   }
