@@ -249,14 +249,19 @@ class AppDialogs {
   }
 
   static Future showCommunityCommentsDialog(
-    context,
-  ) {
+    context, {
+    required String postId,
+    int reactionTotal = 0,
+  }) {
     return showDialog(
         barrierDismissible: false, // Prevent dismiss on tap outside
         barrierColor: AppColors.orange.withOpacity(0.8),
         context: context,
         builder: (context) {
-          return CommunityCommentsDialog();
+          return CommunityCommentsDialog(
+            postId: postId,
+            reactionTotal: reactionTotal,
+          );
         });
   }
   static Future showCommunityLikeDialog(

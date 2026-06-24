@@ -167,6 +167,27 @@ class CommunityPostModel {
     );
   }
 
+  CommunityPostModel copyWith({int? commentCount}) {
+    return CommunityPostModel(
+      id: id,
+      userId: userId,
+      description: description,
+      image: image,
+      video: video,
+      productcategoryId: productcategoryId,
+      serviceTypeId: serviceTypeId,
+      serviceType: serviceType,
+      category: category,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isOwner: isOwner,
+      user: user,
+      reactionCounts: reactionCounts,
+      myReaction: myReaction,
+      commentCount: commentCount ?? this.commentCount,
+    );
+  }
+
   static int? _readNullableInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;

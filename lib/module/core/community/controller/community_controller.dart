@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/community/data/community_repository.dart';
+import 'package:ezhandy_user/module/core/community/model/community_comment_model.dart';
 import 'package:ezhandy_user/module/core/community/model/community_post_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_loader.dart';
@@ -12,8 +13,11 @@ class CommunityController extends GetxController {
   final CommunityRepository _repository = CommunityRepository();
 
   final RxList<CommunityPostModel> posts = <CommunityPostModel>[].obs;
+  final RxList<CommunityCommentModel> comments = <CommunityCommentModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxBool isLoading = false.obs;
+  final RxBool isCommentsLoading = false.obs;
+  final RxBool isAddingComment = false.obs;
 
   List<CommunityPostModel> get filteredPosts {
     final query = searchQuery.value.trim().toLowerCase();
@@ -35,6 +39,58 @@ class CommunityController extends GetxController {
     } catch (e) {
       AppDialogs.showToast(message: e.toString());
     }
+  }
+
+  Future<void> fetchComments(String postId) async {
+    isCommentsLoading.value = true;
+    comments.clear();
+    try {
+      comments.assignAll(await _repository.getComments(postId));
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isCommentsLoading.value = false;
+    }
+  }
+
+  void clearComments() => comments.clear();
+
+  Future<bool> addComment({
+    required String postId,
+    required String text,
+  }) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return false;
+    if (isAddingComment.value) return false;
+
+    isAddingComment.value = true;
+    try {
+      final comment = await _repository.addComment(
+        postId: postId,
+        text: trimmed,
+      );
+      comments.add(comment);
+      _incrementPostCommentCount(postId);
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isAddingComment.value = false;
+    }
+  }
+
+  void _incrementPostCommentCount(String postId) {
+    final index = posts.indexWhere((post) => post.id == postId);
+    if (index == -1) return;
+
+    final post = posts[index];
+    posts[index] = post.copyWith(commentCount: post.commentCount + 1);
   }
 
   Future<void> fetchPosts() async {

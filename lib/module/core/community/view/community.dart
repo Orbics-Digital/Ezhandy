@@ -109,7 +109,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         image: post.user?.profileImage,
                         postImage: post.image,
                         onTapComment: () {
-                          AppDialogs.showCommunityCommentsDialog(context);
+                          if (post.id == null) return;
+                          AppDialogs.showCommunityCommentsDialog(
+                            context,
+                            postId: post.id!,
+                            reactionTotal: post.reactionCounts.total,
+                          );
                         },
                         ontapLike: () {
                           AppDialogs.showCommunityLikeDialog(context);
