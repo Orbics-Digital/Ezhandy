@@ -155,28 +155,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
   //   );
   // }
 
-  ProfilePictureWidget profileWidget() {
+  ProfilePictureWidget profileWidget(String? profileImageUrl) {
     return ProfilePictureWidget(
       size: 60.sp,
-      // showUpload: widget.type == ProfileType.edit.name,
-      // upload_icon:
-      //     args == AppStrings.CREATE_PROFILE ? false : true,
       is_pickImage: false,
-
-      // is_pickImage:
-      //     args == AppStrings.CREATE_PROFILE ? true : false,
-      // setFile: _setFile,
-      // profileImageUrl:
-      //     AuthController.i.app dropShipper.value.data!.profileImage,
-      // profileImage: _profileImage,
-      assetPath:
-          // args == AppStrings.CREATE_PROFILE
-          //     ? null
-          // :
-          AssetPath.tempImage1,
-      // borderWidth:
-      // args == AppStrings.CREATE_PROFILE ? null :
-      // 5,
+      profileImageUrl: profileImageUrl,
+      assetPath: AssetPath.tempImage1,
     );
   }
 
@@ -185,7 +169,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
       // mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        profileWidget(),
+        Obx(
+          () => profileWidget(AuthController.i.user.value?.profileImage),
+        ),
         10.horizontalSpace,
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
