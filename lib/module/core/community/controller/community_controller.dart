@@ -18,6 +18,7 @@ class CommunityController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isCommentsLoading = false.obs;
   final RxBool isAddingComment = false.obs;
+  final RxnString reactingPostId = RxnString();
 
   List<CommunityPostModel> get filteredPosts {
     final query = searchQuery.value.trim().toLowerCase();
@@ -91,6 +92,80 @@ class CommunityController extends GetxController {
 
     final post = posts[index];
     posts[index] = post.copyWith(commentCount: post.commentCount + 1);
+  }
+
+  Future<void> reactToPost({
+    required String postId,
+    required String reactionType,
+  }) async {
+    if (reactingPostId.value == postId) return;
+
+    final index = posts.indexWhere((post) => post.id == postId);
+    if (index == -1) return;
+
+    reactingPostId.value = postId;
+    try {
+      final data = await _repository.addReaction(
+        postId: postId,
+        reactionType: reactionType,
+      );
+
+      final post = posts[index];
+      final previousReaction = post.myReaction;
+      final countsFromApi = _parseReactionCounts(data);
+      final togglingOff = previousReaction == reactionType;
+
+      late final String? updatedMyReaction;
+      late final bool clearMyReaction;
+
+      if (data.containsKey('myReaction')) {
+        updatedMyReaction = data['myReaction']?.toString();
+        clearMyReaction = data['myReaction'] == null;
+      } else if (togglingOff) {
+        updatedMyReaction = null;
+        clearMyReaction = true;
+      } else {
+        updatedMyReaction = reactionType;
+        clearMyReaction = false;
+      }
+
+      posts[index] = post.copyWith(
+        reactionCounts: countsFromApi ??
+            post.reactionCounts.applyReaction(
+              previousReaction: previousReaction,
+              newReaction: clearMyReaction
+                  ? (previousReaction ?? reactionType)
+                  : reactionType,
+            ),
+        myReaction: updatedMyReaction,
+        clearMyReaction: clearMyReaction,
+      );
+      posts.refresh();
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      reactingPostId.value = null;
+    }
+  }
+
+  CommunityReactionCountsModel? _parseReactionCounts(Map<String, dynamic> data) {
+    final direct = data['reactionCounts'];
+    if (direct is Map) {
+      return CommunityReactionCountsModel.fromJson(
+        Map<String, dynamic>.from(direct),
+      );
+    }
+
+    final post = data['post'];
+    if (post is Map && post['reactionCounts'] is Map) {
+      return CommunityReactionCountsModel.fromJson(
+        Map<String, dynamic>.from(post['reactionCounts'] as Map),
+      );
+    }
+
+    return null;
   }
 
   Future<void> fetchPosts() async {

@@ -11,6 +11,8 @@ class ApiEndpoints {
   static String notificationRead(String id) => 'notifications/$id/read';
   static String postComments(String postId) =>
       'community/posts/$postId/comments';
+  static String postReactions(String postId) =>
+      'community/posts/$postId/reactions';
   static String quickProvider(String providerId) =>
       'provider-services/quick-provider/$providerId';
 }

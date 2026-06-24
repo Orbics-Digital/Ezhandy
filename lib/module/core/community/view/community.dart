@@ -97,6 +97,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     itemBuilder: (context, index) {
                       final post = items[index];
                       return singleWidget(
+                        postId: post.id,
+                        myReaction: post.myReaction,
                         commentCount: Constants.formatFacebookCount(
                           post.commentCount,
                         ),
@@ -114,6 +116,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             context,
                             postId: post.id!,
                             reactionTotal: post.reactionCounts.total,
+                          );
+                        },
+                        onReactionSelected: (reactionType) {
+                          if (post.id == null) return;
+                          _controller.reactToPost(
+                            postId: post.id!,
+                            reactionType: reactionType,
                           );
                         },
                         ontapLike: () {
@@ -180,6 +189,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Widget singleWidget({
+    String? postId,
+    String? myReaction,
     day,
     name,
     image,
@@ -187,6 +198,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     des,
     ontapLike,
     onTapComment,
+    void Function(String reactionType)? onReactionSelected,
     likeCount,
     commentCount,
   }) {
@@ -315,7 +327,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
             //     ],
             //   ),
             // ),
-            FacebookReactionButton(),
+            FacebookReactionButton(
+              communityMode: true,
+              selectedReactionType: myReaction,
+              onReactionSelected: onReactionSelected,
+            ),
 
             const Spacer(),
             GestureDetector(

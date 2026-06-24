@@ -91,6 +91,41 @@ class CommunityReactionCountsModel {
     if (value is int) return value;
     return int.tryParse(value.toString()) ?? 0;
   }
+
+  CommunityReactionCountsModel applyReaction({
+    required String? previousReaction,
+    required String newReaction,
+  }) {
+    var thumbCount = thumb;
+    var heartCount = heart;
+    var smileCount = smile;
+
+    void adjust(String? type, int delta) {
+      if (type == null || delta == 0) return;
+      switch (type) {
+        case 'thumb':
+          thumbCount = (thumbCount + delta).clamp(0, 999999);
+        case 'heart':
+          heartCount = (heartCount + delta).clamp(0, 999999);
+        case 'smile':
+          smileCount = (smileCount + delta).clamp(0, 999999);
+      }
+    }
+
+    if (previousReaction == newReaction) {
+      adjust(newReaction, -1);
+    } else {
+      adjust(previousReaction, -1);
+      adjust(newReaction, 1);
+    }
+
+    return CommunityReactionCountsModel(
+      thumb: thumbCount,
+      heart: heartCount,
+      smile: smileCount,
+      total: thumbCount + heartCount + smileCount,
+    );
+  }
 }
 
 class CommunityPostModel {
@@ -167,7 +202,12 @@ class CommunityPostModel {
     );
   }
 
-  CommunityPostModel copyWith({int? commentCount}) {
+  CommunityPostModel copyWith({
+    int? commentCount,
+    CommunityReactionCountsModel? reactionCounts,
+    String? myReaction,
+    bool clearMyReaction = false,
+  }) {
     return CommunityPostModel(
       id: id,
       userId: userId,
@@ -182,8 +222,8 @@ class CommunityPostModel {
       updatedAt: updatedAt,
       isOwner: isOwner,
       user: user,
-      reactionCounts: reactionCounts,
-      myReaction: myReaction,
+      reactionCounts: reactionCounts ?? this.reactionCounts,
+      myReaction: clearMyReaction ? null : (myReaction ?? this.myReaction),
       commentCount: commentCount ?? this.commentCount,
     );
   }

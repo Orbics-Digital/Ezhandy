@@ -2,8 +2,18 @@ import 'package:ezhandy_user/module/core/community/model/reaction_model.dart';
 import 'package:flutter/material.dart';
 
 class FacebookReactionButton extends StatefulWidget {
-  void Function()? onTap;
-   FacebookReactionButton({this.onTap ,super.key});
+  final void Function()? onTap;
+  final void Function(String reactionType)? onReactionSelected;
+  final String? selectedReactionType;
+  final bool communityMode;
+
+  FacebookReactionButton({
+    this.onTap,
+    this.onReactionSelected,
+    this.selectedReactionType,
+    this.communityMode = false,
+    super.key,
+  });
 
   @override
   State<FacebookReactionButton> createState() =>
@@ -24,16 +34,45 @@ class _FacebookReactionButtonState extends State<FacebookReactionButton> {
     Reaction("Angry", Icons.sentiment_very_dissatisfied, Colors.redAccent),
   ];
 
+  List<Reaction> get _availableReactions =>
+      widget.communityMode ? CommunityReactionTypes.reactions : reactions;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedReaction =
+        CommunityReactionTypes.fromType(widget.selectedReactionType);
+  }
+
+  @override
+  void didUpdateWidget(covariant FacebookReactionButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedReactionType != oldWidget.selectedReactionType) {
+      selectedReaction =
+          CommunityReactionTypes.fromType(widget.selectedReactionType);
+    }
+  }
+
+  void _selectReaction(Reaction reaction) {
+    setState(() {
+      selectedReaction = reaction;
+    });
+    overlayEntry?.remove();
+    overlayEntry = null;
+
+    if (reaction.type != null) {
+      widget.onReactionSelected?.call(reaction.type!);
+    }
+  }
+
   void showReactions() {
-    final renderBox =
-        _key.currentContext!.findRenderObject() as RenderBox;
+    final renderBox = _key.currentContext!.findRenderObject() as RenderBox;
     final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
 
     overlayEntry = OverlayEntry(
       builder: (_) => Positioned(
         left: position.dx - 20,
-        top: position.dy - 55, // 👈 ABOVE button
+        top: position.dy - 55,
         child: Material(
           color: Colors.transparent,
           child: Container(
@@ -50,14 +89,9 @@ class _FacebookReactionButtonState extends State<FacebookReactionButton> {
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: reactions.map((reaction) {
+              children: _availableReactions.map((reaction) {
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedReaction = reaction;
-                    });
-                    overlayEntry?.remove();
-                  },
+                  onTap: () => _selectReaction(reaction),
                   child: Padding(
                     padding: const EdgeInsets.all(6),
                     child: Icon(
@@ -76,27 +110,37 @@ class _FacebookReactionButtonState extends State<FacebookReactionButton> {
 
     Overlay.of(context).insert(overlayEntry!);
   }
-@override
+
+  @override
   void dispose() {
     hideReactions();
-    // TODO: implement dispose
     super.dispose();
   }
-    void hideReactions() {
+
+  void hideReactions() {
     overlayEntry?.remove();
     overlayEntry = null;
   }
+
   @override
   Widget build(BuildContext context) {
+    final usesCommunityApi = widget.onReactionSelected != null;
+
     return GestureDetector(
       key: _key,
-      onTap:widget.onTap?? () {
-        setState(() {
-          selectedReaction =
-              selectedReaction == null ? reactions[0] : null;
-        });
-      },
-      onLongPress:widget.onTap?? showReactions,
+      onTap: usesCommunityApi
+          ? () {
+              final reaction = selectedReaction ?? _availableReactions.first;
+              _selectReaction(reaction);
+            }
+          : widget.onTap ??
+              () {
+                setState(() {
+                  selectedReaction =
+                      selectedReaction == null ? reactions[0] : null;
+                });
+              },
+      onLongPress: usesCommunityApi ? showReactions : widget.onTap ?? showReactions,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

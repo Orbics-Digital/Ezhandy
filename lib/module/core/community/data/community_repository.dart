@@ -40,4 +40,16 @@ class CommunityRepository {
       ApiHelper.dataObject(response.data),
     );
   }
+
+  Future<Map<String, dynamic>> addReaction({
+    required String postId,
+    required String reactionType,
+  }) async {
+    final response = await _client.dio.post(
+      ApiEndpoints.postReactions(postId),
+      data: {'reactionType': reactionType},
+    );
+
+    return ApiHelper.dataObject(response.data);
+  }
 }
