@@ -1,172 +1,200 @@
+import 'package:ezhandy_user/module/core/community/controller/community_controller.dart';
+import 'package:ezhandy_user/module/core/community/model/reaction_model.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
-import 'package:ezhandy_user/utils/routes/app_navigation.dart';
+import 'package:ezhandy_user/utils/constant.dart';
+import 'package:ezhandy_user/utils/display_helper.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/profile_widget/user_image_widget.dart';
 import 'package:ezhandy_user/widgets/toast_dialogs_sheet/custom_community_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
-import 'package:ezhandy_user/utils/asset_path.dart';
-import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
-import 'package:ezhandy_user/widgets/toast_dialogs_sheet/custom_dialoge.dart';
 
-// ignore: must_be_immutable
-class CommunityLikeDialog extends StatelessWidget {
-  CommunityLikeDialog({super.key});
+class CommunityLikeDialog extends StatefulWidget {
+  const CommunityLikeDialog({
+    super.key,
+    required this.postId,
+  });
+
+  final String postId;
+
+  @override
+  State<CommunityLikeDialog> createState() => _CommunityLikeDialogState();
+}
+
+class _CommunityLikeDialogState extends State<CommunityLikeDialog> {
+  final CommunityController _controller = Get.find<CommunityController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.fetchReactions(widget.postId);
+  }
+
+  @override
+  void dispose() {
+    _controller.clearReactions();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Sample data
-    final totalCount = "15K";
-    final likeCount = "200";
-    final loveCount = "400";
-    final hahaCount = "0";
-    final wowCount = "20";
-    final sadCount = "150";
-    final angryCount = "40";
-
     return CustomCommunityDialog(
-        title: "People Who Reacted",
-        child: Column(
-          // mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: 50,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    // All 15K
-                    _statItem(
-                      icon: null,
-                      label: "All $totalCount",
-                    ),
+      title: "People Who Reacted",
+      child: Obx(
+        () {
+          if (_controller.isReactionsLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.orange),
+            );
+          }
 
-                    // Divider
-                    _verticalDivider(),
+          final counts = _controller.reactionModalCounts.value;
+          final items = _controller.filteredPostReactions;
+          final selectedFilter = _controller.reactionFilter.value;
 
-                    // Like
-                    _statItem(
-                      icon: Icons.thumb_up,
-                      iconColor: Colors.blue,
-                      label: likeCount,
-                    ),
-
-                    _verticalDivider(),
-
-                    // Heart
-                    _statItem(
-                      icon: Icons.favorite,
-                      iconColor: Colors.red,
-                      label: loveCount,
-                    ),
-                    _verticalDivider(),
-
-                    // Haha
-                    _statItem(
-                      icon: Icons.emoji_emotions,
-                      iconColor: Colors.orange,
-                      label: hahaCount,
-                    ),
-                    _verticalDivider(),
-
-                    // Wow
-                    _statItem(
-                      icon: Icons.sentiment_satisfied,
-                      iconColor: Colors.amber,
-                      label: wowCount,
-                    ),
-                    _verticalDivider(),
-
-                    // Sad
-                    _statItem(
-                      icon: Icons.sentiment_dissatisfied,
-                      iconColor: Colors.blueGrey,
-                      label: sadCount,
-                    ),
-                    _verticalDivider(),
-
-                    // Angry
-                    _statItem(
-                        icon: Icons.sentiment_very_dissatisfied,
-                        iconColor: Colors.redAccent,
-                        label: angryCount),
-                  ],
+          return Column(
+            children: [
+              SizedBox(
+                height: 50,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _statItem(
+                        label: 'All ${Constants.formatFacebookCount(counts?.all ?? 0)}',
+                        isSelected: selectedFilter == 'all',
+                        onTap: () => _controller.setReactionFilter('all'),
+                      ),
+                      _verticalDivider(),
+                      _statItem(
+                        icon: Icons.thumb_up,
+                        iconColor: Colors.blue,
+                        label: Constants.formatFacebookCount(counts?.thumb ?? 0),
+                        isSelected: selectedFilter == CommunityReactionTypes.thumb,
+                        onTap: () =>
+                            _controller.setReactionFilter(CommunityReactionTypes.thumb),
+                      ),
+                      _verticalDivider(),
+                      _statItem(
+                        icon: Icons.favorite,
+                        iconColor: Colors.red,
+                        label: Constants.formatFacebookCount(counts?.heart ?? 0),
+                        isSelected: selectedFilter == CommunityReactionTypes.heart,
+                        onTap: () =>
+                            _controller.setReactionFilter(CommunityReactionTypes.heart),
+                      ),
+                      _verticalDivider(),
+                      _statItem(
+                        icon: Icons.emoji_emotions,
+                        iconColor: Colors.orange,
+                        label: Constants.formatFacebookCount(counts?.smile ?? 0),
+                        isSelected: selectedFilter == CommunityReactionTypes.smile,
+                        onTap: () =>
+                            _controller.setReactionFilter(CommunityReactionTypes.smile),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                padding: EdgeInsets.only(
-                    top: AppPadding.padding20, bottom: AppPadding.padding25),
-                shrinkWrap: true,
-                itemCount: 100,
-                itemBuilder: (context, index) {
-                  // final item = notifications[index];
-                  return Row(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            UserImageWidget(
-                                // image: image,
-                                size: 20.sp),
-                            Positioned(
-                                bottom: -5,
-                                left: 0,
-                                right: 0,
-                                child: Icon(
-                                  Icons.favorite,
-                                  color: Colors.red,
-                                  size: 18,
-                                ))
-                          ],
+              Expanded(
+                child: items.isEmpty
+                    ? const Center(
+                        child: EmptyMessage(
+                          message: AppStrings.noReactionsFound,
                         ),
-                        5.horizontalSpace,
+                      )
+                    : ListView.separated(
+                        padding: EdgeInsets.only(
+                          top: AppPadding.padding20,
+                          bottom: AppPadding.padding25,
+                        ),
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final reaction = items[index];
+                          final reactionUi = CommunityReactionTypes.fromType(
+                            reaction.reactionType,
+                          );
 
-                        Expanded(
-                          child: CustomText(
-                            text: AppStrings.dummyName,
-                          ),
-                        ),
-                        // CustomText(
-                        //   text: day,
-                        //   fontSize: 12.sp,
-                        // ),
-                      ]);
-                },
-                separatorBuilder: (context, index) {
-                  return Divider();
-                },
+                          return Row(
+                            children: [
+                              Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  UserImageWidget(
+                                    image: reaction.user?.profileImage,
+                                    size: 20.sp,
+                                  ),
+                                  if (reactionUi != null)
+                                    Positioned(
+                                      bottom: -5,
+                                      left: 0,
+                                      right: 0,
+                                      child: Icon(
+                                        reactionUi.icon,
+                                        color: reactionUi.color,
+                                        size: 18,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              5.horizontalSpace,
+                              Expanded(
+                                child: CustomText(
+                                  text: DisplayHelper.displayValue(
+                                    reaction.user?.fullName,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                        separatorBuilder: (context, index) {
+                          return const Divider();
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _statItem({
+    IconData? icon,
+    Color? iconColor,
+    required String label,
+    bool isSelected = false,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            if (icon != null)
+              Icon(
+                icon,
+                color: iconColor ?? Colors.grey,
+                size: 16,
+              ),
+            if (icon != null) const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? AppColors.orange : Colors.grey,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ],
-        ));
-  }
-
-  Widget _statItem({IconData? icon, Color? iconColor, required String label}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
-        children: [
-          if (icon != null)
-            Icon(
-              icon,
-              color: iconColor ?? Colors.grey,
-              size: 16,
-            ),
-          if (icon != null) const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

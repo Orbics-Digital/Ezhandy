@@ -265,14 +265,15 @@ class AppDialogs {
         });
   }
   static Future showCommunityLikeDialog(
-    context,
-  ) {
+    context, {
+    required String postId,
+  }) {
     return showDialog(
         barrierDismissible: false, // Prevent dismiss on tap outside
         barrierColor: AppColors.orange.withOpacity(0.8),
         context: context,
         builder: (context) {
-          return CommunityLikeDialog();
+          return CommunityLikeDialog(postId: postId);
         });
   }
 

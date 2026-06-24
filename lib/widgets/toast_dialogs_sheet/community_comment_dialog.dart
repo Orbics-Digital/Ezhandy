@@ -148,7 +148,10 @@ class _CommunityCommentsDialogState extends State<CommunityCommentsDialog> {
                         des: DisplayHelper.displayValue(comment.text),
                         image: comment.user?.profileImage,
                         ontapLike: () {
-                          AppDialogs.showCommunityLikeDialog(context);
+                          AppDialogs.showCommunityLikeDialog(
+                            context,
+                            postId: widget.postId,
+                          );
                         },
                       );
                     },

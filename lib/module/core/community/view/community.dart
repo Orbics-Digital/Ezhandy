@@ -126,7 +126,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           );
                         },
                         ontapLike: () {
-                          AppDialogs.showCommunityLikeDialog(context);
+                          if (post.id == null) return;
+                          AppDialogs.showCommunityLikeDialog(
+                            context,
+                            postId: post.id!,
+                          );
                         },
                       );
                     },

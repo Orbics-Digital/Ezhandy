@@ -3,6 +3,7 @@ import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/community/data/community_repository.dart';
 import 'package:ezhandy_user/module/core/community/model/community_comment_model.dart';
 import 'package:ezhandy_user/module/core/community/model/community_post_model.dart';
+import 'package:ezhandy_user/module/core/community/model/community_reactions_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_loader.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,21 @@ class CommunityController extends GetxController {
   final RxBool isCommentsLoading = false.obs;
   final RxBool isAddingComment = false.obs;
   final RxnString reactingPostId = RxnString();
+  final RxList<CommunityReactionItemModel> postReactions =
+      <CommunityReactionItemModel>[].obs;
+  final Rxn<CommunityReactionsCountsModel> reactionModalCounts = Rxn();
+  final RxString reactionFilter = 'all'.obs;
+  final RxBool isReactionsLoading = false.obs;
+
+  List<CommunityReactionItemModel> get filteredPostReactions {
+    if (reactionFilter.value == 'all') return postReactions.toList();
+
+    return postReactions
+        .where((item) => item.reactionType == reactionFilter.value)
+        .toList();
+  }
+
+  void setReactionFilter(String value) => reactionFilter.value = value;
 
   List<CommunityPostModel> get filteredPosts {
     final query = searchQuery.value.trim().toLowerCase();
@@ -57,6 +73,31 @@ class CommunityController extends GetxController {
   }
 
   void clearComments() => comments.clear();
+
+  Future<void> fetchReactions(String postId) async {
+    isReactionsLoading.value = true;
+    postReactions.clear();
+    reactionModalCounts.value = null;
+    reactionFilter.value = 'all';
+
+    try {
+      final data = await _repository.getReactions(postId);
+      postReactions.assignAll(data.reactions);
+      reactionModalCounts.value = data.counts;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isReactionsLoading.value = false;
+    }
+  }
+
+  void clearReactions() {
+    postReactions.clear();
+    reactionModalCounts.value = null;
+    reactionFilter.value = 'all';
+  }
 
   Future<bool> addComment({
     required String postId,

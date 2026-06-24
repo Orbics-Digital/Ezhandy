@@ -327,6 +327,7 @@ class AppStrings {
   static const String community = "Community";
   static const String noCommunityPostsFound = "No community posts found";
   static const String noCommentsFound = "No comments found";
+  static const String noReactionsFound = "No reactions found";
   static const String menu = "Menu";
   static const String cancel = "Cancel";
   static const String buyNow = "Buy Now";
