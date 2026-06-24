@@ -22,6 +22,24 @@ class AuthController extends GetxController {
   final RxBool isLogoutLoading = false.obs;
   final RxBool isLoginSignUp = true.obs;
 
+  String get userDisplayName {
+    final name = user.value?.fullName?.trim();
+    if (name != null && name.isNotEmpty) return name;
+
+    final email = user.value?.email?.trim();
+    if (email != null && email.isNotEmpty) return email;
+
+    return AppStrings.dummyName;
+  }
+
+  String get userHandle {
+    final email = user.value?.email?.trim();
+    if (email != null && email.contains('@')) {
+      return '@${email.split('@').first}';
+    }
+    return '';
+  }
+
   Future<void> restoreSession() async {
     final session = await SessionStorage.i.load();
     if (session != null) {

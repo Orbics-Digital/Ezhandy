@@ -14,6 +14,7 @@ import 'package:ezhandy_user/widgets/button_widgets/cross_button.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
 import 'package:ezhandy_user/widgets/profile_widget/profile_picture_widget.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
+import 'package:get/get.dart';
 
 // ignore: must_be_immutable
 class DrawerScreen extends StatefulWidget {
@@ -189,16 +190,18 @@ class _DrawerScreenState extends State<DrawerScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomText(
-                // align: Alignment.center,
+            Obx(
+              () => CustomText(
                 fontWeight: FontWeight.w600,
                 fontSize: 18.sp,
-                text: "${AppStrings.dummyName}"),
-            CustomText(
-              // align: Alignment.center,
-              // fontWeight: FontWeight.w600,
-              fontSize: 12.sp,
-              text: "@${AppStrings.dummyName}",
+                text: AuthController.i.userDisplayName,
+              ),
+            ),
+            Obx(
+              () => CustomText(
+                fontSize: 12.sp,
+                text: AuthController.i.userHandle,
+              ),
             ),
           ],
         ),

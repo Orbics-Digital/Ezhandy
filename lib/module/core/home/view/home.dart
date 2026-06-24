@@ -11,6 +11,7 @@ import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/switch/animated_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
@@ -179,12 +180,14 @@ class _HomeState extends State<Home> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(text: "$greeting 🔥", fontSize: 14.sp),
-              CustomText(
-                  text: AppStrings.dummyName,
+              Obx(
+                () => CustomText(
+                  text: AuthController.i.userDisplayName,
                   fontFamily: AppStrings.montserrat,
-                  // color: AppColors.blueDark,
                   fontSize: 20.sp,
-                  fontWeight: FontWeight.bold),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           Spacer(),
