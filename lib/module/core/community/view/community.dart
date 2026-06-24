@@ -171,7 +171,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   String _formatDate(DateTime? date) {
     if (date == null) return '-';
-    return DateFormat('dd MMM yyyy - HH:mm a').format(date.toLocal());
+    return DateFormat('dd MMM yyyy - hh:mm a').format(date.toLocal());
   }
 
   Widget singleWidget({
