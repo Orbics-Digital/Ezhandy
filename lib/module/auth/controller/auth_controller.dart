@@ -41,6 +41,19 @@ class AuthController extends GetxController {
     return '';
   }
 
+  Future<void> updateIsQuickProvider(bool value) async {
+    final current = user.value;
+    if (current == null) return;
+
+    final updated = current.copyWith(isQuickProvider: value);
+    user.value = updated;
+
+    final session = await SessionStorage.i.load();
+    if (session != null) {
+      await SessionStorage.i.save(token: session.token, user: updated);
+    }
+  }
+
   Future<void> restoreSession() async {
     final session = await SessionStorage.i.load();
     if (session != null) {

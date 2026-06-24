@@ -49,6 +49,54 @@ class UserModel {
 
   List<CertificateModel> get certificateList => certificates ?? const [];
 
+  UserModel copyWith({
+    String? sub,
+    String? email,
+    String? fullName,
+    String? mobileNumber,
+    String? profileImage,
+    int? roleId,
+    int? languageId,
+    String? gender,
+    String? genderTitle,
+    String? languageTitle,
+    bool? isEmailVerified,
+    bool? isOtpVerified,
+    bool? isOtpExpired,
+    bool? isSubscription,
+    bool? isQuickProvider,
+    String? address,
+    String? referralCode,
+    double? hourlyRate,
+    String? latitude,
+    String? longitude,
+    List<CertificateModel>? certificates,
+  }) {
+    return UserModel(
+      sub: sub ?? this.sub,
+      email: email ?? this.email,
+      fullName: fullName ?? this.fullName,
+      mobileNumber: mobileNumber ?? this.mobileNumber,
+      profileImage: profileImage ?? this.profileImage,
+      roleId: roleId ?? this.roleId,
+      languageId: languageId ?? this.languageId,
+      gender: gender ?? this.gender,
+      genderTitle: genderTitle ?? this.genderTitle,
+      languageTitle: languageTitle ?? this.languageTitle,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      isOtpVerified: isOtpVerified ?? this.isOtpVerified,
+      isOtpExpired: isOtpExpired ?? this.isOtpExpired,
+      isSubscription: isSubscription ?? this.isSubscription,
+      isQuickProvider: isQuickProvider ?? this.isQuickProvider,
+      address: address ?? this.address,
+      referralCode: referralCode ?? this.referralCode,
+      hourlyRate: hourlyRate ?? this.hourlyRate,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      certificates: certificates ?? this.certificates,
+    );
+  }
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       sub: json['sub']?.toString(),

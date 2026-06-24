@@ -31,7 +31,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isBecomeAPro = false;
-  bool switchOff = false;
 
   @override
   Widget build(BuildContext context) {
@@ -82,15 +81,25 @@ class _HomeState extends State<Home> {
                     ],
                   )),
                   20.verticalSpace,
-                  CustomContainer(
-                      // boxShadow: AppShadows.shadow2,
+                  Obx(() {
+                    final isQuickProvider =
+                        AuthController.i.user.value?.isQuickProvider ?? false;
+                    return CustomContainer(
                       child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(text: "Urgent Services"),
-                      AnimatedSwitch(isSwitched: switchOff, onCallBack: (r) {}),
-                    ],
-                  )),
+                        children: [
+                          CustomText(text: "Urgent Services"),
+                          Spacer(),
+                          AnimatedSwitch(
+                            key: ValueKey(isQuickProvider),
+                            isSwitched: isQuickProvider,
+                            onCallBack: (value) {
+                              AuthController.i.updateIsQuickProvider(value);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                   20.verticalSpace,
                   bookingContainerWidget(),
                   20.verticalSpace,
