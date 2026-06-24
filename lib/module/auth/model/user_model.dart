@@ -1,3 +1,5 @@
+import 'package:ezhandy_user/module/auth/model/certificate_model.dart';
+
 class UserModel {
   final String? sub;
   final String? email;
@@ -19,6 +21,7 @@ class UserModel {
   final double? hourlyRate;
   final String? latitude;
   final String? longitude;
+  final List<CertificateModel>? certificates;
 
   const UserModel({
     this.sub,
@@ -41,7 +44,10 @@ class UserModel {
     this.hourlyRate,
     this.latitude,
     this.longitude,
+    this.certificates,
   });
+
+  List<CertificateModel> get certificateList => certificates ?? const [];
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -65,7 +71,23 @@ class UserModel {
       hourlyRate: _readDouble(json['hourlyRate']),
       latitude: json['latitude']?.toString(),
       longitude: json['longitude']?.toString(),
+      certificates: _readCertificates(json),
     );
+  }
+
+  static List<CertificateModel> _readCertificates(Map<String, dynamic> json) {
+    for (final key in ['certificates', 'certifications', 'certificateDetails']) {
+      final value = json[key];
+      if (value is List) {
+        return value
+            .whereType<Map>()
+            .map((item) => CertificateModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ))
+            .toList();
+      }
+    }
+    return const [];
   }
 
   Map<String, dynamic> toJson() => {
@@ -89,6 +111,7 @@ class UserModel {
         'hourlyRate': hourlyRate,
         'latitude': latitude,
         'longitude': longitude,
+        'certificates': certificateList.map((e) => e.toJson()).toList(),
       };
 
   static int? _readInt(dynamic value) {

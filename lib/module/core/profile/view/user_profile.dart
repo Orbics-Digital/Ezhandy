@@ -1,3 +1,5 @@
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
+import 'package:ezhandy_user/module/auth/model/certificate_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -6,9 +8,11 @@ import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
+import 'package:ezhandy_user/utils/display_helper.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:ezhandy_user/widgets/profile_widget/profile_picture_widget.dart';
 import 'package:ezhandy_user/widgets/row/two_text_row.dart';
@@ -63,87 +67,52 @@ class _UserProfileState extends State<UserProfile> {
             padding:
                 const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
             child: SingleChildScrollView(
-              child: Column(
+              child: Obx(() {
+              final user = AuthController.i.user.value;
+              return Column(
                 children: [
                   20.verticalSpace,
-                  profileWidget(),
+                  profileWidget(user?.profileImage),
                   20.verticalSpace,
                   TwoTextRow(
-                      secondColor: AppColors.black,
-                      firstText: AppStrings.fullName,
-                      secondText: AppStrings.dummyName),
+                    secondColor: AppColors.black,
+                    firstText: AppStrings.fullName,
+                    secondText: DisplayHelper.displayValue(user?.fullName),
+                  ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
                   TwoTextRow(
-                      secondColor: AppColors.black,
-                      firstText: AppStrings.phoneNumber,
-                      secondText: AppStrings.dummyPhoneNUmber),
+                    secondColor: AppColors.black,
+                    firstText: AppStrings.phoneNumber,
+                    secondText: DisplayHelper.displayValue(user?.mobileNumber),
+                  ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
                   TwoTextRow(
-                      secondColor: AppColors.black,
-                      firstText: AppStrings.emailAddress,
-                      secondText: AppStrings.dummyEmail),
+                    secondColor: AppColors.black,
+                    firstText: AppStrings.emailAddress,
+                    secondText: DisplayHelper.displayValue(user?.email),
+                  ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
                   TwoTextRow(
-                      secondColor: AppColors.black,
-                      firstText: AppStrings.language,
-                      secondText: "English"),
+                    secondColor: AppColors.black,
+                    firstText: AppStrings.language,
+                    secondText: DisplayHelper.displayValue(user?.languageTitle),
+                  ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
                   TwoTextRow(
-                      secondColor: AppColors.black,
-                      firstText: AppStrings.gender,
-                      secondText: "Male"),
+                    secondColor: AppColors.black,
+                    firstText: AppStrings.gender,
+                    secondText: DisplayHelper.displayValue(
+                      user?.genderTitle ?? user?.gender,
+                    ),
+                  ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
-                  CustomText(
-                      text: AppStrings.certificateDetails,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.sp),
+                  certificateSection(user?.certificateList ?? const []),
                   10.verticalSpace,
-
-                  ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: 4,
-                      itemBuilder: (context, index) {
-                        // var item = certificates[index];
-                        return Column(
-                          children: [
-                            TwoTextRow(
-                                secondColor: AppColors.black,
-                                firstText: AppStrings.insituteName,
-                                secondText: "Abc institute"),
-                            Divider(color: AppColors.blueDark),
-                            10.verticalSpace,
-                            TwoTextRow(
-                                secondColor: AppColors.black,
-                                firstText: AppStrings.certificateTitle,
-                                secondText: "Abc Certificate"),
-                            Divider(color: AppColors.blueDark),
-                            10.verticalSpace,
-                            CustomText(text: "Certificate Picture"),
-                            10.verticalSpace,
-                            Image.network(
-                              "https://marketplace.canva.com/EAFGv9WhSmc/1/0/1600w/canva-blue-and-yellow-minimalist-employee-of-the-month-certificate-jaIc19nYjY4.jpg",
-                              fit: BoxFit.cover,
-                              height: 180.h,
-                              width: 1.sw,
-                            ),
-                          ],
-                        );
-                      }),
-
-                  // Divider(color: AppColors.blueDark),
-                  // 10.verticalSpace,
-                  // TwoTextRow(secondColor: AppColors.black,
-                  //     firstText: AppStrings.referralCode, secondText: "Football"),
-                  // Divider(color: AppColors.blueDark),
-                  // 10.verticalSpace,
-                  // TwoTextRow(secondColor: AppColors.black,
-                  //     firstText: AppStrings.status, secondText: "High"),
 
                   40.verticalSpace,
                   CustomButton(
@@ -163,7 +132,6 @@ class _UserProfileState extends State<UserProfile> {
                         text: AppStrings.changePassword,
                         is_alignLeft: false,
                         textDecoration: TextDecoration.underline,
-                        // color: AppColors.blueDark,
                         fontSize: 18.sp),
                   ),
                   20.verticalSpace,
@@ -216,31 +184,74 @@ class _UserProfileState extends State<UserProfile> {
                   ),
                   25.verticalSpace
                 ],
-              ),
+              );
+            }),
             )));
   }
 
-  ProfilePictureWidget profileWidget() {
+  ProfilePictureWidget profileWidget(String? profileImageUrl) {
     return ProfilePictureWidget(
-      // showUpload: widget.type == ProfileType.edit.name,
-      // upload_icon:
-      //     args == AppStrings.CREATE_PROFILE ? false : true,
       is_pickImage: false,
+      profileImageUrl: profileImageUrl,
+      assetPath: AssetPath.tempImage1,
+    );
+  }
 
-      // is_pickImage:
-      //     args == AppStrings.CREATE_PROFILE ? true : false,
-      // setFile: _setFile,
-      // profileImageUrl:
-      //     AuthController.i.appUser.value.data!.profileImage,
-      // profileImage: _profileImage,
-      assetPath:
-          // args == AppStrings.CREATE_PROFILE
-          //     ? null
-          // :
-          AssetPath.tempImage1,
-      // borderWidth:
-      // args == AppStrings.CREATE_PROFILE ? null :
-      // 5,
+  Widget certificateSection(List<CertificateModel> certificates) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          text: AppStrings.certificateDetails,
+          fontWeight: FontWeight.bold,
+          fontSize: 18.sp,
+        ),
+        10.verticalSpace,
+        if (certificates.isEmpty)
+          const EmptyMessage(message: AppStrings.noCertificatesFound)
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: certificates.length,
+            itemBuilder: (context, index) {
+              final item = certificates[index];
+              return Column(
+                children: [
+                  TwoTextRow(
+                    secondColor: AppColors.black,
+                    firstText: AppStrings.insituteName,
+                    secondText: DisplayHelper.displayValue(item.instituteName),
+                  ),
+                  Divider(color: AppColors.blueDark),
+                  10.verticalSpace,
+                  TwoTextRow(
+                    secondColor: AppColors.black,
+                    firstText: AppStrings.certificateTitle,
+                    secondText: DisplayHelper.displayValue(item.title),
+                  ),
+                  Divider(color: AppColors.blueDark),
+                  10.verticalSpace,
+                  CustomText(text: AppStrings.certificatePicture),
+                  10.verticalSpace,
+                  if (item.pictureUrl != null && item.pictureUrl!.isNotEmpty)
+                    Image.network(
+                      item.pictureUrl!,
+                      fit: BoxFit.cover,
+                      height: 180.h,
+                      width: 1.sw,
+                    )
+                  else
+                    CustomText(
+                      text: DisplayHelper.displayValue(null),
+                      color: AppColors.grey,
+                    ),
+                  if (index < certificates.length - 1) 20.verticalSpace,
+                ],
+              );
+            },
+          ),
+      ],
     );
   }
 }

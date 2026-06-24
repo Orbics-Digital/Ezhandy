@@ -620,6 +620,7 @@ class AppStrings {
   static const String providerProfile = "Provider Profile";
   static const String experience = "Experience";
   static const String certificateDetails = "Certificate Details";
+  static const String noCertificatesFound = "No Certificates Found";
   static const String insituteName = "Insitute Name";
   static const String certificateTitle = "Certificate Title";
   static const String rateProvider = "Rate Provider";
