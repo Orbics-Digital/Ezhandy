@@ -3,6 +3,7 @@ import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/data/auth_repository.dart';
 import 'package:ezhandy_user/module/auth/model/user_model.dart';
+import 'package:ezhandy_user/module/core/home/data/provider_services_repository.dart';
 import 'package:ezhandy_user/module/core/notification/controller/notification_controller.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_loader.dart';
@@ -17,10 +18,13 @@ class AuthController extends GetxController {
   static AuthController get i => Get.find();
 
   final AuthRepository _authRepository = AuthRepository();
+  final ProviderServicesRepository _providerServicesRepository =
+      ProviderServicesRepository();
 
   final Rxn<UserModel> user = Rxn<UserModel>();
   final RxBool isLoginLoading = false.obs;
   final RxBool isLogoutLoading = false.obs;
+  final RxBool isQuickProviderLoading = false.obs;
   final RxBool isLoginSignUp = true.obs;
 
   String get userDisplayName {
@@ -41,16 +45,44 @@ class AuthController extends GetxController {
     return '';
   }
 
-  Future<void> updateIsQuickProvider(bool value) async {
+  Future<bool> updateIsQuickProvider(bool value) async {
     final current = user.value;
-    if (current == null) return;
+    final providerId = current?.sub?.trim();
+    if (current == null || providerId == null || providerId.isEmpty) {
+      AppDialogs.showToast(message: 'Unable to update urgent services.');
+      return false;
+    }
+    if (isQuickProviderLoading.value) return false;
 
-    final updated = current.copyWith(isQuickProvider: value);
-    user.value = updated;
+    final previous = current.isQuickProvider;
+    isQuickProviderLoading.value = true;
 
-    final session = await SessionStorage.i.load();
-    if (session != null) {
-      await SessionStorage.i.save(token: session.token, user: updated);
+    user.value = current.copyWith(isQuickProvider: value);
+
+    try {
+      final isQuickProvider =
+          await _providerServicesRepository.toggleQuickProvider(
+        providerId: providerId,
+        isQuickProvider: value,
+      );
+      final updated = current.copyWith(isQuickProvider: isQuickProvider);
+      user.value = updated;
+
+      final session = await SessionStorage.i.load();
+      if (session != null) {
+        await SessionStorage.i.save(token: session.token, user: updated);
+      }
+      return true;
+    } on DioException catch (e) {
+      user.value = current.copyWith(isQuickProvider: previous);
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      user.value = current.copyWith(isQuickProvider: previous);
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isQuickProviderLoading.value = false;
     }
   }
 

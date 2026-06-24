@@ -84,17 +84,22 @@ class _HomeState extends State<Home> {
                   Obx(() {
                     final isQuickProvider =
                         AuthController.i.user.value?.isQuickProvider ?? false;
+                    final isLoading =
+                        AuthController.i.isQuickProviderLoading.value;
                     return CustomContainer(
                       child: Row(
                         children: [
                           CustomText(text: "Urgent Services"),
                           Spacer(),
-                          AnimatedSwitch(
-                            key: ValueKey(isQuickProvider),
-                            isSwitched: isQuickProvider,
-                            onCallBack: (value) {
-                              AuthController.i.updateIsQuickProvider(value);
-                            },
+                          IgnorePointer(
+                            ignoring: isLoading,
+                            child: AnimatedSwitch(
+                              key: ValueKey(isQuickProvider),
+                              isSwitched: isQuickProvider,
+                              onCallBack: (value) {
+                                AuthController.i.updateIsQuickProvider(value);
+                              },
+                            ),
                           ),
                         ],
                       ),

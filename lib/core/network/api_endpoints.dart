@@ -8,4 +8,6 @@ class ApiEndpoints {
   static const String queries = 'queries';
 
   static String notificationRead(String id) => 'notifications/$id/read';
+  static String quickProvider(String providerId) =>
+      'provider-services/quick-provider/$providerId';
 }
