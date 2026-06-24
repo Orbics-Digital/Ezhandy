@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:ezhandy_user/utils/app_dialogs.dart';
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
+import 'package:ezhandy_user/module/core/contact_us/controller/contact_us_controller.dart';
 import 'package:ezhandy_user/utils/constant.dart';
-import 'package:ezhandy_user/utils/routes/app_navigation.dart';
-import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/utils/validator_extensions.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
@@ -24,11 +23,39 @@ class ContactUs extends StatefulWidget {
 
 class _ContactUsState extends State<ContactUs> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  late final ContactUsController _controller;
 
   TextEditingController userNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController subjectController = TextEditingController();
   TextEditingController messageController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.put(ContactUsController());
+    final user = AuthController.i.user.value;
+    if (user != null) {
+      final name = user.fullName?.trim();
+      if (name != null && name.isNotEmpty) {
+        userNameController.text = name;
+      }
+      final email = user.email?.trim();
+      if (email != null && email.isNotEmpty) {
+        emailController.text = email;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    Get.delete<ContactUsController>();
+    userNameController.dispose();
+    emailController.dispose();
+    subjectController.dispose();
+    messageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,34 +181,30 @@ class _ContactUsState extends State<ContactUs> {
   }
 
   Widget buttonWidget(context) {
-    return CustomButton(
+    return Obx(
+      () => CustomButton(
         text: AppStrings.submit,
-        onclick: () {
+        isLoading: _controller.isSubmitting.value,
+        onclick: () async {
+          FocusScope.of(context).unfocus();
           final isValid = formKey.currentState!.validate();
           if (!isValid) {
             return;
           }
           formKey.currentState!.save();
-          AppDialogs.showSuccessDialog(
+
+          final success = await _controller.submitQuery(
             context,
-            description: AppStrings.yourMessageHasBeenSubmittedSuccessfully,
-            title: AppStrings.congratulation,
-            btnTxt1: AppStrings.ok,
-            onTap1: () {
-              AppNavigation.navigatorPopUntil(
-                  context, AppRoutes.mainMenuScreenRoute);
-            },
+            subject: subjectController.text,
+            message: messageController.text,
           );
-          // AppNavigation.navigateTo(
-          //     context, AppRoutes.otpVerificationScreenRoute,
-          //     arguments: OtpVerificationRoutingArgument(
-          //         type: OtpType.forget.name,
-          //         emailAndPhone: emailController.text,
-          //         text: emailController.text));
-          // AuthController.i
-          //     .forgotPass(email: forgotPassRepo.email_controller.text);
-          // ToastMessage(toastmsg: AppStrings.otpSendedToYourEmail);
-          FocusScope.of(context).unfocus();
-        });
+
+          if (success) {
+            subjectController.clear();
+            messageController.clear();
+          }
+        },
+      ),
+    );
   }
 }
