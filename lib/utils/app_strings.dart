@@ -331,6 +331,8 @@ class AppStrings {
   static const String noProductsFound = "No products found";
   static const String pleaseUploadProductImage = "Please upload at least one image";
   static const String maximumFiveImagesAllowed = "You can upload up to 5 images";
+  static const String invalidPriceRange =
+      "Minimum price cannot be greater than maximum price";
   static const String menu = "Menu";
   static const String cancel = "Cancel";
   static const String buyNow = "Buy Now";

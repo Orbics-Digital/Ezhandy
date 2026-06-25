@@ -19,8 +19,106 @@ class ProductsController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isMyProductsLoading = false.obs;
   final RxBool isSubmittingProduct = false.obs;
+  final RxnString filterCategoryId = RxnString();
+  final RxnDouble filterMinPrice = RxnDouble();
+  final RxnDouble filterMaxPrice = RxnDouble();
 
   void setSearchQuery(String value) => searchQuery.value = value;
+
+  void applyFilters({
+    String? categoryId,
+    double? minPrice,
+    double? maxPrice,
+  }) {
+    filterCategoryId.value = categoryId?.trim().isEmpty ?? true
+        ? null
+        : categoryId!.trim();
+    filterMinPrice.value = minPrice;
+    filterMaxPrice.value = maxPrice;
+  }
+
+  void resetFilters() {
+    filterCategoryId.value = null;
+    filterMinPrice.value = null;
+    filterMaxPrice.value = null;
+  }
+
+  bool get hasActiveFilters =>
+      filterCategoryId.value != null ||
+      filterMinPrice.value != null ||
+      filterMaxPrice.value != null;
+
+  String get filterPriceRangeLabel {
+    final minPrice = filterMinPrice.value;
+    final maxPrice = filterMaxPrice.value;
+
+    if (minPrice != null && maxPrice != null) {
+      return '\$${_formatFilterPrice(minPrice)} - \$${_formatFilterPrice(maxPrice)}';
+    }
+    if (minPrice != null) {
+      return 'Min \$${_formatFilterPrice(minPrice)}';
+    }
+    if (maxPrice != null) {
+      return 'Max \$${_formatFilterPrice(maxPrice)}';
+    }
+    return '';
+  }
+
+  String _formatFilterPrice(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+    return value.toString();
+  }
+
+  double? _parsePrice(String? price) {
+    if (price == null) return null;
+    return double.tryParse(price.trim());
+  }
+
+  List<ProductModel> _filterProducts(
+    List<ProductModel> source, {
+    bool activeOnly = false,
+  }) {
+    var items = activeOnly
+        ? source.where((product) => product.isActive).toList()
+        : source.toList();
+
+    final categoryId = filterCategoryId.value?.trim();
+    if (categoryId != null && categoryId.isNotEmpty) {
+      items = items
+          .where((product) => product.category?.id?.trim() == categoryId)
+          .toList();
+    }
+
+    final minPrice = filterMinPrice.value;
+    final maxPrice = filterMaxPrice.value;
+    if (minPrice != null || maxPrice != null) {
+      items = items.where((product) {
+        final price = _parsePrice(product.price);
+        if (price == null) return false;
+        if (minPrice != null && price < minPrice) return false;
+        if (maxPrice != null && price > maxPrice) return false;
+        return true;
+      }).toList();
+    }
+
+    final query = searchQuery.value.trim().toLowerCase();
+    if (query.isEmpty) return items;
+
+    return items.where((product) {
+      final title = product.title?.trim().toLowerCase() ?? '';
+      final description = product.description?.trim().toLowerCase() ?? '';
+      final category =
+          product.category?.title?.trim().toLowerCase() ??
+          product.category?.name?.trim().toLowerCase() ??
+          '';
+
+      return title.contains(query) ||
+          description.contains(query) ||
+          category.contains(query);
+    }).toList();
+  }
 
   String? get _loggedInUserId {
     final userId = AuthController.i.user.value?.sub?.trim();
@@ -28,44 +126,10 @@ class ProductsController extends GetxController {
     return userId;
   }
 
-  List<ProductModel> get filteredProducts {
-    final query = searchQuery.value.trim().toLowerCase();
-    final activeProducts =
-        products.where((product) => product.isActive).toList();
+  List<ProductModel> get filteredProducts =>
+      _filterProducts(products, activeOnly: true);
 
-    if (query.isEmpty) return activeProducts;
-
-    return activeProducts.where((product) {
-      final title = product.title?.trim().toLowerCase() ?? '';
-      final description = product.description?.trim().toLowerCase() ?? '';
-      final category =
-          product.category?.title?.trim().toLowerCase() ??
-          product.category?.name?.trim().toLowerCase() ??
-          '';
-
-      return title.contains(query) ||
-          description.contains(query) ||
-          category.contains(query);
-    }).toList();
-  }
-
-  List<ProductModel> get filteredMyProducts {
-    final query = searchQuery.value.trim().toLowerCase();
-    if (query.isEmpty) return myProducts.toList();
-
-    return myProducts.where((product) {
-      final title = product.title?.trim().toLowerCase() ?? '';
-      final description = product.description?.trim().toLowerCase() ?? '';
-      final category =
-          product.category?.title?.trim().toLowerCase() ??
-          product.category?.name?.trim().toLowerCase() ??
-          '';
-
-      return title.contains(query) ||
-          description.contains(query) ||
-          category.contains(query);
-    }).toList();
-  }
+  List<ProductModel> get filteredMyProducts => _filterProducts(myProducts);
 
   Future<void> refreshProducts() async {
     try {

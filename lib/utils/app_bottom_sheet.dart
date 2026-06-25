@@ -23,7 +23,7 @@ class AppBottomSheet {
       barrierColor: AppColors.orange.withOpacity(0.6),
       context: context,
       builder: (BuildContext context) {
-        return FilterBottomSheet();
+        return const FilterBottomSheet();
       },
     );
   }

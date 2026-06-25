@@ -1,3 +1,4 @@
+import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
 import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 import 'package:ezhandy_user/module/core/products/routing_arguments/add_edit_product_routing_arguments.dart';
@@ -34,6 +35,8 @@ class MarketPlace extends StatefulWidget {
 class _MarketPlaceState extends State<MarketPlace>
     with SingleTickerProviderStateMixin {
   final ProductsController _controller = Get.find<ProductsController>();
+  final CategoriesController _categoriesController =
+      Get.find<CategoriesController>();
   final TextEditingController _searchController = TextEditingController();
   late TabController controller;
 
@@ -146,7 +149,7 @@ class _MarketPlaceState extends State<MarketPlace>
   Widget productsWidget() {
     return Column(
       children: [
-        searchTextField(),
+        searchSection(),
         10.verticalSpace,
         CustomText(text: AppStrings.products, fontWeight: FontWeight.bold),
         10.verticalSpace,
@@ -205,7 +208,7 @@ class _MarketPlaceState extends State<MarketPlace>
   Widget myProductsWidget() {
     return Column(
       children: [
-        searchTextField(),
+        searchSection(),
         10.verticalSpace,
         CustomText(text: AppStrings.products, fontWeight: FontWeight.bold),
         10.verticalSpace,
@@ -423,6 +426,67 @@ class _MarketPlaceState extends State<MarketPlace>
       onTap2: () {
         AppNavigation.navigatorPop(Constants.navigatorKey.currentContext!);
       },
+    );
+  }
+
+  Widget searchSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        searchTextField(),
+        selectedFiltersWidget(),
+      ],
+    );
+  }
+
+  Widget selectedFiltersWidget() {
+    return Obx(() {
+      if (!_controller.hasActiveFilters) {
+        return const SizedBox.shrink();
+      }
+
+      final chips = <Widget>[];
+      final categoryId = _controller.filterCategoryId.value;
+      if (categoryId != null && categoryId.isNotEmpty) {
+        final category = _categoriesController.getCategoryById(categoryId);
+        chips.add(
+          _filterChip(
+            '${AppStrings.category}: ${category?.displayName ?? '-'}',
+          ),
+        );
+      }
+
+      final priceLabel = _controller.filterPriceRangeLabel;
+      if (priceLabel.isNotEmpty) {
+        chips.add(
+          _filterChip('${AppStrings.priceRange}: $priceLabel'),
+        );
+      }
+
+      return Padding(
+        padding: EdgeInsets.only(top: 10.h),
+        child: Wrap(
+          spacing: 8.w,
+          runSpacing: 8.h,
+          children: chips,
+        ),
+      );
+    });
+  }
+
+  Widget _filterChip(String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: AppColors.orange.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: AppColors.orange),
+      ),
+      child: CustomText(
+        text: label,
+        fontSize: 12.sp,
+        color: AppColors.orange,
+      ),
     );
   }
 
