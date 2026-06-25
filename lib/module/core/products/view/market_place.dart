@@ -351,7 +351,9 @@ class _MarketPlaceState extends State<MarketPlace>
               AppNavigation.navigateTo(
                   context, AppRoutes.addEditProductScreenRoute,
                   arguments: AddEditProductRoutingArgument(
-                      type: AddEditType.edit.name));
+                    type: AddEditType.edit.name,
+                    product: product,
+                  ));
             },
             child: CircleAvatar(
                 backgroundColor: AppColors.orange,

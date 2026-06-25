@@ -159,6 +159,42 @@ class ProductsController extends GetxController {
     }
   }
 
+  Future<bool> editProduct({
+    required String productId,
+    required String title,
+    required String description,
+    required String price,
+    required String categoryId,
+    List<File> images = const [],
+    bool isActive = true,
+  }) async {
+    if (isSubmittingProduct.value) return false;
+
+    isSubmittingProduct.value = true;
+    try {
+      await _repository.updateProduct(
+        productId: productId,
+        title: title,
+        description: description,
+        price: price,
+        categoryId: categoryId,
+        images: images,
+        isActive: isActive,
+      );
+      await refreshMyProducts();
+      await refreshProducts();
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isSubmittingProduct.value = false;
+    }
+  }
+
   Future<bool> deleteProduct(String productId) async {
     try {
       await _repository.deleteProduct(productId);

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
+import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/utils/utils.dart';
@@ -26,8 +27,14 @@ import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class AddEditProduct extends StatefulWidget {
-  String type;
-  AddEditProduct({required this.type, super.key});
+  final String type;
+  final ProductModel? product;
+
+  AddEditProduct({
+    required this.type,
+    this.product,
+    super.key,
+  });
 
   @override
   State<AddEditProduct> createState() => _AddEditProductState();
@@ -45,8 +52,58 @@ class _AddEditProductState extends State<AddEditProduct> {
   TextEditingController priceController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   bool keyboardVisible = false;
-  final List<File> documentList = [];
+  final List<_ProductImageItem> imageItems = [];
   String? categoryValue;
+  String? selectedCategoryId;
+
+  bool get _isEditMode => widget.type == AddEditType.edit.name;
+
+  @override
+  void initState() {
+    super.initState();
+    _prefillProduct();
+  }
+
+  void _prefillProduct() {
+    final product = widget.product;
+    if (!_isEditMode || product == null) return;
+
+    productNameController.text = product.title?.trim() ?? '';
+    priceController.text = product.price?.trim() ?? '';
+    descriptionController.text = product.description?.trim() ?? '';
+
+    selectedCategoryId = product.category?.id?.trim();
+    final cachedCategory =
+        _categoriesController.getCategoryById(selectedCategoryId);
+    if (cachedCategory != null) {
+      categoryValue = cachedCategory.displayName;
+    } else {
+      final categoryTitle = product.category?.title?.trim();
+      final categoryName = product.category?.name?.trim();
+      categoryValue = (categoryTitle != null && categoryTitle.isNotEmpty)
+          ? categoryTitle
+          : categoryName;
+    }
+
+    final mainImage = product.mainImagePath?.trim();
+    if (mainImage != null && mainImage.isNotEmpty) {
+      imageItems.add(_ProductImageItem(networkUrl: mainImage));
+    }
+
+    for (final imageUrl in product.additionalImages) {
+      final trimmed = imageUrl.trim();
+      if (trimmed.isEmpty) continue;
+      imageItems.add(_ProductImageItem(networkUrl: trimmed));
+    }
+  }
+
+  @override
+  void dispose() {
+    productNameController.dispose();
+    priceController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +115,7 @@ class _AddEditProductState extends State<AddEditProduct> {
           Get.back();
         },
         // appBarheight: 50.h,
-        title: AddEditType.add.name == widget.type
-            ? AppStrings.addProduct
-            : AppStrings.editProduct,
+        title: _isEditMode ? AppStrings.editProduct : AppStrings.addProduct,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding16),
           child: Column(
@@ -107,15 +162,15 @@ class _AddEditProductState extends State<AddEditProduct> {
         ));
   }
 
-  _setCameraDocumentFile(File? file) {
+  void _setCameraDocumentFile(File? file) {
     if (file == null) return;
-    if (documentList.length >= _maxImages) {
+    if (imageItems.length >= _maxImages) {
       AppDialogs.showToast(message: AppStrings.maximumFiveImagesAllowed);
       return;
     }
 
     setState(() {
-      documentList.add(file);
+      imageItems.add(_ProductImageItem(localFile: file));
     });
   }
 
@@ -166,16 +221,16 @@ class _AddEditProductState extends State<AddEditProduct> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          return index == documentList.length
+          return index == imageItems.length
               ? Padding(
                   padding: EdgeInsets.symmetric(vertical: 4.h),
-                  child: uploadWidget(documentList.length),
+                  child: uploadWidget(imageItems.length),
                 )
               : _imageCard(
-                  image: documentList[index].path,
+                  item: imageItems[index],
                   onRemoveTapped: () {
                     setState(() {
-                      documentList.removeAt(index);
+                      imageItems.removeAt(index);
                     });
                   },
                 );
@@ -185,25 +240,34 @@ class _AddEditProductState extends State<AddEditProduct> {
             width: 5,
           );
         },
-        itemCount: documentList.length >= _maxImages
-            ? documentList.length
-            : documentList.length + 1,
+        itemCount: imageItems.length >= _maxImages
+            ? imageItems.length
+            : imageItems.length + 1,
       ),
     );
   }
 
-  Widget _imageCard({required String image, Function()? onRemoveTapped}) {
-    print(image);
-    print(image.split('.').last.toString() + " Pdf Print");
+  Widget _imageCard({
+    required _ProductImageItem item,
+    Function()? onRemoveTapped,
+  }) {
     return Stack(
       children: [
         GestureDetector(
           onTap: () {
+            if (item.localFile != null) {
+              Utils.onTapViewImage(
+                context: context,
+                image: item.localFile!.path,
+                mediaType: MediaPathType.file.name,
+              );
+              return;
+            }
+
             Utils.onTapViewImage(
               context: context,
-              image: image,
-              //mediaType: MediaPathType.network.name,
-              mediaType: MediaPathType.file.name,
+              image: item.networkUrl!,
+              mediaType: MediaPathType.network.name,
             );
           },
           child: Container(
@@ -211,10 +275,18 @@ class _AddEditProductState extends State<AddEditProduct> {
             width: 110.w,
             margin: EdgeInsets.only(top: 5, right: 5),
             decoration: BoxDecoration(
-                border: Border.all(color: AppColors.orange),
-                borderRadius: BorderRadius.circular(10.sp),
-                image: DecorationImage(
-                    image: FileImage(File(image)), fit: BoxFit.cover)),
+              border: Border.all(color: AppColors.orange),
+              borderRadius: BorderRadius.circular(10.sp),
+              image: item.localFile != null
+                  ? DecorationImage(
+                      image: FileImage(item.localFile!),
+                      fit: BoxFit.cover,
+                    )
+                  : DecorationImage(
+                      image: NetworkImage(item.networkUrl!),
+                      fit: BoxFit.cover,
+                    ),
+            ),
           ),
         ),
         Positioned(
@@ -257,16 +329,22 @@ class _AddEditProductState extends State<AddEditProduct> {
         onChanged: (value) {
           setState(() {
             categoryValue = value.toString();
+            selectedCategoryId = _categoriesController
+                .getCategoryByDisplayName(categoryValue)
+                ?.id;
           });
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return AppStrings.selectCategory;
-          }
-          return null;
         },
       ),
     );
+  }
+
+  String? _resolveCategoryId() {
+    final selectedId = selectedCategoryId?.trim();
+    if (selectedId != null && selectedId.isNotEmpty) {
+      return selectedId;
+    }
+
+    return _categoriesController.getCategoryByDisplayName(categoryValue)?.id;
   }
 
   Widget _productNameTextField() {
@@ -324,9 +402,7 @@ class _AddEditProductState extends State<AddEditProduct> {
   Widget buttonWidget(context) {
     return Obx(
       () => CustomButton(
-        text: AddEditType.add.name == widget.type
-            ? AppStrings.add
-            : AppStrings.save,
+        text: _isEditMode ? AppStrings.save : AppStrings.add,
         isLoading: _productsController.isSubmittingProduct.value,
         onclick: _onSubmit,
       ),
@@ -339,46 +415,66 @@ class _AddEditProductState extends State<AddEditProduct> {
     final isValid = formKey.currentState!.validate();
     if (!isValid) return;
 
-    if (AddEditType.add.name != widget.type) {
-      AppNavigation.navigatorPop(context);
-      AppDialogs.showSuccessDialog(
-        context,
-        description: AppStrings.productHasBeenUpdatedSuccessfully,
-        title: AppStrings.congratulation,
-        btnTxt1: AppStrings.ok,
-        onTap1: () {
-          AppNavigation.navigatorPop(Constants.navigatorKey.currentContext!);
-        },
-      );
-      return;
-    }
-
-    if (documentList.isEmpty) {
+    if (imageItems.isEmpty) {
       AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
       return;
     }
 
-    final category =
-        _categoriesController.getCategoryByDisplayName(categoryValue);
-    if (category?.id == null) {
+    final categoryId = _resolveCategoryId();
+    if (categoryId == null || categoryId.isEmpty) {
       AppDialogs.showToast(message: AppStrings.selectCategory);
       return;
     }
 
-    final success = await _productsController.addProduct(
-      title: productNameController.text.trim(),
-      description: descriptionController.text.trim(),
-      price: priceController.text.trim(),
-      categoryId: category!.id!,
-      images: List<File>.from(documentList),
-    );
+    final newImages = imageItems
+        .where((item) => item.localFile != null)
+        .map((item) => item.localFile!)
+        .toList();
+
+    final title = productNameController.text.trim();
+    final description = descriptionController.text.trim();
+    final price = priceController.text.trim();
+
+    final bool success;
+    if (_isEditMode) {
+      final productId = widget.product?.id;
+      if (productId == null || productId.isEmpty) {
+        AppDialogs.showToast(message: 'Unable to update product.');
+        return;
+      }
+
+      success = await _productsController.editProduct(
+        productId: productId,
+        title: title,
+        description: description,
+        price: price,
+        categoryId: categoryId,
+        images: newImages,
+        isActive: widget.product?.isActive ?? true,
+      );
+    } else {
+      if (newImages.isEmpty) {
+        AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
+        return;
+      }
+
+      success = await _productsController.addProduct(
+        title: title,
+        description: description,
+        price: price,
+        categoryId: categoryId,
+        images: newImages,
+      );
+    }
 
     if (!success || !mounted) return;
 
     AppNavigation.navigatorPop(context);
     AppDialogs.showSuccessDialog(
       context,
-      description: AppStrings.productHasBeenAddedSuccessfully,
+      description: _isEditMode
+          ? AppStrings.productHasBeenUpdatedSuccessfully
+          : AppStrings.productHasBeenAddedSuccessfully,
       title: AppStrings.congratulation,
       btnTxt1: AppStrings.ok,
       onTap1: () {
@@ -386,4 +482,14 @@ class _AddEditProductState extends State<AddEditProduct> {
       },
     );
   }
+}
+
+class _ProductImageItem {
+  const _ProductImageItem({
+    this.networkUrl,
+    this.localFile,
+  });
+
+  final String? networkUrl;
+  final File? localFile;
 }

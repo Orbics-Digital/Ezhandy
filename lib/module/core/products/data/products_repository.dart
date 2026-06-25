@@ -39,6 +39,71 @@ class ProductsRepository {
     required List<File> images,
     bool isActive = true,
   }) async {
+    final formData = await _buildProductFormData(
+      title: title,
+      description: description,
+      price: price,
+      categoryId: categoryId,
+      images: images,
+      isActive: isActive,
+    );
+
+    final response = await _client.dio.post(
+      ApiEndpoints.products,
+      data: formData,
+      options: _multipartOptions(),
+    );
+
+    return ProductModel.fromJson(ApiHelper.dataObject(response.data));
+  }
+
+  Future<ProductModel> updateProduct({
+    required String productId,
+    required String title,
+    required String description,
+    required String price,
+    required String categoryId,
+    List<File> images = const [],
+    bool isActive = true,
+  }) async {
+    final formData = await _buildProductFormData(
+      title: title,
+      description: description,
+      price: price,
+      categoryId: categoryId,
+      images: images,
+      isActive: isActive,
+    );
+
+    final response = await _client.dio.patch(
+      ApiEndpoints.product(productId),
+      data: formData,
+      options: _multipartOptions(),
+    );
+
+    return ProductModel.fromJson(ApiHelper.dataObject(response.data));
+  }
+
+  Future<void> deleteProduct(String productId) async {
+    final response = await _client.dio.delete(ApiEndpoints.product(productId));
+    final data = response.data;
+
+    if (data is! Map) return;
+
+    final root = Map<String, dynamic>.from(data);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
+
+  Future<FormData> _buildProductFormData({
+    required String title,
+    required String description,
+    required String price,
+    required String categoryId,
+    required List<File> images,
+    required bool isActive,
+  }) async {
     final formData = FormData.fromMap({
       'title': title,
       'description': description,
@@ -60,27 +125,13 @@ class ProductsRepository {
       );
     }
 
-    final response = await _client.dio.post(
-      ApiEndpoints.products,
-      data: formData,
-      options: Options(
-        contentType: Headers.multipartFormDataContentType,
-        headers: {'Accept': ApiConstants.acceptJson},
-      ),
-    );
-
-    return ProductModel.fromJson(ApiHelper.dataObject(response.data));
+    return formData;
   }
 
-  Future<void> deleteProduct(String productId) async {
-    final response = await _client.dio.delete(ApiEndpoints.product(productId));
-    final data = response.data;
-
-    if (data is! Map) return;
-
-    final root = Map<String, dynamic>.from(data);
-    if (!ApiHelper.isSuccessResponse(root)) {
-      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
-    }
+  Options _multipartOptions() {
+    return Options(
+      contentType: Headers.multipartFormDataContentType,
+      headers: {'Accept': ApiConstants.acceptJson},
+    );
   }
 }

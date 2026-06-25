@@ -1,5 +1,11 @@
-class AddEditProductRoutingArgument {
-  String? type;
+import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 
-  AddEditProductRoutingArgument({required this.type});
+class AddEditProductRoutingArgument {
+  final String? type;
+  final ProductModel? product;
+
+  AddEditProductRoutingArgument({
+    required this.type,
+    this.product,
+  });
 }
