@@ -1,8 +1,9 @@
+import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
 import 'package:ezhandy_user/widgets/dropdown/custom_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:ezhandy_user/module/core/controller/home_controller.dart';
+import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
@@ -24,6 +25,9 @@ class FilterBottomSheet extends StatefulWidget {
 }
 
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
+  final CategoriesController _categoriesController =
+      Get.find<CategoriesController>();
+
   String? countryValue;
   String? stateValue;
   String? cityValue;
@@ -33,62 +37,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   String? errorState = '';
 
   String? categoryValue;
-  var categoryList = [
-    "Adhesives",
-    "Allen keys",
-    "Angle grinders",
-    "Chalk lines",
-    "Chisels & hand planes",
-    "Circular saws",
-    "Circuit testers",
-    "Crimping tools",
-    "Drill bit sets & blade replacements",
-    "Drills",
-    "Drop cloths & painter’s tape",
-    "Ear protection",
-    "Electrical tape",
-    "Extension ladders",
-    "Faucet & basin wrenches",
-    "Fish tape",
-    "Hand saws",
-    "Hard hats",
-    "Hammers",
-    "Heat guns",
-    "Impact drivers",
-    "Jigsaws",
-    "Knee pads",
-    "Levels",
-    "Measuring & marking tools",
-    "Nail guns & staplers",
-    "Nail sets & hammers",
-    "Paint brushes",
-    "Paint sprayers",
-    "Pipe cutters",
-    "Pipe wrenches",
-    "Pliers",
-    "Power drills",
-    "Putty knives & scrapers",
-    "Reciprocating saws",
-    "Rollers & roller trays",
-    "Rotary tools",
-    "Safety goggles",
-    "Sanders",
-    "Sandpaper & sanding blocks",
-    "Saws",
-    "Screws, nails, bolts, anchors",
-    "Screwdrivers",
-    "Step ladders",
-    "Stud finders",
-    "Tape measures & rulers",
-    "Teflon tape & sealant tools",
-    "Tool belts & pouches",
-    "Toolboxes & storage cases",
-    "Utility knives & blades",
-    "Voltage testers & multimeters",
-    "Wire cutters & strippers",
-    "Work gloves",
-    "Workbenches"
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -144,30 +92,30 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   }
 
   Widget categoryDropDown() {
-    return CustomDropDown2(
-      dropDownHeight: 220.h,
-      // width: 95.w, // 👈 Controls button width
-      dropDownWidth: .93.sw, // 👈 Controls dropdown menu width
-      dropDownData: categoryList,
-      borderRadius: 10.r,
-            isPrefix: false,
-
-      hintText: AppStrings.selectCategory,
-      dropdownValue: categoryValue,
-      dropdownListColor: AppColors.white,
-      borderColor: AppColors.greyBorder,
-      hintTextColor: AppColors.black,
-      onChanged: (value) {
-        setState(() {
-          categoryValue = value.toString();
-        });
-      },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return AppStrings.selectCategory;
-        }
-        return null;
-      },
+    return Obx(
+      () => CustomDropDown2(
+        dropDownHeight: 220.h,
+        dropDownWidth: .93.sw,
+        dropDownData: _categoriesController.categoryDropdownLabels,
+        borderRadius: 10.r,
+        isPrefix: false,
+        hintText: AppStrings.selectCategory,
+        dropdownValue: categoryValue,
+        dropdownListColor: AppColors.white,
+        borderColor: AppColors.greyBorder,
+        hintTextColor: AppColors.black,
+        onChanged: (value) {
+          setState(() {
+            categoryValue = value.toString();
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return AppStrings.selectCategory;
+          }
+          return null;
+        },
+      ),
     );
   }
 

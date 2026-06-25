@@ -8,6 +8,7 @@ class ApiEndpoints {
   static const String queries = 'queries';
   static const String communityPosts = 'community/posts';
   static const String products = 'products';
+  static const String categories = 'categories';
 
   static String ownerProducts(String ownerId) => 'products/owner/$ownerId';
 

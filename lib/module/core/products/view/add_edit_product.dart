@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/utils/utils.dart';
@@ -32,6 +33,8 @@ class AddEditProduct extends StatefulWidget {
 }
 
 class _AddEditProductState extends State<AddEditProduct> {
+  final CategoriesController _categoriesController =
+      Get.find<CategoriesController>();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   TextEditingController productNameController = TextEditingController();
@@ -45,62 +48,6 @@ class _AddEditProductState extends State<AddEditProduct> {
   bool keyboardVisible = false;
   List documentList = [];
   String? categoryValue;
-  var categoryList = [
-    "Adhesives",
-    "Allen keys",
-    "Angle grinders",
-    "Chalk lines",
-    "Chisels & hand planes",
-    "Circular saws",
-    "Circuit testers",
-    "Crimping tools",
-    "Drill bit sets & blade replacements",
-    "Drills",
-    "Drop cloths & painter’s tape",
-    "Ear protection",
-    "Electrical tape",
-    "Extension ladders",
-    "Faucet & basin wrenches",
-    "Fish tape",
-    "Hand saws",
-    "Hard hats",
-    "Hammers",
-    "Heat guns",
-    "Impact drivers",
-    "Jigsaws",
-    "Knee pads",
-    "Levels",
-    "Measuring & marking tools",
-    "Nail guns & staplers",
-    "Nail sets & hammers",
-    "Paint brushes",
-    "Paint sprayers",
-    "Pipe cutters",
-    "Pipe wrenches",
-    "Pliers",
-    "Power drills",
-    "Putty knives & scrapers",
-    "Reciprocating saws",
-    "Rollers & roller trays",
-    "Rotary tools",
-    "Safety goggles",
-    "Sanders",
-    "Sandpaper & sanding blocks",
-    "Saws",
-    "Screws, nails, bolts, anchors",
-    "Screwdrivers",
-    "Step ladders",
-    "Stud finders",
-    "Tape measures & rulers",
-    "Teflon tape & sealant tools",
-    "Tool belts & pouches",
-    "Toolboxes & storage cases",
-    "Utility knives & blades",
-    "Voltage testers & multimeters",
-    "Wire cutters & strippers",
-    "Work gloves",
-    "Workbenches"
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -328,28 +275,29 @@ class _AddEditProductState extends State<AddEditProduct> {
   }
 
   Widget categoryDropDown() {
-    return CustomDropDown2(
-      // width: 95.w, // 👈 Controls button width
-      dropDownWidth: .93.sw, // 👈 Controls dropdown menu width
-      dropDownData: categoryList,
-      dropDownHeight: 500.h,
-      borderRadius: 10.r,
-      hintText: AppStrings.selectCategory,
-      dropdownValue: categoryValue,
-      dropdownListColor: AppColors.white,
-      borderColor: AppColors.greyBorder,
-      hintTextColor: AppColors.black,
-      onChanged: (value) {
-        setState(() {
-          categoryValue = value.toString();
-        });
-      },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return AppStrings.selectCategory;
-        }
-        return null;
-      },
+    return Obx(
+      () => CustomDropDown2(
+        dropDownWidth: .93.sw,
+        dropDownData: _categoriesController.categoryDropdownLabels,
+        dropDownHeight: 500.h,
+        borderRadius: 10.r,
+        hintText: AppStrings.selectCategory,
+        dropdownValue: categoryValue,
+        dropdownListColor: AppColors.white,
+        borderColor: AppColors.greyBorder,
+        hintTextColor: AppColors.black,
+        onChanged: (value) {
+          setState(() {
+            categoryValue = value.toString();
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return AppStrings.selectCategory;
+          }
+          return null;
+        },
+      ),
     );
   }
 
