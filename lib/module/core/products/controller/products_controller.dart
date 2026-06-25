@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
@@ -16,6 +18,7 @@ class ProductsController extends GetxController {
   final RxString searchQuery = ''.obs;
   final RxBool isLoading = false.obs;
   final RxBool isMyProductsLoading = false.obs;
+  final RxBool isSubmittingProduct = false.obs;
 
   void setSearchQuery(String value) => searchQuery.value = value;
 
@@ -122,6 +125,37 @@ class ProductsController extends GetxController {
       AppDialogs.showToast(message: e.toString());
     } finally {
       isMyProductsLoading.value = false;
+    }
+  }
+
+  Future<bool> addProduct({
+    required String title,
+    required String description,
+    required String price,
+    required String categoryId,
+    required List<File> images,
+  }) async {
+    if (isSubmittingProduct.value) return false;
+
+    isSubmittingProduct.value = true;
+    try {
+      await _repository.createProduct(
+        title: title,
+        description: description,
+        price: price,
+        categoryId: categoryId,
+        images: images,
+      );
+      await refreshMyProducts();
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isSubmittingProduct.value = false;
     }
   }
 }

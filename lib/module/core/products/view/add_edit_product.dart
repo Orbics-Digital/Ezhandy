@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
+import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/utils/utils.dart';
@@ -33,20 +34,18 @@ class AddEditProduct extends StatefulWidget {
 }
 
 class _AddEditProductState extends State<AddEditProduct> {
+  static const int _maxImages = 5;
+
   final CategoriesController _categoriesController =
       Get.find<CategoriesController>();
+  final ProductsController _productsController = Get.find<ProductsController>();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   TextEditingController productNameController = TextEditingController();
-  TextEditingController nameController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController addressController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
   TextEditingController priceController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
-  TextEditingController messageController = TextEditingController();
   bool keyboardVisible = false;
-  List documentList = [];
+  final List<File> documentList = [];
   String? categoryValue;
 
   @override
@@ -94,27 +93,6 @@ class _AddEditProductState extends State<AddEditProduct> {
                       10.verticalSpace,
                       documentWidget(),
                       20.verticalSpace,
-                      CustomText(
-                          text: "Seller Info:",
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16.sp),
-                      10.verticalSpace,
-                      CustomText(text: "Seller Name" + "*"),
-                      10.verticalSpace,
-                      _nameTextField(),
-                      20.verticalSpace,
-                      CustomText(text: AppStrings.phoneNumber + "*"),
-                      10.verticalSpace,
-                      _phoneNumberTextField(),
-                      20.verticalSpace,
-                      CustomText(text: AppStrings.email + "*"),
-                      10.verticalSpace,
-                      _emailTextField(),
-                      20.verticalSpace,
-                      CustomText(text: AppStrings.address + "*"),
-                      10.verticalSpace,
-                      _addressField(),
-                      20.verticalSpace,
 
                       //----------------Get Code Button----------------
                     ]),
@@ -130,27 +108,15 @@ class _AddEditProductState extends State<AddEditProduct> {
   }
 
   _setCameraDocumentFile(File? file) {
+    if (file == null) return;
+    if (documentList.length >= _maxImages) {
+      AppDialogs.showToast(message: AppStrings.maximumFiveImagesAllowed);
+      return;
+    }
+
     setState(() {
-      // _profileImage = file;
       documentList.add(file);
     });
-    print(documentList.toString());
-  }
-
-  Widget _emailTextField() {
-    return CustomTextField(
-      hint: AppStrings.enterEmailAddress,
-      divider: false,
-      label: false,
-
-      keyboardType: TextInputType.emailAddress,
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(Constants.emailMaxLength)
-      ],
-      controller: emailController,
-      validator: (value) => value?.validateEmail,
-      // error_text: error_email,
-    );
   }
 
   Widget uploadWidget(length) {
@@ -219,7 +185,9 @@ class _AddEditProductState extends State<AddEditProduct> {
             width: 5,
           );
         },
-        itemCount: documentList.length + 1,
+        itemCount: documentList.length >= _maxImages
+            ? documentList.length
+            : documentList.length + 1,
       ),
     );
   }
@@ -301,20 +269,6 @@ class _AddEditProductState extends State<AddEditProduct> {
     );
   }
 
-  Widget _phoneNumberTextField() {
-    return CustomTextField(
-      hint: AppStrings.enterPhoneNumber,
-      divider: false,
-      // prefxicon: AssetPath.callIcon,
-      label: false,
-      keyboardType: TextInputType.number,
-      inputFormatters: [Constants.maskTextInputFormatterPhoneUSWithCode],
-      controller: phoneController,
-      // validator: (value) => value?.validateEmpty(AppStrings.phon),
-      // error_text: error_email,
-    );
-  }
-
   Widget _productNameTextField() {
     return CustomTextField(
       hint: "Enter Product Name",
@@ -329,42 +283,6 @@ class _AddEditProductState extends State<AddEditProduct> {
       ],
       controller: productNameController,
       validator: (value) => value?.validateEmpty("Product Name"),
-      // error_text: error_email,
-    );
-  }
-
-  Widget _nameTextField() {
-    return CustomTextField(
-      hint: "Enter Seller Name",
-      divider: false,
-      // prefxicon: AssetPath.profileCircleIcon,
-      label: false,
-      // readOnly: true,
-      // onTap: () {},
-      // keyboardType: TextInputType.emailAddress,
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(Constants.nameMaxLength)
-      ],
-      controller: nameController,
-      validator: (value) => value?.validateEmpty("Seller Name"),
-      // error_text: error_email,
-    );
-  }
-
-  Widget _addressField() {
-    return CustomTextField(
-      hint: AppStrings.enterAddress,
-      divider: false,
-      // prefxicon: AssetPath.convertIcon,
-      label: false,
-      borderRadius: 10.r,
-      lines: 5,
-      // keyboardType: TextInputType.emailAddress,
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(Constants.descriptionMaxLength)
-      ],
-      controller: addressController,
-      validator: (value) => value?.validateEmpty(AppStrings.address),
       // error_text: error_email,
     );
   }
@@ -404,39 +322,68 @@ class _AddEditProductState extends State<AddEditProduct> {
   }
 
   Widget buttonWidget(context) {
-    return CustomButton(
+    return Obx(
+      () => CustomButton(
         text: AddEditType.add.name == widget.type
             ? AppStrings.add
             : AppStrings.save,
-        onclick: () {
-          final isValid = formKey.currentState!.validate();
-          if (!isValid) {
-            return;
-          }
-          formKey.currentState!.save();
-          AppNavigation.navigatorPop(context);
-          AppDialogs.showSuccessDialog(
-            context,
-            description: AddEditType.add.name == widget.type
-                ? AppStrings.productHasBeenAddedSuccessfully
-                : AppStrings.productHasBeenUpdatedSuccessfully,
-            title: AppStrings.congratulation,
-            btnTxt1: AppStrings.ok,
-            onTap1: () {
-              AppNavigation.navigatorPop(
-                  Constants.navigatorKey.currentContext!);
-            },
-          );
-          // AppNavigation.navigateTo(
-          //     context, AppRoutes.otpVerificationScreenRoute,
-          //     arguments: OtpVerificationRoutingArgument(
-          //         type: OtpType.forget.name,
-          //         emailAndPhone: emailController.text,
-          //         text: emailController.text));
-          // AuthController.i
-          //     .forgotPass(email: forgotPassRepo.email_controller.text);
-          // ToastMessage(toastmsg: AppStrings.otpSendedToYourEmail);
-          FocusScope.of(context).unfocus();
-        });
+        isLoading: _productsController.isSubmittingProduct.value,
+        onclick: _onSubmit,
+      ),
+    );
+  }
+
+  Future<void> _onSubmit() async {
+    FocusScope.of(context).unfocus();
+
+    final isValid = formKey.currentState!.validate();
+    if (!isValid) return;
+
+    if (AddEditType.add.name != widget.type) {
+      AppNavigation.navigatorPop(context);
+      AppDialogs.showSuccessDialog(
+        context,
+        description: AppStrings.productHasBeenUpdatedSuccessfully,
+        title: AppStrings.congratulation,
+        btnTxt1: AppStrings.ok,
+        onTap1: () {
+          AppNavigation.navigatorPop(Constants.navigatorKey.currentContext!);
+        },
+      );
+      return;
+    }
+
+    if (documentList.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
+      return;
+    }
+
+    final category =
+        _categoriesController.getCategoryByDisplayName(categoryValue);
+    if (category?.id == null) {
+      AppDialogs.showToast(message: AppStrings.selectCategory);
+      return;
+    }
+
+    final success = await _productsController.addProduct(
+      title: productNameController.text.trim(),
+      description: descriptionController.text.trim(),
+      price: priceController.text.trim(),
+      categoryId: category!.id!,
+      images: List<File>.from(documentList),
+    );
+
+    if (!success || !mounted) return;
+
+    AppNavigation.navigatorPop(context);
+    AppDialogs.showSuccessDialog(
+      context,
+      description: AppStrings.productHasBeenAddedSuccessfully,
+      title: AppStrings.congratulation,
+      btnTxt1: AppStrings.ok,
+      onTap1: () {
+        AppNavigation.navigatorPop(Constants.navigatorKey.currentContext!);
+      },
+    );
   }
 }
