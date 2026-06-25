@@ -158,4 +158,19 @@ class ProductsController extends GetxController {
       isSubmittingProduct.value = false;
     }
   }
+
+  Future<bool> deleteProduct(String productId) async {
+    try {
+      await _repository.deleteProduct(productId);
+      myProducts.removeWhere((product) => product.id == productId);
+      products.removeWhere((product) => product.id == productId);
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    }
+  }
 }

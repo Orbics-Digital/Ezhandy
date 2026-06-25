@@ -335,34 +335,7 @@ class _MarketPlaceState extends State<MarketPlace>
             ),
           ),
           GestureDetector(
-            onTap: () {
-              AppDialogs.showSuccessDialog(
-                context,
-                description: "Are you sure you want to delete this product?",
-                isDoneShow: false,
-                image: AssetPath.deleteWithCircleIcon,
-                btnTxt1: AppStrings.yes,
-                btnTxt2: AppStrings.no,
-                onTap1: () {
-                  AppNavigation.navigatorPop(context);
-                  AppDialogs.showSuccessDialog(
-                    context,
-                    description:
-                        AppStrings.productHasBeenDeletedSuccessfully,
-                    title: AppStrings.congratulation,
-                    btnTxt1: AppStrings.ok,
-                    onTap1: () {
-                      AppNavigation.navigatorPop(
-                          Constants.navigatorKey.currentContext!);
-                    },
-                  );
-                },
-                onTap2: () {
-                  AppNavigation.navigatorPop(
-                      Constants.navigatorKey.currentContext!);
-                },
-              );
-            },
+            onTap: () => _confirmDeleteProduct(product),
             child: CircleAvatar(
                 backgroundColor: AppColors.orange,
                 radius: 10.r,
@@ -412,6 +385,38 @@ class _MarketPlaceState extends State<MarketPlace>
     final value = price?.trim();
     if (value == null || value.isEmpty) return '\$ 0.00';
     return '\$ $value';
+  }
+
+  void _confirmDeleteProduct(ProductModel product) {
+    AppDialogs.showSuccessDialog(
+      context,
+      description: "Are you sure you want to delete this product?",
+      isDoneShow: false,
+      image: AssetPath.deleteWithCircleIcon,
+      btnTxt1: AppStrings.yes,
+      btnTxt2: AppStrings.no,
+      onTap1: () async {
+        AppNavigation.navigatorPop(context);
+        final productId = product.id;
+        if (productId == null || productId.isEmpty) return;
+
+        final success = await _controller.deleteProduct(productId);
+        if (!success || !mounted) return;
+
+        AppDialogs.showSuccessDialog(
+          context,
+          description: AppStrings.productHasBeenDeletedSuccessfully,
+          title: AppStrings.congratulation,
+          btnTxt1: AppStrings.ok,
+          onTap1: () {
+            AppNavigation.navigatorPop(Constants.navigatorKey.currentContext!);
+          },
+        );
+      },
+      onTap2: () {
+        AppNavigation.navigatorPop(Constants.navigatorKey.currentContext!);
+      },
+    );
   }
 
   Widget searchTextField() {

@@ -71,4 +71,16 @@ class ProductsRepository {
 
     return ProductModel.fromJson(ApiHelper.dataObject(response.data));
   }
+
+  Future<void> deleteProduct(String productId) async {
+    final response = await _client.dio.delete(ApiEndpoints.product(productId));
+    final data = response.data;
+
+    if (data is! Map) return;
+
+    final root = Map<String, dynamic>.from(data);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
 }
