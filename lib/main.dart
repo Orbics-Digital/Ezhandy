@@ -4,6 +4,7 @@ import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:ezhandy_user/module/core/community/controller/community_controller.dart';
+import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
 import 'package:ezhandy_user/module/core/notification/controller/notification_controller.dart';
 import 'package:ezhandy_user/utils/routes/app_router.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
@@ -27,6 +28,7 @@ Future<void> main() async {
   Get.put(HomeController(), permanent: true);
   Get.put(NotificationController(), permanent: true);
   Get.put(CommunityController(), permanent: true);
+  Get.put(ProductsController(), permanent: true);
   await AuthController.i.restoreSession();
   await NotificationController.i.fetchUnreadCount();
 
