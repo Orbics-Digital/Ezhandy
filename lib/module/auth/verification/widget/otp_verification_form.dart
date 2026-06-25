@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'package:ezhandy_user/module/auth/create_new_password/routing_arguments/reset_password_routing_arguments.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
+import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
@@ -122,39 +125,43 @@ class _OtpVerificationFormState extends State<OtpVerificationForm> {
   }
 
   Widget _verifyButton(context) {
-    return CustomButton(
-      text: AppStrings.submitCode,
-      onclick: () {
-        if (otpKey.currentState!.validate()) {
-          // ToastMessage(toastmsg: AppStrings.logIn);
+    return Obx(
+      () => CustomButton(
+        text: AppStrings.submitCode,
+        isLoading: AuthController.i.isVerifyResetOtpLoading.value,
+        onclick: () async {
+          if (!otpKey.currentState!.validate()) return;
+
+          FocusScope.of(context).unfocus();
+
           if (widget.type == OtpType.forget.name) {
+            final email = widget.text?.trim() ?? '';
+            if (email.isEmpty) {
+              AppDialogs.showToast(message: 'Email is required.');
+              return;
+            }
+
+            final success = await AuthController.i.verifyResetOtp(
+              email: email,
+              otp: pinController.text,
+            );
+            if (!success || !context.mounted) return;
+
             AppNavigation.navigateReplacementNamed(
-                context, AppRoutes.resetPasswordScreenRoute);
-            // AppNavigation.navigateToRemovingAll(context, AppRoutes.userMainMenuScreenRoute);
-          } else {
-            AuthController.i.isLoginSignUp.value = true;
-
-            AppNavigation.navigateToRemovingAll(
-                context, AppRoutes.mainMenuScreenRoute);
+              context,
+              AppRoutes.resetPasswordScreenRoute,
+              arguments: ResetPasswordRoutingArgument(email: email),
+            );
+            return;
           }
-          // AppNavigation.navigateTo(
-          //     context, AppRoutes.otpVerificationScreenRoute,
-          //     arguments: OtpVerificationRoutingArgument(
-          //         type: OtpType.signup.name,
-          //         emailAndPhone: OtpCodeType.email.name));
-          // emailController.clear();
-          // passwordController.clear();
-          // AppDialogs.showToast(message: AppStrings.loginSuccessfully);
-          // }
-          // validate_email(emailController.text);
-          // if (error_email == "") {
-          //   AuthController.i.signIn(email: emailController.text);
-          //   // Get.offNamed(Paths.OTP_VERIFICATION_SCREEN_ROUTE);
-          //   AppConstant.is_phone = false;
-        }
 
-        FocusScope.of(context).unfocus();
-      },
+          AuthController.i.isLoginSignUp.value = true;
+          AppNavigation.navigateToRemovingAll(
+            context,
+            AppRoutes.mainMenuScreenRoute,
+          );
+        },
+      ),
     );
   }
 

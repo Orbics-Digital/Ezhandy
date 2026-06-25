@@ -1,3 +1,4 @@
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
@@ -10,13 +11,15 @@ import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
-import 'package:ezhandy_user/widgets/toast_dialogs_sheet/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 class ResetPasswordForm extends StatefulWidget {
-  const ResetPasswordForm({super.key});
+  final String email;
+
+  const ResetPasswordForm({super.key, required this.email});
 
   @override
   State<ResetPasswordForm> createState() => _ResetPasswordFormState();
@@ -137,14 +140,29 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
   }
 
   Widget buttonWidget(context) {
-    return CustomButton(
+    return Obx(
+      () => CustomButton(
         text: AppStrings.updatePassword,
-        onclick: () {
+        isLoading: AuthController.i.isResetPasswordLoading.value,
+        onclick: () async {
           final isValid = rsesetpassKey.currentState!.validate();
-          if (!isValid) {
+          if (!isValid) return;
+
+          rsesetpassKey.currentState!.save();
+          FocusScope.of(context).unfocus();
+
+          final email = widget.email.trim();
+          if (email.isEmpty) {
+            AppDialogs.showToast(message: 'Email is required.');
             return;
           }
-          rsesetpassKey.currentState!.save();
+
+          final success = await AuthController.i.resetPassword(
+            email: email,
+            password: passwordController.text,
+          );
+          if (!success || !context.mounted) return;
+
           AppDialogs.showSuccessDialog(
             context,
             description: AppStrings.passwordUpdatedSuccessfully,
@@ -152,19 +170,13 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
             btnTxt1: AppStrings.backToLogin,
             onTap1: () {
               AppNavigation.navigateToRemovingAll(
-                  context, AppRoutes.loginScreenRoute);
+                context,
+                AppRoutes.loginScreenRoute,
+              );
             },
           );
-          // AppNavigation.navigateTo(
-          //     context, AppRoutes.otpVerificationScreenRoute,
-          //     arguments: OtpVerificationRoutingArgument(
-          //         type: OtpType.forget.name,
-          //         emailAndPhone: emailController.text,
-          //         text: emailController.text));
-          // AuthController.i
-          //     .forgotPass(email: forgotPassRepo.email_controller.text);
-          ToastMessage(toastmsg: AppStrings.otpSendedToYourEmail);
-          FocusScope.of(context).unfocus();
-        });
+        },
+      ),
+    );
   }
 }

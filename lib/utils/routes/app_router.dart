@@ -1,5 +1,6 @@
 import 'package:ezhandy_user/module/auth/content/routing_arguments/content_routing_arguments.dart';
 import 'package:ezhandy_user/module/auth/content/view/content_screen.dart';
+import 'package:ezhandy_user/module/auth/create_new_password/routing_arguments/reset_password_routing_arguments.dart';
 import 'package:ezhandy_user/module/auth/create_new_password/view/change_password.dart';
 import 'package:ezhandy_user/module/auth/create_new_password/view/reset_password.dart';
 import 'package:ezhandy_user/module/auth/login/views/login.dart';
@@ -98,7 +99,9 @@ class AppRouter {
           // case AppRoutes.changePasswordScreenRoute:
           //   return ChangePassword();
           case AppRoutes.resetPasswordScreenRoute:
-            return ResetPassword();
+            final resetPasswordArguments =
+                routeSettings.arguments as ResetPasswordRoutingArgument?;
+            return ResetPassword(email: resetPasswordArguments?.email ?? '');
           case AppRoutes.mainMenuScreenRoute:
             // MainMenuRoutingArguments? mainMenuRoutingArguments = routeSettings.arguments as MainMenuRoutingArguments?;
             return MainMenu(

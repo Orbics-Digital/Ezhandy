@@ -314,6 +314,8 @@ class AppStrings {
   static const String submitCode = "Submit Code";
   static const String PleaseEnterYourEmailPhoneContinue =
       "Please enter your email or phone to continue.";
+  static const String pleaseEnterYourEmailToContinue =
+      "Please enter your email to continue.";
   static const String viaEmail = "Via Email";
   static const String viaPhoneNumber = "Via Phone Number";
 

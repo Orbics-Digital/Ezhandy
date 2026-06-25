@@ -3,6 +3,9 @@ class ApiEndpoints {
 
   static const String login = 'login';
   static const String logout = 'logout';
+  static const String forgotPassword = 'forgot-password';
+  static const String verifyResetOtp = 'verify-reset-otp';
+  static const String resetPassword = 'reset-password';
   static const String notifications = 'notifications';
   static const String notificationsUnreadCount = 'notifications/unread-count';
   static const String queries = 'queries';

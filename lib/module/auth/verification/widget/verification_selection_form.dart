@@ -1,12 +1,13 @@
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/auth/verification/routing_arguments/otp_verification_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
-import 'package:ezhandy_user/utils/asset_path.dart';
-import 'package:ezhandy_user/utils/constant.dart';
-import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
+import 'package:ezhandy_user/utils/app_dialogs.dart';
+import 'package:ezhandy_user/utils/asset_path.dart';import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/enums.dart';
@@ -32,10 +33,6 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
   /// Text Editing Controllers
   final TextEditingController emailController = TextEditingController();
 
-  final TextEditingController phoneController = TextEditingController();
-
-  bool isEmail = true;
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -48,7 +45,7 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
           signInTextWidget(),
           5.verticalSpace,
           CustomText(
-              text: AppStrings.PleaseEnterYourEmailPhoneContinue,
+              text: AppStrings.pleaseEnterYourEmailToContinue,
               is_alignLeft: false),
 
           25.verticalSpace,
@@ -58,15 +55,9 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
               child: Form(
                 key: verificationFormKey,
                 child: Column(children: [
-                  //----------------Email Address Field----------------
-
                   CustomText(text: AppStrings.viaEmail),
                   10.verticalSpace,
                   _emailTextField(),
-                  20.verticalSpace,
-                  CustomText(text: AppStrings.viaPhoneNumber),
-                  10.verticalSpace,
-                  _phoneNumberTextField(),
                   SizedBox(height: 30.h),
                   //----------------Get Code Button----------------
                   buttonWidget(context),
@@ -92,78 +83,46 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
   // Align dividerWidget() {
   Widget _emailTextField() {
     return CustomTextField(
-      onTap: () {
-        setState(() {
-          isEmail = true;
-        });
-        phoneController.clear();
-      },
       label: false,
       divider: false,
       hint: AppStrings.infoEnail,
       prefxicon: AssetPath.emailIcon,
-      sufixImage: isEmail ? Icon(Icons.check) : null,
       inputFormatters: [LengthLimitingTextInputFormatter(35)],
       keyboardType: TextInputType.emailAddress,
       controller: emailController,
-      validator: (value) => isEmail ? value?.validateEmail : null,
-    );
-  }
-
-  Widget _phoneNumberTextField() {
-    return CustomTextField(
-      onTap: () {
-        setState(() {
-          isEmail = false;
-        });
-        emailController.clear();
-      },
-      hint: AppStrings.dummyPhoneNUmber,
-      divider: false,
-      prefxicon: AssetPath.callIcon,
-      label: false,
-      sufixImage: isEmail ? null : Icon(Icons.check),
-
-      keyboardType: TextInputType.number,
-      inputFormatters: [Constants.maskTextInputFormatterPhoneUSWithCode],
-      controller: phoneController,
-      validator: (value) =>
-          isEmail ? null : value?.validatePhone(AppStrings.phoneNumber),
-      // error_text: error_email,
-    );
-  }
-
-  CustomText verificationTextWidget() {
-    return CustomText(
-      text: AppStrings.verification,
-      // is_alignLeft: false,
-      fontSize: 23.sp,
-      fontWeight: FontWeight.bold,
-      color: AppColors.blueDark,
+      validator: (value) => value?.validateEmail,
     );
   }
 
   Widget buttonWidget(context) {
-    return CustomButton(
+    return Obx(
+      () => CustomButton(
         text: AppStrings.continuee,
-        onclick: () {
+        isLoading: AuthController.i.isForgotPasswordLoading.value,
+        onclick: () async {
           final isValid = verificationFormKey.currentState!.validate();
-          if (!isValid) {
-            return;
-          }
+          if (!isValid) return;
+
           verificationFormKey.currentState!.save();
-          AppNavigation.navigateTo(
-              context, AppRoutes.otpVerificationScreenRoute,
-              arguments: OtpVerificationRoutingArgument(
-                  type: widget.type,
-                  text: isEmail ? emailController.text : phoneController.text,
-                  emailAndPhone: isEmail
-                      ? OtpCodeType.email.name
-                      : OtpCodeType.phone.name));
-          // AuthController.i
-          //     .forgotPass(email: forgotPassRepo.email_controller.text);
-          // ToastMessage(toastmsg: AppStrings.otpSendedToYourEmail);
           FocusScope.of(context).unfocus();
-        });
+
+          final success = await AuthController.i.forgotPassword(
+            email: emailController.text,
+          );
+          if (!success || !context.mounted) return;
+
+          AppDialogs.showToast(message: AppStrings.otpSendedToYourEmail);
+          AppNavigation.navigateTo(
+            context,
+            AppRoutes.otpVerificationScreenRoute,
+            arguments: OtpVerificationRoutingArgument(
+              type: widget.type,
+              text: emailController.text.trim(),
+              emailAndPhone: OtpCodeType.email.name,
+            ),
+          );
+        },
+      ),
+    );
   }
 }

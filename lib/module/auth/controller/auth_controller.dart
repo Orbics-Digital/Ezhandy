@@ -24,6 +24,9 @@ class AuthController extends GetxController {
   final Rxn<UserModel> user = Rxn<UserModel>();
   final RxBool isLoginLoading = false.obs;
   final RxBool isLogoutLoading = false.obs;
+  final RxBool isForgotPasswordLoading = false.obs;
+  final RxBool isVerifyResetOtpLoading = false.obs;
+  final RxBool isResetPasswordLoading = false.obs;
   final RxBool isQuickProviderLoading = false.obs;
   final RxBool isLoginSignUp = true.obs;
 
@@ -128,6 +131,72 @@ class AuthController extends GetxController {
       return false;
     } finally {
       isLoginLoading.value = false;
+    }
+  }
+
+  Future<bool> forgotPassword({required String email}) async {
+    if (isForgotPasswordLoading.value) return false;
+
+    isForgotPasswordLoading.value = true;
+    try {
+      await _authRepository.forgotPassword(email: email.trim());
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isForgotPasswordLoading.value = false;
+    }
+  }
+
+  Future<bool> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    if (isVerifyResetOtpLoading.value) return false;
+
+    isVerifyResetOtpLoading.value = true;
+    try {
+      await _authRepository.verifyResetOtp(
+        email: email.trim(),
+        otp: otp.trim(),
+      );
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isVerifyResetOtpLoading.value = false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String password,
+  }) async {
+    if (isResetPasswordLoading.value) return false;
+
+    isResetPasswordLoading.value = true;
+    try {
+      await _authRepository.resetPassword(
+        email: email.trim(),
+        password: password,
+      );
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isResetPasswordLoading.value = false;
     }
   }
 
