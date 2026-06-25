@@ -45,6 +45,7 @@ import 'package:ezhandy_user/module/core/products/routing_arguments/add_edit_pro
 import 'package:ezhandy_user/module/core/products/view/add_edit_product.dart';
 import 'package:ezhandy_user/module/core/products/view/add_to_cart.dart';
 import 'package:ezhandy_user/module/core/products/view/market_place.dart';
+import 'package:ezhandy_user/module/core/products/routing_arguments/product_detail_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/products/view/product_details.dart';
 import 'package:ezhandy_user/module/core/profile/view/edit_user_profile.dart';
 import 'package:ezhandy_user/module/core/profile/view/provider_profile.dart';
@@ -235,7 +236,9 @@ class AppRouter {
               product: productArgument.product,
             );
           case AppRoutes.productDetailScreenRoute:
-            return ProductDetail();
+            final productDetailArgument =
+                routeSettings.arguments as ProductDetailRoutingArgument;
+            return ProductDetail(product: productDetailArgument.product);
           case AppRoutes.addToCartScreenRoute:
             return AddToCart();
           // case AppRoutes.ordersScreenRoute:

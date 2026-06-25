@@ -1,6 +1,7 @@
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
 import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 import 'package:ezhandy_user/module/core/products/routing_arguments/add_edit_product_routing_arguments.dart';
+import 'package:ezhandy_user/module/core/products/routing_arguments/product_detail_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_shadows.dart';
 import 'package:ezhandy_user/utils/constant.dart';
@@ -261,7 +262,11 @@ class _MarketPlaceState extends State<MarketPlace>
   Widget _productGridItem(ProductModel product) {
     return CustomContainer(
       onTap: () {
-        AppNavigation.navigateTo(context, AppRoutes.productDetailScreenRoute);
+        AppNavigation.navigateTo(
+          context,
+          AppRoutes.productDetailScreenRoute,
+          arguments: ProductDetailRoutingArgument(product: product),
+        );
       },
       isPadding: false,
       child: Column(
