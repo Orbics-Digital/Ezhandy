@@ -1,30 +1,25 @@
 class CertificateModel {
-  final String? instituteName;
-  final String? title;
-  final String? pictureUrl;
+  final String? institutionName;
+  final String? certificationTitle;
+  final String? certificatePath;
 
   const CertificateModel({
-    this.instituteName,
-    this.title,
-    this.pictureUrl,
+    this.institutionName,
+    this.certificationTitle,
+    this.certificatePath,
   });
 
   factory CertificateModel.fromJson(Map<String, dynamic> json) {
     return CertificateModel(
-      instituteName: json['instituteName']?.toString() ??
-          json['institute_name']?.toString() ??
-          json['insituteName']?.toString(),
-      title: json['title']?.toString() ??
-          json['certificateTitle']?.toString(),
-      pictureUrl: json['pictureUrl']?.toString() ??
-          json['picture']?.toString() ??
-          json['certificatePicture']?.toString(),
+      institutionName: json['institutionName']?.toString(),
+      certificationTitle: json['certificationTitle']?.toString(),
+      certificatePath: json['certificatePath']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'instituteName': instituteName,
-        'title': title,
-        'pictureUrl': pictureUrl,
+        'institutionName': institutionName,
+        'certificationTitle': certificationTitle,
+        'certificatePath': certificatePath,
       };
 }

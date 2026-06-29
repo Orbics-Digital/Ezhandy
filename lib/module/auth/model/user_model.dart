@@ -1,4 +1,5 @@
 import 'package:ezhandy_user/module/auth/model/certificate_model.dart';
+import 'package:flutter/foundation.dart';
 
 class UserModel {
   final String? sub;
@@ -21,7 +22,7 @@ class UserModel {
   final double? hourlyRate;
   final String? latitude;
   final String? longitude;
-  final List<CertificateModel>? certificates;
+  final List<CertificateModel>? certifications;
 
   const UserModel({
     this.sub,
@@ -44,10 +45,8 @@ class UserModel {
     this.hourlyRate,
     this.latitude,
     this.longitude,
-    this.certificates,
+    this.certifications,
   });
-
-  List<CertificateModel> get certificateList => certificates ?? const [];
 
   UserModel copyWith({
     String? sub,
@@ -70,7 +69,7 @@ class UserModel {
     double? hourlyRate,
     String? latitude,
     String? longitude,
-    List<CertificateModel>? certificates,
+    List<CertificateModel>? certifications,
   }) {
     return UserModel(
       sub: sub ?? this.sub,
@@ -93,7 +92,7 @@ class UserModel {
       hourlyRate: hourlyRate ?? this.hourlyRate,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
-      certificates: certificates ?? this.certificates,
+      certifications: certifications ?? this.certifications,
     );
   }
 
@@ -119,23 +118,22 @@ class UserModel {
       hourlyRate: _readDouble(json['hourlyRate']),
       latitude: json['latitude']?.toString(),
       longitude: json['longitude']?.toString(),
-      certificates: _readCertificates(json),
+      certifications: _readCertifications(json),
     );
   }
 
-  static List<CertificateModel> _readCertificates(Map<String, dynamic> json) {
-    for (final key in ['certificates', 'certifications', 'certificateDetails']) {
-      final value = json[key];
-      if (value is List) {
-        return value
-            .whereType<Map>()
-            .map((item) => CertificateModel.fromJson(
-                  Map<String, dynamic>.from(item),
-                ))
-            .toList();
-      }
-    }
-    return const [];
+  static List<CertificateModel> _readCertifications(Map<String, dynamic> json) {
+    final value = json['certifications'];
+    debugPrint('[UserModel] raw certifications from API: $value');
+
+    if (value is! List) return const [];
+
+    return value
+        .whereType<Map>()
+        .map((item) => CertificateModel.fromJson(
+              Map<String, dynamic>.from(item),
+            ))
+        .toList();
   }
 
   Map<String, dynamic> toJson() => {
@@ -159,7 +157,8 @@ class UserModel {
         'hourlyRate': hourlyRate,
         'latitude': latitude,
         'longitude': longitude,
-        'certificates': certificateList.map((e) => e.toJson()).toList(),
+        'certifications':
+            (certifications ?? const []).map((e) => e.toJson()).toList(),
       };
 
   static int? _readInt(dynamic value) {

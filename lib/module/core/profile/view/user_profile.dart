@@ -111,7 +111,7 @@ class _UserProfileState extends State<UserProfile> {
                   ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
-                  certificateSection(user?.certificateList ?? const []),
+                  certificateSection(user?.certifications ?? const []),
                   10.verticalSpace,
 
                   40.verticalSpace,
@@ -216,27 +216,31 @@ class _UserProfileState extends State<UserProfile> {
             itemCount: certificates.length,
             itemBuilder: (context, index) {
               final item = certificates[index];
+             
               return Column(
                 children: [
                   TwoTextRow(
                     secondColor: AppColors.black,
                     firstText: AppStrings.insituteName,
-                    secondText: DisplayHelper.displayValue(item.instituteName),
+                    secondText:
+                        DisplayHelper.displayValue(item.institutionName),
                   ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
                   TwoTextRow(
                     secondColor: AppColors.black,
                     firstText: AppStrings.certificateTitle,
-                    secondText: DisplayHelper.displayValue(item.title),
+                    secondText:
+                        DisplayHelper.displayValue(item.certificationTitle),
                   ),
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
                   CustomText(text: AppStrings.certificatePicture),
                   10.verticalSpace,
-                  if (item.pictureUrl != null && item.pictureUrl!.isNotEmpty)
+                  if (item.certificatePath != null &&
+                      item.certificatePath!.isNotEmpty)
                     Image.network(
-                      item.pictureUrl!,
+                      item.certificatePath!,
                       fit: BoxFit.cover,
                       height: 180.h,
                       width: 1.sw,
