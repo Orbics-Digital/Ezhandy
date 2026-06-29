@@ -1,3 +1,4 @@
+import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/booking_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:ezhandy_user/module/core/main_menu/main_menu_provider.dart';
@@ -56,6 +57,19 @@ class _MyBookingState extends State<MyBooking> {
   ];
   String? typeValue;
   var typeValueList = ["All", "Urgent", "Scheduled"];
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    BookingsController.i.fetchProviderBookings();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,44 +82,74 @@ class _MyBookingState extends State<MyBooking> {
           searchTextField(),
           10.verticalSpace,
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  statusFilterDropDown(),
-                  10.verticalSpace,
-                  typeFilterDropDown(),
-                  // 10.verticalSpace,
-                  ListView.separated(
-                    physics: NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.only(
-                        top: AppPadding.padding10,
-                        bottom: AppPadding.padding25),
-                    shrinkWrap: true,
-                    itemCount: statusList.length,
-                    itemBuilder: (context, index) {
-                      // final item = notifications[index];
-                      return singleWidget(
-                        ontap: () {
-                          HomeController.i.jobStatus.value = statusList[index];
-                          AppNavigation.navigateTo(
-                              context, AppRoutes.bookingScreenRoute,
-                              arguments: BookingRoutingArgument(
-                                  Status: statusList[index]));
-                        },
-                        date: AppStrings.dummyDate,
-                        status: statusList[index],
-                        // additionalFee: "15\$",
-                        bookingId: "1234567",
-                        total: "10",
-                      );
-                    },
-                    separatorBuilder: (context, index) {
-                      return 10.verticalSpace;
-                    },
+            child: Obx(() {
+              final controller = BookingsController.i;
+              final bookings = controller.filteredProviderBookings;
+              final isLoading = controller.isProviderBookingsLoading.value;
+              final hasBookings = controller.providerBookings.isNotEmpty;
+
+              return RefreshIndicator(
+                color: AppColors.orange,
+                onRefresh: controller.refreshProviderBookings,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      statusFilterDropDown(),
+                      10.verticalSpace,
+                      typeFilterDropDown(),
+                      if (isLoading && bookings.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 60.h),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.orange,
+                            ),
+                          ),
+                        )
+                      else if (bookings.isEmpty)
+                        SizedBox(height: hasBookings ? 200.h : 400.h)
+                      else
+                        ListView.separated(
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.only(
+                            top: AppPadding.padding10,
+                            bottom: AppPadding.padding25,
+                          ),
+                          shrinkWrap: true,
+                          itemCount: bookings.length,
+                          itemBuilder: (context, index) {
+                            final booking = bookings[index];
+                            return singleWidget(
+                              ontap: () {
+                                HomeController.i.jobStatus.value =
+                                    booking.status?.toString() ?? '';
+                                AppNavigation.navigateTo(
+                                  context,
+                                  AppRoutes.bookingScreenRoute,
+                                  arguments: BookingRoutingArgument(
+                                    Status:
+                                        booking.status?.toString() ?? '',
+                                  ),
+                                );
+                              },
+                              date: booking.bookingDate ??
+                                  AppStrings.dummyDate,
+                              status: booking.status?.toString() ?? '-',
+                              bookingId:
+                                  booking.bookingId?.toString() ?? '-',
+                              total: booking.amount ?? '0',
+                            );
+                          },
+                          separatorBuilder: (context, index) {
+                            return 10.verticalSpace;
+                          },
+                        ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            }),
           ),
         ],
       ),
@@ -170,9 +214,13 @@ class _MyBookingState extends State<MyBooking> {
     return CustomTextField(
       label: false,
       prefxicon: AssetPath.searchIcon,
-      hint: AppStrings.searchAnything,
-      inputFormatters: [LengthLimitingTextInputFormatter(35)],
-      // controller: firstNameController,
+      hint: AppStrings.searchByBookingId,
+      controller: _searchController,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(35),
+        FilteringTextInputFormatter.digitsOnly,
+      ],
+      onchange: BookingsController.i.setSearchQuery,
     );
   }
 

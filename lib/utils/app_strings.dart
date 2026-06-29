@@ -377,6 +377,7 @@ class AppStrings {
 
 //   Home
   static const String searchAnything = "Search anything....";
+  static const String searchByBookingId = "Search by booking id";
   static const String ourServices = "Our Services";
   static const String seeAll = "See All";
   static const String cleaning = "Cleaning";

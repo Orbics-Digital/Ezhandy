@@ -3,6 +3,7 @@ import 'package:ezhandy_user/core/network/api_client.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
+import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
 import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
 import 'package:ezhandy_user/module/core/community/controller/community_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
   Get.put(CommunityController(), permanent: true);
   Get.put(CategoriesController(), permanent: true);
   Get.put(ProductsController(), permanent: true);
+  Get.put(BookingsController(), permanent: true);
   await AuthController.i.restoreSession();
   await CategoriesController.i.initCategories();
   await NotificationController.i.fetchUnreadCount();
