@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/booking/data/bookings_repository.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
 import 'package:ezhandy_user/module/core/booking/model/provider_booking_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
+import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:get/get.dart';
 
 class BookingsController extends GetxController {
@@ -19,20 +21,40 @@ class BookingsController extends GetxController {
       <ProviderBookingModel>[].obs;
   final RxBool isProviderBookingsLoading = false.obs;
   final RxString searchQuery = ''.obs;
+  final RxnInt selectedStatusId = RxnInt();
+
+  String get selectedStatusLabel {
+    final statusId = selectedStatusId.value;
+    if (statusId == null) return AppStrings.all;
+    return BookingStatusEnum.label(statusId);
+  }
 
   List<ProviderBookingModel> get filteredProviderBookings {
-    final query = searchQuery.value.trim();
-    if (query.isEmpty) return providerBookings.toList();
+    var result = providerBookings.toList();
 
-    return providerBookings
-        .where(
-          (booking) =>
-              booking.bookingId?.toString().contains(query) ?? false,
-        )
-        .toList();
+    final statusId = selectedStatusId.value;
+    if (statusId != null) {
+      result = result.where((booking) => booking.status == statusId).toList();
+    }
+
+    final query = searchQuery.value.trim();
+    if (query.isNotEmpty) {
+      result = result
+          .where(
+            (booking) =>
+                booking.bookingId?.toString().contains(query) ?? false,
+          )
+          .toList();
+    }
+
+    return result;
   }
 
   void setSearchQuery(String value) => searchQuery.value = value;
+
+  void setStatusFilterByLabel(String? label) {
+    selectedStatusId.value = BookingStatusEnum.idFromLabel(label);
+  }
 
   Future<void> fetchProviderBookings() async {
     if (isProviderBookingsLoading.value) return;

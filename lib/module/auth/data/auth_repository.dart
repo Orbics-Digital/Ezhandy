@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_client.dart';
+import 'package:ezhandy_user/core/network/api_constants.dart';
 import 'package:ezhandy_user/core/network/api_endpoints.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/auth/model/login_result.dart';
+import 'package:ezhandy_user/module/auth/model/register_provider_params.dart';
 
 class AuthRepository {
   AuthRepository({ApiClient? apiClient}) : _apiClient = apiClient;
@@ -23,6 +29,100 @@ class AuthRepository {
     );
 
     return LoginResult.fromResponse(response.data);
+  }
+
+  Future<void> registerProvider(RegisterProviderParams params) async {
+    final formData = FormData.fromMap({
+      'fullName': params.fullName,
+      'email': params.email,
+      if (params.mobileNumber != null && params.mobileNumber!.isNotEmpty)
+        'mobileNumber': params.mobileNumber,
+      'languageId': params.languageId,
+      'gender': params.gender,
+      'password': params.password,
+      'address': params.address,
+      'aboutUs': params.aboutUs,
+      'experience': params.experience,
+      if (params.referredBy != null && params.referredBy!.trim().isNotEmpty)
+        'referredBy': params.referredBy!.trim(),
+      'institutionNames': jsonEncode(params.institutionNames),
+      'certificationTitles': jsonEncode(params.certificationTitles),
+    });
+
+    if (params.profileImage != null) {
+      final file = params.profileImage!;
+      formData.files.add(
+        MapEntry(
+          'profileImage',
+          await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+
+    for (final image in params.certificationImages) {
+      formData.files.add(
+        MapEntry(
+          'certificationImages',
+          await MultipartFile.fromFile(
+            image.path,
+            filename: image.path.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+
+    final response = await _client.dio.post(
+      ApiEndpoints.registerProvider,
+      data: formData,
+      options: Options(
+        contentType: Headers.multipartFormDataContentType,
+        headers: {'Accept': ApiConstants.acceptJson},
+      ),
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Registration failed');
+    }
+  }
+
+  Future<void> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await _client.dio.post(
+      ApiEndpoints.verifyOtp,
+      data: {
+        'email': email,
+        'otp': otp,
+      },
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
+
+  Future<void> resendVerification({required String email}) async {
+    final response = await _client.dio.post(
+      ApiEndpoints.resendVerification,
+      data: {'email': email},
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
   }
 
   Future<void> logout() async {

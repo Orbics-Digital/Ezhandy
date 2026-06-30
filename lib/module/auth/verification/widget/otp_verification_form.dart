@@ -19,7 +19,6 @@ import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/keyboard/custom_keyboard_action_widget.dart';
 import 'package:ezhandy_user/widgets/text_widgets/rich_text_widget.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
-import 'package:ezhandy_user/widgets/toast_dialogs_sheet/toast.dart';
 import 'package:ezhandy_user/utils/enums.dart';
 
 class OtpVerificationForm extends StatefulWidget {
@@ -125,22 +124,26 @@ class _OtpVerificationFormState extends State<OtpVerificationForm> {
   }
 
   Widget _verifyButton(context) {
+    final isSignup = widget.type == OtpType.signup.name;
+
     return Obx(
       () => CustomButton(
         text: AppStrings.submitCode,
-        isLoading: AuthController.i.isVerifyResetOtpLoading.value,
+        isLoading: isSignup
+            ? AuthController.i.isVerifyEmailOtpLoading.value
+            : AuthController.i.isVerifyResetOtpLoading.value,
         onclick: () async {
           if (!otpKey.currentState!.validate()) return;
 
           FocusScope.of(context).unfocus();
 
-          if (widget.type == OtpType.forget.name) {
-            final email = widget.text?.trim() ?? '';
-            if (email.isEmpty) {
-              AppDialogs.showToast(message: 'Email is required.');
-              return;
-            }
+          final email = widget.text?.trim() ?? '';
+          if (email.isEmpty) {
+            AppDialogs.showToast(message: 'Email is required.');
+            return;
+          }
 
+          if (widget.type == OtpType.forget.name) {
             final success = await AuthController.i.verifyResetOtp(
               email: email,
               otp: pinController.text,
@@ -151,6 +154,22 @@ class _OtpVerificationFormState extends State<OtpVerificationForm> {
               context,
               AppRoutes.resetPasswordScreenRoute,
               arguments: ResetPasswordRoutingArgument(email: email),
+            );
+            return;
+          }
+
+          if (isSignup) {
+            final success = await AuthController.i.verifyEmailOtp(
+              email: email,
+              otp: pinController.text,
+            );
+            if (!success || !context.mounted) return;
+
+            AppDialogs.showToast(message: AppStrings.otpVerifiedSuccessfully);
+            AuthController.i.isLoginSignUp.value = true;
+            AppNavigation.navigateToRemovingAll(
+              context,
+              AppRoutes.loginScreenRoute,
             );
             return;
           }
@@ -241,28 +260,46 @@ class _OtpVerificationFormState extends State<OtpVerificationForm> {
               ),
               recognizer: _isTimeComplete
                   ? (TapGestureRecognizer()
-                    ..onTap = () {
-                      FocusScope.of(context).unfocus();
-                      pinController.clear();
-                      ToastMessage(
-                          toastmsg:
-                              "We have resend OTP verification code at your email address.");
-                      setState(() {
-                        _remainingTime = widget.duration;
-                        _isTimeComplete = false;
-                      });
-                      _startOtpTimer(() {
-                        setState(() {
-                          _isTimeComplete = true;
-                        });
-                      });
-                    })
+                    ..onTap = _handleResendCode)
                   : null,
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handleResendCode() async {
+    if (!_isTimeComplete) return;
+
+    FocusScope.of(context).unfocus();
+    pinController.clear();
+
+    final email = widget.text?.trim() ?? '';
+    if (email.isEmpty) {
+      AppDialogs.showToast(message: 'Email is required.');
+      return;
+    }
+
+    bool success = false;
+    if (widget.type == OtpType.signup.name) {
+      success = await AuthController.i.resendVerification(email: email);
+    } else if (widget.type == OtpType.forget.name) {
+      success = await AuthController.i.forgotPassword(email: email);
+    }
+
+    if (!success || !mounted) return;
+
+    AppDialogs.showToast(message: AppStrings.otpSendedToYourEmail);
+    setState(() {
+      _remainingTime = widget.duration;
+      _isTimeComplete = false;
+    });
+    _startOtpTimer(() {
+      setState(() {
+        _isTimeComplete = true;
+      });
+    });
   }
 
   void _startOtpTimer(VoidCallback onComplete) {
@@ -294,24 +331,7 @@ class _OtpVerificationFormState extends State<OtpVerificationForm> {
         subText: AppStrings.resend,
         subTextColor:
             _isTimeComplete ? AppColors.blueDark : AppColors.greyBorder,
-        onSubTextPress: () {
-          if (_isTimeComplete) {
-            FocusScope.of(context).unfocus();
-            pinController.clear();
-            ToastMessage(
-                toastmsg:
-                    "We have resend OTP verification code at your email address.");
-            setState(() {
-              _remainingTime = widget.duration;
-              _isTimeComplete = false;
-            });
-            _startOtpTimer(() {
-              setState(() {
-                _isTimeComplete = true;
-              });
-            });
-          }
-        },
+        onSubTextPress: _handleResendCode,
       ),
     );
   }

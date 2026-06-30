@@ -17,6 +17,7 @@ class AppStrings {
   static const invalidVerificationCode = "Invalid Authentication code.";
   static const otpFieldCantBeEmpty = "OTP field can't be empty.";
   static const otpSendedToYourEmail = "Otp sended to your email";
+  static const otpVerifiedSuccessfully = "Email verified successfully";
 
 //
 
@@ -268,6 +269,10 @@ class AppStrings {
   static const String enterReferralCode = "Enter Referral Code";
   static const String enterLanguage = "Enter Language";
   static const String selectGender = "Select Gender";
+  static const String selectLanguage = "Select Language";
+  static const String enterExperience = "Enter Experience (years)";
+  static const String enterAboutYou = "Tell us about yourself";
+  static const String aboutYou = "About You";
   static const String language = "Language";
   static const String gender = "Gender";
   static const String status = "Status";
@@ -279,6 +284,8 @@ class AppStrings {
   static const String certificatePicture = "Certificate Picture";
   static const String uploadCertificatePicture = "Upload Certificate Picture";
   static const String uploadImage = "Upload Image";
+  static const String uploadImageLabel = "Upload image";
+  static const String changeImage = "Change image";
   static const String enterUserName = "Enter User Name";
   static const String enterUserEmail = "Enter User Email";
   static const String enterPassword = "Enter Password";
@@ -378,6 +385,7 @@ class AppStrings {
 //   Home
   static const String searchAnything = "Search anything....";
   static const String searchByBookingId = "Search by booking id";
+  static const String noBookingsFound = "No bookings found";
   static const String ourServices = "Our Services";
   static const String seeAll = "See All";
   static const String cleaning = "Cleaning";

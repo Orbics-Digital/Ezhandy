@@ -2,6 +2,9 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   static const String login = 'login';
+  static const String registerProvider = 'user/register/provider';
+  static const String verifyOtp = 'verify-otp';
+  static const String resendVerification = 'resend-verification';
   static const String logout = 'logout';
   static const String forgotPassword = 'forgot-password';
   static const String verifyResetOtp = 'verify-reset-otp';

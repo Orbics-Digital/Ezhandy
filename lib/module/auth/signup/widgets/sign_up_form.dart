@@ -1,7 +1,8 @@
 // ignore_for_file: must_be_immutable
 import 'dart:io';
 
-import 'package:ezhandy_user/module/auth/verification/routing_arguments/otp_verification_routing_arguments.dart';
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
+import 'package:ezhandy_user/module/auth/model/register_provider_params.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
@@ -22,6 +23,7 @@ import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 class SignUpForm extends StatefulWidget {
   bool keyboardVisible;
@@ -40,21 +42,26 @@ class _SignUpFormState extends State<SignUpForm> {
   /// Text Editing Controllers
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController sportController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController uploadController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  final TextEditingController experienceController = TextEditingController();
+  final TextEditingController aboutYouController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   File? _profileImage;
 
   String? genderValue;
   var genderList = ["Male", "Female"];
 
-  /// Certificates list — each map holds the 3 controllers
-  List<Map<String, TextEditingController>> certificates = [];
+  String? languageValue;
+  final languageList = const ["English", "Spanish", "French"];
+
+  /// Certificates list — each map holds controllers and image file
+  List<Map<String, dynamic>> certificates = [];
 
   @override
   void initState() {
@@ -69,6 +76,7 @@ class _SignUpFormState extends State<SignUpForm> {
         "institute": TextEditingController(),
         "title": TextEditingController(),
         "picture": TextEditingController(),
+        "pictureFile": null,
       });
     });
   }
@@ -102,6 +110,15 @@ class _SignUpFormState extends State<SignUpForm> {
               CustomText(
                   is_alignLeft: false, text: AppStrings.createYouAccountText),
               25.verticalSpace,
+              Center(child: profileWidget()),
+              10.verticalSpace,
+              CustomText(
+                text: AppStrings.uploadProfileImage,
+                is_alignLeft: false,
+                color: AppColors.grey,
+                fontSize: 12.sp,
+              ),
+              20.verticalSpace,
               CustomText(text: AppStrings.fullName + "*"),
               10.verticalSpace,
               _fullNameTextField(),
@@ -116,11 +133,23 @@ class _SignUpFormState extends State<SignUpForm> {
               SizedBox(height: 0.02.sh),
               CustomText(text: AppStrings.language + "*"),
               10.verticalSpace,
-              _languageTextField(),
+              languageDropDown(),
               SizedBox(height: 0.02.sh),
               CustomText(text: AppStrings.gender + "*"),
               10.verticalSpace,
               genderDropDown(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.experience + "*"),
+              10.verticalSpace,
+              _experienceTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.aboutYou + "*"),
+              10.verticalSpace,
+              _aboutYouTextField(),
+              SizedBox(height: 0.02.sh),
+              CustomText(text: AppStrings.address + "*"),
+              10.verticalSpace,
+              _addressTextField(),
               SizedBox(height: 0.02.sh),
               CustomText(text: AppStrings.password + "*"),
               10.verticalSpace,
@@ -174,15 +203,27 @@ class _SignUpFormState extends State<SignUpForm> {
                         ],
                       ),
                       10.verticalSpace,
-                      _instituteNameTextField(item["institute"]!),
+                      _instituteNameTextField(item["institute"]! as TextEditingController),
                       15.verticalSpace,
                       CustomText(text: "${AppStrings.certificateTitle} *"),
                       10.verticalSpace,
-                      _degreeTitleTextField(item["title"]!),
+                      _degreeTitleTextField(item["title"]! as TextEditingController),
                       15.verticalSpace,
                       CustomText(text: "${AppStrings.certificatePicture} *"),
                       10.verticalSpace,
-                      _uploadTextField(item["picture"]!),
+                      _uploadTextField(
+                        item["picture"]! as TextEditingController,
+                        imageFile: item["pictureFile"] as File?,
+                        onFileSelected: (file) {
+                          certificates[index]["pictureFile"] = file;
+                        },
+                      ),
+                      if (item["pictureFile"] != null) ...[
+                        10.verticalSpace,
+                        _certificateImagePreview(
+                          item["pictureFile"] as File,
+                        ),
+                      ],
                       SizedBox(height: 0.03.sh),
                       Divider(thickness: 1, color: AppColors.greyBorder),
                       SizedBox(height: 0.02.sh),
@@ -220,10 +261,11 @@ class _SignUpFormState extends State<SignUpForm> {
 
   ProfilePictureWidget profileWidget() {
     return ProfilePictureWidget(
-        showUpload: true,
-        setFile: _setFile,
-        profileImage: _profileImage,
-        assetPath: null);
+      showUpload: true,
+      setFile: (file) => _setFile(file),
+      profileImage: _profileImage,
+      assetPath: AssetPath.userIcon,
+    );
   }
 
   _setFile(File? file) {
@@ -239,6 +281,31 @@ class _SignUpFormState extends State<SignUpForm> {
       is_alignLeft: false,
       fontSize: 25.sp,
       fontWeight: FontWeight.bold,
+    );
+  }
+
+  Widget languageDropDown() {
+    return CustomDropDown2(
+      dropDownHeight: 220.h,
+      dropDownWidth: .91.sw,
+      dropDownData: languageList,
+      borderRadius: 10.r,
+      isPrefix: true,
+      hintText: AppStrings.selectLanguage,
+      dropdownValue: languageValue,
+      dropdownListColor: AppColors.white,
+      hintTextColor: AppColors.black,
+      onChanged: (value) {
+        setState(() {
+          languageValue = value?.toString();
+        });
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return AppStrings.selectLanguage;
+        }
+        return null;
+      },
     );
   }
 
@@ -360,9 +427,15 @@ class _SignUpFormState extends State<SignUpForm> {
     );
   }
 
-  Widget _uploadTextField(TextEditingController controller) {
+  Widget _uploadTextField(
+    TextEditingController controller, {
+    File? imageFile,
+    required void Function(File? file) onFileSelected,
+  }) {
+    final hasImage = imageFile != null;
+
     return CustomTextField(
-      hint: AppStrings.uploadCertificatePicture,
+      hint: AppStrings.uploadImageLabel,
       divider: false,
       prefxicon: AssetPath.uploadIcon,
       label: false,
@@ -371,11 +444,30 @@ class _SignUpFormState extends State<SignUpForm> {
       onTap: () {
         AppDialogs.showImageSourceDialog(context, setFile: (file) {
           setState(() {
-            controller.text = file?.path ?? "";
+            onFileSelected(file);
+            controller.text =
+                file != null ? AppStrings.changeImage : '';
           });
         });
       },
-      validator: (value) => value?.validateEmpty(AppStrings.certificatePicture),
+      validator: (_) {
+        if (!hasImage) {
+          return AppStrings.uploadImageLabel;
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _certificateImagePreview(File imageFile) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.r),
+      child: Image.file(
+        imageFile,
+        fit: BoxFit.cover,
+        height: 180.h,
+        width: double.infinity,
+      ),
     );
   }
 
@@ -393,23 +485,6 @@ class _SignUpFormState extends State<SignUpForm> {
       // ],
       controller: fullNameController,
       validator: (value) => value?.validateEmpty(AppStrings.fullName),
-      // error_text: error_email,
-    );
-  }
-
-  Widget _languageTextField() {
-    return CustomTextField(
-      hint: AppStrings.enterLanguage,
-      divider: false,
-      prefxicon: AssetPath.languageIcon,
-      label: false,
-
-      // keyboardType: TextInputType.emailAddress,
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(Constants.nameMaxLength)
-      ],
-      controller: sportController,
-      validator: (value) => value?.validateEmpty(AppStrings.language),
       // error_text: error_email,
     );
   }
@@ -445,6 +520,51 @@ class _SignUpFormState extends State<SignUpForm> {
     );
   }
 
+  Widget _experienceTextField() {
+    return CustomTextField(
+      hint: AppStrings.enterExperience,
+      divider: false,
+      prefxicon: AssetPath.homeTimeIcon,
+      label: false,
+      keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(2),
+      ],
+      controller: experienceController,
+      validator: (value) => value?.validateEmpty(AppStrings.experience),
+    );
+  }
+
+  Widget _aboutYouTextField() {
+    return CustomTextField(
+      hint: AppStrings.enterAboutYou,
+      divider: false,
+      prefxicon: AssetPath.aboutIcon,
+      label: false,
+      borderRadius: 10.r,
+      lines: 5,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(Constants.descriptionMaxLength),
+      ],
+      controller: aboutYouController,
+      validator: (value) => value?.validateEmpty(AppStrings.aboutYou),
+    );
+  }
+
+  Widget _addressTextField() {
+    return CustomTextField(
+      hint: AppStrings.enterAddress,
+      divider: false,
+      prefxicon: AssetPath.locationIcon,
+      label: false,
+      borderRadius: 10.r,
+      lines: 3,
+      controller: addressController,
+      validator: (value) => value?.validateEmpty(AppStrings.address),
+    );
+  }
+
   Widget _emailTextField() {
     return CustomTextField(
       hint: AppStrings.enterUserEmail,
@@ -463,34 +583,73 @@ class _SignUpFormState extends State<SignUpForm> {
   }
 
   Widget _signUpButton({required BuildContext context}) {
-    return CustomButton(
-      text: AppStrings.createAccount,
-      onclick: () {
-        if (signUpKey.currentState!.validate()) {
-          // ToastMessage(toastmsg: AppStrings.logIn);
-          // if (AuthController.i.role.value == RoleType.single.name || AuthController.i.role.value == RoleType.committed.name) {
-          // AppNavigation.navigateToRemovingAll(context, AppRoutes.userMainMenuScreenRoute);
-          // } else {
-          AppNavigation.navigateTo(context, AppRoutes.subscriptionScreenRoute);
-          // }
-          // AppNavigation.navigateTo(
-          //     context, AppRoutes.verificationSelectionScreenRoute,
-          //     arguments:
-          //         OtpVerificationRoutingArgument(type: OtpType.signup.name));
+    return Obx(
+      () => CustomButton(
+        text: AppStrings.createAccount,
+        isLoading: AuthController.i.isRegisterLoading.value,
+        onclick: () async {
+          if (!signUpKey.currentState!.validate()) return;
 
-          emailController.clear();
-          passwordController.clear();
-          // AppDialogs.showToast(message: AppStrings.loginSuccessfully);
-          // }
-          // validate_email(emailController.text);
-          // if (error_email == "") {
-          //   AuthController.i.signIn(email: emailController.text);
-          //   // Get.offNamed(Paths.OTP_VERIFICATION_SCREEN_ROUTE);
-          //   AppConstant.is_phone = false;
-        }
+          FocusScope.of(context).unfocus();
 
-        FocusScope.of(context).unfocus();
-      },
+          final institutionNames = <String>[];
+          final certificationTitles = <String>[];
+          final certificationImages = <File>[];
+
+          for (final cert in certificates) {
+            institutionNames.add(
+              (cert["institute"]! as TextEditingController).text.trim(),
+            );
+            certificationTitles.add(
+              (cert["title"]! as TextEditingController).text.trim(),
+            );
+            final imageFile = cert["pictureFile"] as File?;
+            if (imageFile != null) {
+              certificationImages.add(imageFile);
+            }
+          }
+
+          if (certificationImages.length != certificates.length) {
+            AppDialogs.showToast(
+              message: AppStrings.uploadCertificatePicture,
+            );
+            return;
+          }
+
+          final experience = int.tryParse(experienceController.text.trim());
+          if (experience == null) {
+            AppDialogs.showToast(message: AppStrings.enterExperience);
+            return;
+          }
+
+          final phone = phoneController.text.trim();
+
+          final success = await AuthController.i.registerProvider(
+            context,
+            params: RegisterProviderParams(
+              fullName: fullNameController.text.trim(),
+              email: emailController.text.trim(),
+              mobileNumber: phone.isEmpty ? null : phone,
+              languageId: SignUpFieldMapper.languageIdFromLabel(languageValue),
+              gender: SignUpFieldMapper.genderCode(genderValue),
+              password: passwordController.text,
+              address: addressController.text.trim(),
+              aboutUs: aboutYouController.text.trim(),
+              experience: experience,
+              profileImage: _profileImage,
+              institutionNames: institutionNames,
+              certificationTitles: certificationTitles,
+              certificationImages: certificationImages,
+            ),
+          );
+
+          if (success && context.mounted) {
+            emailController.clear();
+            passwordController.clear();
+            confirmPasswordController.clear();
+          }
+        },
+      ),
     );
   }
 }

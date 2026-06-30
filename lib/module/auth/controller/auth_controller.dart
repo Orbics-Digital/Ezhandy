@@ -2,8 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/data/auth_repository.dart';
+import 'package:ezhandy_user/module/auth/model/register_provider_params.dart';
 import 'package:ezhandy_user/module/auth/model/user_model.dart';
+import 'package:ezhandy_user/module/auth/verification/routing_arguments/otp_verification_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/home/data/provider_services_repository.dart';
+import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/module/core/notification/controller/notification_controller.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_loader.dart';
@@ -23,9 +26,12 @@ class AuthController extends GetxController {
 
   final Rxn<UserModel> user = Rxn<UserModel>();
   final RxBool isLoginLoading = false.obs;
+  final RxBool isRegisterLoading = false.obs;
   final RxBool isLogoutLoading = false.obs;
   final RxBool isForgotPasswordLoading = false.obs;
   final RxBool isVerifyResetOtpLoading = false.obs;
+  final RxBool isVerifyEmailOtpLoading = false.obs;
+  final RxBool isResendVerificationLoading = false.obs;
   final RxBool isResetPasswordLoading = false.obs;
   final RxBool isQuickProviderLoading = false.obs;
   final RxBool isLoginSignUp = true.obs;
@@ -134,6 +140,39 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<bool> registerProvider(
+    BuildContext context, {
+    required RegisterProviderParams params,
+  }) async {
+    if (isRegisterLoading.value) return false;
+
+    isRegisterLoading.value = true;
+    try {
+      await _authRepository.registerProvider(params);
+
+      if (context.mounted) {
+        AppNavigation.navigateReplacementNamed(
+          context,
+          AppRoutes.otpVerificationScreenRoute,
+          arguments: OtpVerificationRoutingArgument(
+            type: OtpType.signup.name,
+            text: params.email.trim(),
+            emailAndPhone: OtpCodeType.email.name,
+          ),
+        );
+      }
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isRegisterLoading.value = false;
+    }
+  }
+
   Future<bool> forgotPassword({required String email}) async {
     if (isForgotPasswordLoading.value) return false;
 
@@ -173,6 +212,48 @@ class AuthController extends GetxController {
       return false;
     } finally {
       isVerifyResetOtpLoading.value = false;
+    }
+  }
+
+  Future<bool> verifyEmailOtp({
+    required String email,
+    required String otp,
+  }) async {
+    if (isVerifyEmailOtpLoading.value) return false;
+
+    isVerifyEmailOtpLoading.value = true;
+    try {
+      await _authRepository.verifyOtp(
+        email: email.trim(),
+        otp: otp.trim(),
+      );
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isVerifyEmailOtpLoading.value = false;
+    }
+  }
+
+  Future<bool> resendVerification({required String email}) async {
+    if (isResendVerificationLoading.value) return false;
+
+    isResendVerificationLoading.value = true;
+    try {
+      await _authRepository.resendVerification(email: email.trim());
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isResendVerificationLoading.value = false;
     }
   }
 

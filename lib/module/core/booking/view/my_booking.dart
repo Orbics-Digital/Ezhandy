@@ -1,3 +1,4 @@
+import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
 import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/booking_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
@@ -18,6 +19,7 @@ import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/widgets/Slideable/slideable.dart';
 import 'package:ezhandy_user/widgets/dropdown/custom_dropdown.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/notification/notification_badge_icon.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
@@ -29,32 +31,6 @@ class MyBooking extends StatefulWidget {
 }
 
 class _MyBookingState extends State<MyBooking> {
-  // String? filterStartValue;
-  var statusList = [
-    AppStrings.pending,
-    AppStrings.approved,
-    AppStrings.rejected,
-    // AppStrings.accepted,
-    AppStrings.cancelled,
-    AppStrings.inRoute,
-    AppStrings.started,
-    AppStrings.completedUnPaid,
-    AppStrings.completedPaid,
-    // AppStrings.assigned,
-  ];
-  String? statusValue;
-  var statusValueList = [
-    "All",
-    AppStrings.pending,
-    AppStrings.approved,
-    AppStrings.rejected,
-    // AppStrings.accepted,
-    AppStrings.cancelled,
-    AppStrings.inRoute,
-    AppStrings.started,
-    AppStrings.completedUnPaid,
-    AppStrings.completedPaid,
-  ];
   String? typeValue;
   var typeValueList = ["All", "Urgent", "Scheduled"];
   final TextEditingController _searchController = TextEditingController();
@@ -86,7 +62,6 @@ class _MyBookingState extends State<MyBooking> {
               final controller = BookingsController.i;
               final bookings = controller.filteredProviderBookings;
               final isLoading = controller.isProviderBookingsLoading.value;
-              final hasBookings = controller.providerBookings.isNotEmpty;
 
               return RefreshIndicator(
                 color: AppColors.orange,
@@ -98,7 +73,8 @@ class _MyBookingState extends State<MyBooking> {
                       statusFilterDropDown(),
                       10.verticalSpace,
                       typeFilterDropDown(),
-                      if (isLoading && bookings.isEmpty)
+                      if (isLoading &&
+                          controller.providerBookings.isEmpty)
                         Padding(
                           padding: EdgeInsets.symmetric(vertical: 60.h),
                           child: const Center(
@@ -108,7 +84,9 @@ class _MyBookingState extends State<MyBooking> {
                           ),
                         )
                       else if (bookings.isEmpty)
-                        SizedBox(height: hasBookings ? 200.h : 400.h)
+                        const EmptyMessage(
+                          message: AppStrings.noBookingsFound,
+                        )
                       else
                         ListView.separated(
                           physics: const NeverScrollableScrollPhysics(),
@@ -122,20 +100,20 @@ class _MyBookingState extends State<MyBooking> {
                             final booking = bookings[index];
                             return singleWidget(
                               ontap: () {
-                                HomeController.i.jobStatus.value =
-                                    booking.status?.toString() ?? '';
+                                final statusLabel =
+                                    BookingStatusEnum.label(booking.status);
+                                HomeController.i.jobStatus.value = statusLabel;
                                 AppNavigation.navigateTo(
                                   context,
                                   AppRoutes.bookingScreenRoute,
                                   arguments: BookingRoutingArgument(
-                                    Status:
-                                        booking.status?.toString() ?? '',
+                                    Status: statusLabel,
                                   ),
                                 );
                               },
                               date: booking.bookingDate ??
                                   AppStrings.dummyDate,
-                              status: booking.status?.toString() ?? '-',
+                              status: BookingStatusEnum.label(booking.status),
                               bookingId:
                                   booking.bookingId?.toString() ?? '-',
                               total: booking.amount ?? '0',
@@ -157,29 +135,20 @@ class _MyBookingState extends State<MyBooking> {
   }
 
   Widget statusFilterDropDown() {
-    return CustomDropDown2(
-      dropDownHeight: 220.h,
-      // width: 95.w, // 👈 Controls button width
-      dropDownWidth: .94.sw, // 👈 Controls dropdown menu width
-      dropDownData: statusValueList,
-      borderRadius: 10.r,
-      // isPrefix: true,
-      hintText: "Status: ",
-      dropdownValue: statusValue,
-      dropdownListColor: AppColors.white,
-      // borderColor: AppColors.greyBorder,
-      hintTextColor: AppColors.black,
-      onChanged: (value) {
-        setState(() {
-          statusValue = value.toString();
-        });
-      },
-      // validator: (value) {
-      //   if (value == null || value.isEmpty) {
-      //     return AppStrings.selectGender;
-      //   }
-      //   return null;
-      // },
+    return Obx(
+      () => CustomDropDown2(
+        dropDownHeight: 280.h,
+        dropDownWidth: .94.sw,
+        dropDownData: BookingStatusEnum.dropdownLabels,
+        borderRadius: 10.r,
+        hintText: "Status: ",
+        dropdownValue: BookingsController.i.selectedStatusLabel,
+        dropdownListColor: AppColors.white,
+        hintTextColor: AppColors.black,
+        onChanged: (value) {
+          BookingsController.i.setStatusFilterByLabel(value?.toString());
+        },
+      ),
     );
   }
 
