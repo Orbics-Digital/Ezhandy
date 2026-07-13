@@ -340,6 +340,7 @@ class AppStrings {
   static const String noReactionsFound = "No reactions found";
   static const String noProductsFound = "No products found";
   static const String noServiceTypesFound = "No service types found";
+  static const String noServicesFound = "No services found";
   static const String noResultsFound = "No results found";
   static const String pleaseUploadProductImage = "Please upload at least one image";
   static const String maximumFiveImagesAllowed = "You can upload up to 5 images";
@@ -1068,6 +1069,7 @@ class AppStrings {
       "Please select at least one time slot.";
   static const String selectAtLeastOneCalendarDate =
       "Please select at least one calendar date.";
+  static const String selectServiceType = "Please select a service type.";
 
   // Invoice
   static const String invoiceNumber = "Invoice Number";

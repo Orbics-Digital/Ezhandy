@@ -150,6 +150,7 @@ class AppRouter {
             return AddEditService(
               type: serviceArgument?.type ?? "",
               name: serviceArgument?.serviceName ?? "",
+              serviceTypeId: serviceArgument?.serviceTypeId ?? "",
             );
           case AppRoutes.addEditPastWorkScreenRoute:
             PastWorkRoutingArgument? workArgument =

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
+import 'package:ezhandy_user/module/core/all_services/model/create_provider_service_params.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/constant.dart';
@@ -25,7 +27,13 @@ import 'package:ezhandy_user/utils/asset_path.dart';
 class AddEditService extends StatefulWidget {
   String name;
   String type;
-  AddEditService({required this.name, required this.type, super.key});
+  String serviceTypeId;
+  AddEditService({
+    required this.name,
+    required this.type,
+    required this.serviceTypeId,
+    super.key,
+  });
 
   @override
   State<AddEditService> createState() => _AddEditServiceState();
@@ -349,31 +357,85 @@ class _AddEditServiceState extends State<AddEditService> {
   }
 
   Widget _button() {
-    return CustomButton(
-      text: AppStrings.save,
-      onclick: () {
-        if (!serviceKey.currentState!.validate()) return;
-        if (!_validateScheduleFields()) return;
+    return Obx(
+      () => CustomButton(
+        text: AppStrings.save,
+        isLoading: ProviderServicesController.i.isCreateServiceLoading.value,
+        onclick: _handleSubmit,
+      ),
+    );
+  }
 
-        AppDialogs.showSuccessDialog(
-          context,
-          description: widget.type == AddEditType.add.name
-              ? 'Service Added successfully. '
-              : 'Service Updated successfully. ',
-          title: AppStrings.congratulation,
-          btnTxt1: AppStrings.ok,
-          onTap1: () {
-            AppNavigation.navigatorPop(context);
-            if (widget.type == AddEditType.add.name) {
-              AppNavigation.navigateReplacementNamed(
-                Constants.navigatorKey.currentContext!,
-                AppRoutes.listOfServicesScreenRoute,
-              );
-            } else {
-              AppNavigation.navigatorPop(context);
-            }
-          },
-        );
+  Future<void> _handleSubmit() async {
+    if (!serviceKey.currentState!.validate()) return;
+    if (!_validateScheduleFields()) return;
+
+    if (widget.type == AddEditType.add.name) {
+      final serviceTypeId = widget.serviceTypeId.trim();
+      if (serviceTypeId.isEmpty) {
+        AppDialogs.showToast(message: AppStrings.selectServiceType);
+        return;
+      }
+
+      if (serviceImageFile == null) {
+        AppDialogs.showToast(message: AppStrings.uploadImage);
+        return;
+      }
+
+      final timeSlots =
+          ProviderServiceFieldMapper.mapTimeSlots(selectedShiftList);
+      if (timeSlots.isEmpty) {
+        AppDialogs.showToast(message: AppStrings.selectAtLeastOneTimeSlot);
+        return;
+      }
+
+      final success = await ProviderServicesController.i.createService(
+        CreateProviderServiceParams(
+          title: titleController.text.trim(),
+          description: descriptionController.text.trim(),
+          visitCharges: visitChargesController.text.trim(),
+          hourlyRate: hourlyRateController.text.trim(),
+          radius: radiusController.text.trim(),
+          serviceTypeId: serviceTypeId,
+          isQuickService: isQuickService,
+          isServiceActive: true,
+          timeSlots: timeSlots,
+          calendar: ProviderServiceFieldMapper.mapCalendarDates(
+            selectedCalendarDates,
+          ),
+          quickServiceExtraFee: isQuickService
+              ? quickServiceExtraFeeController.text.trim()
+              : null,
+          image: serviceImageFile!,
+        ),
+      );
+
+      if (!success || !mounted) return;
+
+      AppDialogs.showSuccessDialog(
+        context,
+        description: 'Service Added successfully. ',
+        title: AppStrings.congratulation,
+        btnTxt1: AppStrings.ok,
+        onTap1: () {
+          AppNavigation.navigatorPop(context);
+          AppNavigation.navigateReplacementNamed(
+            Constants.navigatorKey.currentContext!,
+            AppRoutes.listOfServicesScreenRoute,
+          );
+        },
+      );
+      return;
+    }
+
+    AppDialogs.showSuccessDialog(
+      context,
+      description: 'Service Updated successfully. ',
+      title: AppStrings.congratulation,
+      btnTxt1: AppStrings.ok,
+      onTap1: () {
+        AppNavigation.navigatorPop(context);
+        AppNavigation.navigatorPop(context);
       },
     );
   }

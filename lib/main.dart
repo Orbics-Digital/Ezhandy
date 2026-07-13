@@ -8,6 +8,7 @@ import 'package:ezhandy_user/module/core/categories/controller/categories_contro
 import 'package:ezhandy_user/module/core/service_types/controller/service_types_controller.dart';
 import 'package:ezhandy_user/module/core/community/controller/community_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
+import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
 import 'package:ezhandy_user/module/core/notification/controller/notification_controller.dart';
 import 'package:ezhandy_user/utils/routes/app_router.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
@@ -34,6 +35,7 @@ Future<void> main() async {
   Get.put(CategoriesController(), permanent: true);
   Get.put(ServiceTypesController(), permanent: true);
   Get.put(ProductsController(), permanent: true);
+  Get.put(ProviderServicesController(), permanent: true);
   Get.put(BookingsController(), permanent: true);
   await AuthController.i.restoreSession();
   await CategoriesController.i.initCategories();
