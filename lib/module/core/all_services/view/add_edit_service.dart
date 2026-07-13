@@ -1,4 +1,5 @@
-import 'package:ezhandy_user/utils/app_colors.dart';
+import 'dart:io';
+
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/constant.dart';
@@ -11,7 +12,6 @@ import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/calendar/calendar.dart';
 import 'package:ezhandy_user/widgets/checkbox/custom_checkbox.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
-import 'package:ezhandy_user/widgets/row/two_text_row.dart';
 import 'package:ezhandy_user/widgets/switch/animated_switch.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
@@ -34,161 +34,146 @@ class AddEditService extends StatefulWidget {
 class _AddEditServiceState extends State<AddEditService> {
   final GlobalKey<FormState> serviceKey = GlobalKey<FormState>();
 
-  // String selectedValue = "";
-  bool switchOff = false;
   bool isQuickService = false;
-  TextEditingController descriptionController = TextEditingController();
-  TextEditingController imageController = TextEditingController();
-  TextEditingController visitChargesController = TextEditingController();
-  TextEditingController visitChargesCommissionController =
+  File? serviceImageFile;
+
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController imageController = TextEditingController();
+  final TextEditingController visitChargesController = TextEditingController();
+  final TextEditingController hourlyRateController = TextEditingController();
+  final TextEditingController radiusController = TextEditingController();
+  final TextEditingController quickServiceExtraFeeController =
       TextEditingController();
-  TextEditingController quickVisitChargesController = TextEditingController();
-  TextEditingController quickHourlyRateController = TextEditingController();
-  TextEditingController hourlyRateController = TextEditingController();
-  TextEditingController hourlyRateCommissionController =
-      TextEditingController();
-  TextEditingController radiusController = TextEditingController();
-  List<String> shiftList = [
-    "Morning (8am - 12pm)",
-    "Afternoon (12pm - 5pm)",
-    "Evening (5pm - 9:30pm)"
+
+  final List<String> shiftList = [
+    'Morning (8am - 12pm)',
+    'Afternoon (12pm - 5pm)',
+    'Evening (5pm - 9:30pm)',
   ];
-  List<String> selectedShiftList = [];
+  final List<String> selectedShiftList = [];
+  List<DateTime> selectedCalendarDates = [];
+
   @override
   void initState() {
-    // selectedValue = Constants.servicesList[0]['name'] ?? "";
-    selectedShiftList.add("Morning (8am - 12pm)");
-    // TODO: implement initState
     super.initState();
+    selectedShiftList.add(shiftList.first);
+    selectedCalendarDates = [DateTime.now()];
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    imageController.dispose();
+    visitChargesController.dispose();
+    hourlyRateController.dispose();
+    radiusController.dispose();
+    quickServiceExtraFeeController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
-        leading: AssetPath.backIcon,
-        onclickLead: () {
-          Get.back();
-        },
-        // appBarheight: 50.h,
-        title: widget.name,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-          child: SingleChildScrollView(
-            child: Form(
-              key: serviceKey,
-              child: Column(
-                children: [
-                  CustomContainer(
-                      child: Column(
-                    children: [
-                      CustomText(
-                          text: "${AppStrings.searchSetting}*",
-                          fontWeight: FontWeight.bold),
-                      5.verticalSpace,
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              text: "${AppStrings.searchSettingText}",
-                            ),
-                          ),
-                          10.horizontalSpace,
-                          AnimatedSwitch(
-                              isSwitched: switchOff, onCallBack: (r) {}),
-                        ],
-                      )
-                    ],
-                  )),
+      leading: AssetPath.backIcon,
+      onclickLead: () {
+        Get.back();
+      },
+      title: widget.name,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
+        child: SingleChildScrollView(
+          child: Form(
+            key: serviceKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(text: '${AppStrings.title}*'),
+                5.verticalSpace,
+                _titleField(),
+                10.verticalSpace,
+                CustomText(text: AppStrings.description),
+                5.verticalSpace,
+                _descriptionField(),
+                10.verticalSpace,
+                CustomText(text: AppStrings.visitCharges),
+                5.verticalSpace,
+                _visitChargesTextField(),
+                10.verticalSpace,
+                CustomText(text: AppStrings.hourlyRate),
+                5.verticalSpace,
+                _hourlyRateTextField(),
+                10.verticalSpace,
+                CustomText(text: AppStrings.radius),
+                5.verticalSpace,
+                _radiusTextField(),
+                10.verticalSpace,
+                CustomText(text: AppStrings.uploadImage),
+                5.verticalSpace,
+                _serviceImageField(),
+                10.verticalSpace,
+                calendarWidget(),
+                10.verticalSpace,
+                CustomText(
+                  text: AppStrings.timeSlots,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+                10.verticalSpace,
+                hourListWidget(),
+                10.verticalSpace,
+                _quickServiceSection(),
+                if (isQuickService) ...[
                   10.verticalSpace,
-                  CustomText(text: AppStrings.visitCharges),
+                  CustomText(text: '${AppStrings.quickServiceExtraFee}*'),
                   5.verticalSpace,
-                  _visitChargesTextField(),
-                  10.verticalSpace,
-                  CustomText(text: AppStrings.visitChargesCommission),
-                  5.verticalSpace,
-                  _visitChargesCommissionTextField(),
-                  10.verticalSpace,
-                  CustomText(text: AppStrings.hourlyRate),
-                  5.verticalSpace,
-                  _hourlyRateTextField(),
-                  10.verticalSpace,
-                  CustomText(text: AppStrings.hourlyRateCommission),
-                  5.verticalSpace,
-                  _hourlyRateCommissionTextField(),
-                  10.verticalSpace,
-                  CustomText(text: AppStrings.description),
-                  5.verticalSpace,
-                  _descriptionField(),
-                  10.verticalSpace,
-                  CustomText(text: AppStrings.uploadImage),
-                  5.verticalSpace,
-                  _uploadTextField(),
-                  10.verticalSpace,
-                  CustomText(text: AppStrings.radius),
-                  5.verticalSpace,
-                  _radiusTextField(),
-                  10.verticalSpace,
-                  calendarWidget(),
-                  10.verticalSpace,
-                  CustomText(
-                      text: AppStrings.timeSlots,
-                      // color: AppColors.blueDark,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold),
-                  10.verticalSpace,
-                  hourListWidget(),
-                  10.verticalSpace,
-                  CustomContainer(
-                      child: Column(
-                    children: [
-                      CustomText(
-                          text: "${AppStrings.wantToGiveAQuickService}",
-                          fontWeight: FontWeight.bold),
-                      5.verticalSpace,
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              text: "${AppStrings.searchSettingText}",
-                            ),
-                          ),
-                          10.horizontalSpace,
-                          AnimatedSwitch(
-                              isSwitched: isQuickService,
-                              onCallBack: (r) {
-                                setState(() {
-                                  isQuickService = r;
-                                });
-                              }),
-                        ],
-                      )
-                    ],
-                  )),
-                  if (isQuickService) ...[
-                    10.verticalSpace,
-                    CustomText(
-                      text: "Slots Doesn't work on the quick service",
-                      textDecoration: TextDecoration.underline,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    5.verticalSpace,
-                    CustomText(text: AppStrings.visitCharges + "*"),
-                    5.verticalSpace,
-                    _quickVisitChargesTextField(),
-                    10.verticalSpace,
-                    CustomText(text: AppStrings.hourlyRate + "*"),
-                    5.verticalSpace,
-                    _quickHourlyRateTextField(),
-                  ],
-                  10.verticalSpace,
-                  _button()
+                  _quickServiceExtraFeeField(),
                 ],
-              ),
+                10.verticalSpace,
+                _button(),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
+  }
+
+  Widget _quickServiceSection() {
+    return CustomContainer(
+      child: Column(
+        children: [
+          CustomText(
+            text: AppStrings.wantToGiveAQuickService,
+            fontWeight: FontWeight.bold,
+          ),
+          5.verticalSpace,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CustomText(
+                  text: AppStrings.quickServiceDescription,
+                ),
+              ),
+              10.horizontalSpace,
+              AnimatedSwitch(
+                isSwitched: isQuickService,
+                onCallBack: (value) {
+                  setState(() {
+                    isQuickService = value;
+                    if (!value) {
+                      quickServiceExtraFeeController.clear();
+                    }
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget hourListWidget() {
@@ -208,10 +193,8 @@ class _AddEditServiceState extends State<AddEditService> {
             ontapCheck: () {
               setState(() {
                 if (selectedShiftList.contains(shift)) {
-                  // ❌ Remove if already selected
                   selectedShiftList.remove(shift);
                 } else {
-                  // ✅ Add if not selected
                   selectedShiftList.add(shift);
                 }
               });
@@ -228,17 +211,25 @@ class _AddEditServiceState extends State<AddEditService> {
 
   CustomCalendar calendarWidget() {
     return CustomCalendar(
-      highlightedDates: [
-        DateTime(2026, 1, 2),
-        DateTime(2026, 1, 6),
-        DateTime(2026, 1, 10),
-      ],
+      highlightedDates: selectedCalendarDates,
       onDatesChanged: (dates) {
-        print("Selected dates:");
-        for (final d in dates) {
-          print(d);
-        }
+        setState(() {
+          selectedCalendarDates = dates;
+        });
       },
+    );
+  }
+
+  Widget _titleField() {
+    return CustomTextField(
+      hint: AppStrings.enterTitle,
+      divider: false,
+      label: false,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(Constants.titleMaxLength),
+      ],
+      controller: titleController,
+      validator: (value) => value?.validateEmpty(AppStrings.title),
     );
   }
 
@@ -246,17 +237,14 @@ class _AddEditServiceState extends State<AddEditService> {
     return CustomTextField(
       hint: AppStrings.enterAmount,
       divider: false,
-      // prefxicon: AssetPath.languageIcon,
       label: false,
-
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
       ],
       controller: visitChargesController,
       validator: (value) => value?.validateEmpty(AppStrings.visitCharges),
-      // error_text: error_email,
     );
   }
 
@@ -264,91 +252,32 @@ class _AddEditServiceState extends State<AddEditService> {
     return CustomTextField(
       hint: AppStrings.enterAmount,
       divider: false,
-      // prefxicon: AssetPath.languageIcon,
       label: false,
-
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
       ],
       controller: hourlyRateController,
       validator: (value) => value?.validateEmpty(AppStrings.hourlyRate),
-      // error_text: error_email,
     );
   }
 
-  Widget _visitChargesCommissionTextField() {
+  Widget _quickServiceExtraFeeField() {
     return CustomTextField(
-      hint: AppStrings.enterAmount,
+      hint: AppStrings.enterQuickServiceExtraFee,
       divider: false,
-      // prefxicon: AssetPath.languageIcon,
       label: false,
-
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
       ],
-      controller: visitChargesCommissionController,
-      validator: (value) =>
-          value?.validateEmpty(AppStrings.visitChargesCommission),
-      // error_text: error_email,
-    );
-  }
-
-  Widget _quickHourlyRateTextField() {
-    return CustomTextField(
-      hint: AppStrings.enterAmount,
-      divider: false,
-      // prefxicon: AssetPath.languageIcon,
-      label: false,
-
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(6),
-        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-      ],
-      controller: quickHourlyRateController,
-      validator: (value) => value?.validateEmpty(AppStrings.hourlyRate),
-      // error_text: error_email,
-    );
-  }
-
-  Widget _quickVisitChargesTextField() {
-    return CustomTextField(
-      hint: AppStrings.enterAmount,
-      divider: false,
-      // prefxicon: AssetPath.languageIcon,
-      label: false,
-
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(6),
-        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-      ],
-      controller: quickVisitChargesController,
-      validator: (value) => value?.validateEmpty(AppStrings.visitCharges),
-      // error_text: error_email,
-    );
-  }
-
-  Widget _hourlyRateCommissionTextField() {
-    return CustomTextField(
-      hint: AppStrings.enterAmount,
-      divider: false,
-      // prefxicon: AssetPath.languageIcon,
-      label: false,
-
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(6),
-        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-      ],
-      controller: hourlyRateCommissionController,
-      validator: (value) =>
-          value?.validateEmpty(AppStrings.hourlyRateCommission),
-      // error_text: error_email,
+      controller: quickServiceExtraFeeController,
+      validator: (value) {
+        if (!isQuickService) return null;
+        return value?.validateEmpty(AppStrings.quickServiceExtraFee);
+      },
     );
   }
 
@@ -356,25 +285,21 @@ class _AddEditServiceState extends State<AddEditService> {
     return CustomTextField(
       hint: AppStrings.enterRadius,
       divider: false,
-      // prefxicon: AssetPath.languageIcon,
       label: false,
-
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
       ],
       controller: radiusController,
       validator: (value) => value?.validateEmpty(AppStrings.radius),
-      // error_text: error_email,
     );
   }
 
-  Widget _uploadTextField() {
+  Widget _serviceImageField() {
     return CustomTextField(
-      hint: AppStrings.uploadImage,
+      hint: AppStrings.uploadImageLabel,
       divider: false,
-      // prefxicon: AssetPath.uploadIcon,
       sufixImage: Image.asset(
         AssetPath.uploadIcon,
         scale: 3.5.sp,
@@ -385,7 +310,8 @@ class _AddEditServiceState extends State<AddEditService> {
       onTap: () {
         AppDialogs.showImageSourceDialog(context, setFile: (file) {
           setState(() {
-            imageController.text = file?.path ?? "";
+            serviceImageFile = file;
+            imageController.text = AppStrings.changeImage;
           });
         });
       },
@@ -397,44 +323,57 @@ class _AddEditServiceState extends State<AddEditService> {
     return CustomTextField(
       hint: AppStrings.typeHere,
       divider: false,
-      // prefxicon: AssetPath.convertIcon,
       label: false,
       borderRadius: 10.r,
       lines: 5,
-      // keyboardType: TextInputType.emailAddress,
       inputFormatters: [
-        LengthLimitingTextInputFormatter(Constants.descriptionMaxLength)
+        LengthLimitingTextInputFormatter(Constants.descriptionMaxLength),
       ],
       controller: descriptionController,
-      validator: (value) => value?.validateEmpty(AppStrings.message),
-      // error_text: error_email,
+      validator: (value) => value?.validateEmpty(AppStrings.description),
     );
+  }
+
+  bool _validateScheduleFields() {
+    if (selectedShiftList.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.selectAtLeastOneTimeSlot);
+      return false;
+    }
+
+    if (selectedCalendarDates.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.selectAtLeastOneCalendarDate);
+      return false;
+    }
+
+    return true;
   }
 
   Widget _button() {
     return CustomButton(
       text: AppStrings.save,
       onclick: () {
-        if (serviceKey.currentState!.validate()) {
-          AppDialogs.showSuccessDialog(
-            context,
-            description: widget.type == AddEditType.add.name
-                ? "Service Added successfully. "
-                : "Service Updated successfully. ",
-            title: AppStrings.congratulation,
-            btnTxt1: AppStrings.ok,
-            onTap1: () {
+        if (!serviceKey.currentState!.validate()) return;
+        if (!_validateScheduleFields()) return;
+
+        AppDialogs.showSuccessDialog(
+          context,
+          description: widget.type == AddEditType.add.name
+              ? 'Service Added successfully. '
+              : 'Service Updated successfully. ',
+          title: AppStrings.congratulation,
+          btnTxt1: AppStrings.ok,
+          onTap1: () {
+            AppNavigation.navigatorPop(context);
+            if (widget.type == AddEditType.add.name) {
+              AppNavigation.navigateReplacementNamed(
+                Constants.navigatorKey.currentContext!,
+                AppRoutes.listOfServicesScreenRoute,
+              );
+            } else {
               AppNavigation.navigatorPop(context);
-              if (widget.type == AddEditType.add.name) {
-                AppNavigation.navigateReplacementNamed(
-                    Constants.navigatorKey.currentContext!,
-                    AppRoutes.listOfServicesScreenRoute);
-              } else {
-                AppNavigation.navigatorPop(context);
-              }
-            },
-          );
-        }
+            }
+          },
+        );
       },
     );
   }

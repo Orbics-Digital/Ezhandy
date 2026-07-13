@@ -248,6 +248,7 @@ class AppStrings {
       "Total hours From Start to End Job: 3hr 15 minute your 1 hr= \$20 so total is \$350 for 3hr 15 minute";
   static const String fullName = "Full Name";
   static const String enterTitle = "Enter Title";
+  static const String title = "Title";
   static const String enterPastWorkName = "Enter Past Work Name";
   static const String enterDescription = "Enter Description";
   static const String enterWorkDescription = "Enter Work Description";
@@ -1059,7 +1060,14 @@ class AppStrings {
   static const String searchSettingText =
       "If you want to appear in search results, keep the toggle on. If you want to take a break from offering the service, toggle it off.";
   static const String wantToGiveAQuickService = "Wants to Give Quick Service?";
-  // static const String wantToGiveAQuickService = "Wants to Give Quick Service?";
+  static const String quickServiceDescription =
+      'Offer this service on selected dates and also as an on-demand quick service.';
+  static const String quickServiceExtraFee = 'Quick Service Extra Fee';
+  static const String enterQuickServiceExtraFee = 'Enter Quick Service Extra Fee';
+  static const String selectAtLeastOneTimeSlot =
+      "Please select at least one time slot.";
+  static const String selectAtLeastOneCalendarDate =
+      "Please select at least one calendar date.";
 
   // Invoice
   static const String invoiceNumber = "Invoice Number";

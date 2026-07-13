@@ -16,6 +16,7 @@ class Constants {
   static const nameMaxLength = 30;
   static const addressMaxLength = 50;
   static const descriptionMaxLength = 275;
+  static const titleMaxLength = 100;
   static const cvcLength = 3;
   static const accountNumberLength = 16;
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
