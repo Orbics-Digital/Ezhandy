@@ -338,6 +338,8 @@ class AppStrings {
   static const String noCommentsFound = "No comments found";
   static const String noReactionsFound = "No reactions found";
   static const String noProductsFound = "No products found";
+  static const String noServiceTypesFound = "No service types found";
+  static const String noResultsFound = "No results found";
   static const String pleaseUploadProductImage = "Please upload at least one image";
   static const String maximumFiveImagesAllowed = "You can upload up to 5 images";
   static const String invalidPriceRange =
