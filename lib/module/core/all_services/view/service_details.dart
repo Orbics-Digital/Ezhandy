@@ -1,3 +1,4 @@
+import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
 import 'package:ezhandy_user/module/core/all_services/model/provider_service_model.dart';
 import 'package:ezhandy_user/module/core/all_services/routing_arguments/service_routing_arguments.dart';
 import 'package:ezhandy_user/utils/enums.dart';
@@ -107,38 +108,14 @@ class _ServiceDetailsState extends State<ServiceDetails> {
             Row(
               children: [
                 Expanded(
-                  child: CustomButton(
-                    color: AppColors.black,
-                    text: AppStrings.remove,
-                    onclick: () {
-                      AppDialogs.showSuccessDialog(
-                        context,
-                        description:
-                            AppStrings.areYouSureYouWantToDeleteThisService,
-                        image: AssetPath.deleteWithCircleIcon,
-                        isDoneShow: false,
-                        btnTxt1: AppStrings.yes,
-                        onTap1: () {
-                          AppNavigation.navigatorPop(context);
-                          AppDialogs.showSuccessDialog(
-                            context,
-                            description: AppStrings.serviceDeleteSuccessfully,
-                            title: AppStrings.congratulation,
-                            btnTxt1: AppStrings.ok,
-                            onTap1: () {
-                              AppNavigation.navigatorPopUntil(
-                                context,
-                                AppRoutes.listOfServicesScreenRoute,
-                              );
-                            },
-                          );
-                        },
-                        btnTxt2: AppStrings.no,
-                        onTap2: () {
-                          AppNavigation.navigatorPop(context);
-                        },
-                      );
-                    },
+                  child: Obx(
+                    () => CustomButton(
+                      color: AppColors.black,
+                      text: AppStrings.remove,
+                      isLoading:
+                          ProviderServicesController.i.isDeleteServiceLoading.value,
+                      onclick: _handleDeleteService,
+                    ),
                   ),
                 ),
                 10.horizontalSpace,
@@ -165,6 +142,46 @@ class _ServiceDetailsState extends State<ServiceDetails> {
           ],
         ),
       ),
+    );
+  }
+
+  void _handleDeleteService() {
+    final serviceId = _service?.id?.trim() ?? '';
+    if (serviceId.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.noServicesFound);
+      return;
+    }
+
+    AppDialogs.showSuccessDialog(
+      context,
+      description: AppStrings.areYouSureYouWantToDeleteThisService,
+      image: AssetPath.deleteWithCircleIcon,
+      isDoneShow: false,
+      btnTxt1: AppStrings.yes,
+      onTap1: () async {
+        AppNavigation.navigatorPop(context);
+
+        final success =
+            await ProviderServicesController.i.deleteService(serviceId);
+        if (!success || !mounted) return;
+
+        AppDialogs.showSuccessDialog(
+          context,
+          description: AppStrings.serviceDeleteSuccessfully,
+          title: AppStrings.congratulation,
+          btnTxt1: AppStrings.ok,
+          onTap1: () {
+            AppNavigation.navigatorPopUntil(
+              context,
+              AppRoutes.listOfServicesScreenRoute,
+            );
+          },
+        );
+      },
+      btnTxt2: AppStrings.no,
+      onTap2: () {
+        AppNavigation.navigatorPop(context);
+      },
     );
   }
 

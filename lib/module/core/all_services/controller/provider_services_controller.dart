@@ -20,6 +20,7 @@ class ProviderServicesController extends GetxController {
       <ProviderServiceModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxBool isCreateServiceLoading = false.obs;
+  final RxBool isDeleteServiceLoading = false.obs;
   final RxBool isProviderServicesLoading = false.obs;
 
   List<ProviderServiceModel> get filteredProviderServices {
@@ -77,6 +78,26 @@ class ProviderServicesController extends GetxController {
       return false;
     } finally {
       isCreateServiceLoading.value = false;
+    }
+  }
+
+  Future<bool> deleteService(String serviceId) async {
+    final id = serviceId.trim();
+    if (id.isEmpty || isDeleteServiceLoading.value) return false;
+
+    isDeleteServiceLoading.value = true;
+    try {
+      await _repository.deleteService(id);
+      providerServices.removeWhere((service) => service.id == id);
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isDeleteServiceLoading.value = false;
     }
   }
 }

@@ -70,6 +70,19 @@ class ProviderServicesRepository {
         .toList();
   }
 
+  Future<void> deleteService(String serviceId) async {
+    final response =
+        await _client.dio.delete(ApiEndpoints.providerService(serviceId));
+    final data = response.data;
+
+    if (data is! Map) return;
+
+    final root = Map<String, dynamic>.from(data);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
+
   Future<bool> toggleQuickProvider({
     required String providerId,
     required bool isQuickProvider,

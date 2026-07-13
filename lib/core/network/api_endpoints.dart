@@ -20,6 +20,7 @@ class ApiEndpoints {
   static const String providerServicesList = 'provider-services/provider';
   static const String providerBookings = 'bookings/provider';
 
+  static String providerService(String serviceId) => 'provider-services/$serviceId';
   static String product(String productId) => 'products/$productId';
   static String ownerProducts(String ownerId) => 'products/owner/$ownerId';
 
