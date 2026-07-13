@@ -215,7 +215,10 @@ class AppRouter {
             ServiceRoutingArgument serviceArgument =
                 routeSettings.arguments as ServiceRoutingArgument;
 
-            return ServiceDetails(type: serviceArgument.type);
+            return ServiceDetails(
+              type: serviceArgument.type,
+              service: serviceArgument.service,
+            );
           // case AppRoutes.serviceSelectionScreenRoute:
           //   return ServiceSelection();
           // case AppRoutes.chooseYourPaymentMethodScreenRoute:

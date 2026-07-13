@@ -550,6 +550,8 @@ class AppStrings {
   static const String schedule = "Schedule";
   static const String availabilityHour = "Availability Hour";
   static const String timeSlots = "Time Slots";
+  static const String calendar = "Calendar";
+  static const String availableDates = "Available Dates";
   static const String bookAnAppointment = "Book An Appointment";
   static const String appointmentSuccessfully =
       "Appointment booked successfully.";
@@ -1061,6 +1063,7 @@ class AppStrings {
   static const String searchSettingText =
       "If you want to appear in search results, keep the toggle on. If you want to take a break from offering the service, toggle it off.";
   static const String wantToGiveAQuickService = "Wants to Give Quick Service?";
+  static const String quickService = "Quick Service";
   static const String quickServiceDescription =
       'Offer this service on selected dates and also as an on-demand quick service.';
   static const String quickServiceExtraFee = 'Quick Service Extra Fee';

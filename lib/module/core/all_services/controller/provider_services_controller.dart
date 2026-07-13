@@ -28,13 +28,7 @@ class ProviderServicesController extends GetxController {
 
     return providerServices.where((service) {
       final title = service.title?.trim().toLowerCase() ?? '';
-      final description = service.description?.trim().toLowerCase() ?? '';
-      final serviceTypeName =
-          service.serviceType?.displayName.trim().toLowerCase() ?? '';
-
-      return title.contains(query) ||
-          description.contains(query) ||
-          serviceTypeName.contains(query);
+      return title.contains(query);
     }).toList();
   }
 

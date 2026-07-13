@@ -48,16 +48,51 @@ class ProviderServiceModel {
   String get displayVisitCharges {
     final value = visitCharges?.trim();
     if (value == null || value.isEmpty) return '-';
-
-    final parsed = double.tryParse(value);
-    if (parsed == null) return '\$$value';
-    if (parsed == parsed.roundToDouble()) {
-      return '\$${parsed.toInt()}';
-    }
-    return '\$$value';
+    return _formatMoney(value);
   }
 
   String get serviceTypeIconUrl => serviceType?.iconImagePath?.trim() ?? '';
+
+  String get displayHourlyRate => _formatMoney(hourlyRate);
+
+  String get displayQuickServiceExtraFee => _formatMoney(quickServiceExtraFee);
+
+  String get displayRadius {
+    final value = radius?.trim();
+    if (value == null || value.isEmpty) return '-';
+    return value;
+  }
+
+  String get displayTimeSlots {
+    if (timeSlots.isEmpty) return '-';
+
+    const labels = {
+      'MORNING': 'Morning (8am - 12pm)',
+      'AFTERNOON': 'Afternoon (12pm - 5pm)',
+      'EVENING': 'Evening (5pm - 9:30pm)',
+    };
+
+    return timeSlots
+        .map((slot) => labels[slot.toUpperCase()] ?? slot)
+        .join(', ');
+  }
+
+  String get displayCalendar {
+    if (calendar.isEmpty) return '-';
+    return calendar.join(', ');
+  }
+
+  static String _formatMoney(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return '-';
+
+    final parsed = double.tryParse(trimmed);
+    if (parsed == null) return '\$$trimmed';
+    if (parsed == parsed.roundToDouble()) {
+      return '\$${parsed.toInt()}';
+    }
+    return '\$$trimmed';
+  }
 
   factory ProviderServiceModel.fromJson(Map<String, dynamic> json) {
     return ProviderServiceModel(

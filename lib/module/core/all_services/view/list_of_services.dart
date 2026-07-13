@@ -106,6 +106,7 @@ class _ListOfServicesState extends State<ListOfServices> {
                             context,
                             AppRoutes.serviceDetailsScreenRoute,
                             arguments: ServiceRoutingArgument(
+                              service: service,
                               serviceName: service.title,
                               serviceTypeId: service.serviceTypeId,
                               type: service.isQuickService
