@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:ezhandy_user/module/core/all_services/model/create_provider_service_params.dart';
 import 'package:ezhandy_user/module/core/service_types/model/service_type_model.dart';
 
 class ProviderServiceModel {
@@ -66,15 +69,7 @@ class ProviderServiceModel {
   String get displayTimeSlots {
     if (timeSlots.isEmpty) return '-';
 
-    const labels = {
-      'MORNING': 'Morning (8am - 12pm)',
-      'AFTERNOON': 'Afternoon (12pm - 5pm)',
-      'EVENING': 'Evening (5pm - 9:30pm)',
-    };
-
-    return timeSlots
-        .map((slot) => labels[slot.toUpperCase()] ?? slot)
-        .join(', ');
+    return ProviderServiceFieldMapper.mapTimeSlotsToUi(timeSlots).join(', ');
   }
 
   String get displayCalendar {
@@ -124,6 +119,17 @@ class ProviderServiceModel {
   }
 
   static List<String> _readStringList(dynamic value) {
+    if (value is String && value.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is List) {
+          value = decoded;
+        }
+      } catch (_) {
+        return [value.trim()];
+      }
+    }
+
     if (value is! List) return const [];
 
     return value

@@ -20,6 +20,7 @@ class ProviderServicesController extends GetxController {
       <ProviderServiceModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxBool isCreateServiceLoading = false.obs;
+  final RxBool isUpdateServiceLoading = false.obs;
   final RxBool isDeleteServiceLoading = false.obs;
   final RxBool isProviderServicesLoading = false.obs;
 
@@ -78,6 +79,39 @@ class ProviderServicesController extends GetxController {
       return false;
     } finally {
       isCreateServiceLoading.value = false;
+    }
+  }
+
+  ProviderServiceModel? getServiceById(String? serviceId) {
+    final id = serviceId?.trim();
+    if (id == null || id.isEmpty) return null;
+
+    for (final service in providerServices) {
+      if (service.id == id) return service;
+    }
+    return null;
+  }
+
+  Future<bool> updateService({
+    required String serviceId,
+    required CreateProviderServiceParams params,
+  }) async {
+    final id = serviceId.trim();
+    if (id.isEmpty || isUpdateServiceLoading.value) return false;
+
+    isUpdateServiceLoading.value = true;
+    try {
+      await _repository.updateService(serviceId: id, params: params);
+      await refreshProviderServices();
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isUpdateServiceLoading.value = false;
     }
   }
 

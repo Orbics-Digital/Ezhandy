@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
 import 'package:ezhandy_user/module/core/all_services/model/create_provider_service_params.dart';
+import 'package:ezhandy_user/module/core/all_services/model/provider_service_model.dart';
+import 'package:ezhandy_user/module/core/all_services/routing_arguments/service_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/constant.dart';
@@ -28,12 +30,17 @@ class AddEditService extends StatefulWidget {
   String name;
   String type;
   String serviceTypeId;
+  ProviderServiceModel? service;
+
   AddEditService({
     required this.name,
     required this.type,
     required this.serviceTypeId,
+    this.service,
     super.key,
   });
+
+  bool get isEdit => type == AddEditType.edit.name;
 
   @override
   State<AddEditService> createState() => _AddEditServiceState();
@@ -44,6 +51,7 @@ class _AddEditServiceState extends State<AddEditService> {
 
   bool isQuickService = false;
   File? serviceImageFile;
+  String? existingImageUrl;
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
@@ -54,19 +62,54 @@ class _AddEditServiceState extends State<AddEditService> {
   final TextEditingController quickServiceExtraFeeController =
       TextEditingController();
 
-  final List<String> shiftList = [
-    'Morning (8am - 12pm)',
-    'Afternoon (12pm - 5pm)',
-    'Evening (5pm - 9:30pm)',
-  ];
+  final List<String> shiftList = ProviderServiceFieldMapper.uiTimeSlotOptions;
   final List<String> selectedShiftList = [];
   List<DateTime> selectedCalendarDates = [];
 
   @override
   void initState() {
     super.initState();
-    selectedShiftList.add(shiftList.first);
-    selectedCalendarDates = [DateTime.now()];
+    if (widget.isEdit && widget.service != null) {
+      _prefillForm(widget.service!);
+    } else {
+      selectedShiftList.add(shiftList.first);
+      selectedCalendarDates = [DateTime.now()];
+    }
+  }
+
+  void _prefillForm(ProviderServiceModel service) {
+    titleController.text = service.title?.trim() ?? '';
+    descriptionController.text = service.description?.trim() ?? '';
+    visitChargesController.text =
+        ProviderServiceFieldMapper.formatInputAmount(service.visitCharges);
+    hourlyRateController.text =
+        ProviderServiceFieldMapper.formatInputAmount(service.hourlyRate);
+    radiusController.text =
+        ProviderServiceFieldMapper.formatInputAmount(service.radius);
+
+    isQuickService = service.isQuickService;
+    if (isQuickService) {
+      quickServiceExtraFeeController.text =
+          ProviderServiceFieldMapper.formatInputAmount(
+        service.quickServiceExtraFee,
+      );
+    }
+
+    existingImageUrl = service.imageUrl?.trim();
+    if (existingImageUrl != null && existingImageUrl!.isNotEmpty) {
+      imageController.text = AppStrings.changeImage;
+    }
+
+    final uiTimeSlots =
+        ProviderServiceFieldMapper.mapTimeSlotsToUi(service.timeSlots);
+    selectedShiftList
+      ..clear()
+      ..addAll(uiTimeSlots.isNotEmpty ? uiTimeSlots : [shiftList.first]);
+
+    final parsedDates =
+        ProviderServiceFieldMapper.parseCalendarDates(service.calendar);
+    selectedCalendarDates =
+        parsedDates.isNotEmpty ? parsedDates : [DateTime.now()];
   }
 
   @override
@@ -219,6 +262,9 @@ class _AddEditServiceState extends State<AddEditService> {
 
   CustomCalendar calendarWidget() {
     return CustomCalendar(
+      key: ValueKey(
+        selectedCalendarDates.map((date) => date.toIso8601String()).join(','),
+      ),
       highlightedDates: selectedCalendarDates,
       onDatesChanged: (dates) {
         setState(() {
@@ -323,7 +369,15 @@ class _AddEditServiceState extends State<AddEditService> {
           });
         });
       },
-      validator: (value) => value?.validateEmpty(AppStrings.uploadImage),
+      validator: (value) {
+        if (serviceImageFile != null) return null;
+        if (widget.isEdit &&
+            existingImageUrl != null &&
+            existingImageUrl!.isNotEmpty) {
+          return null;
+        }
+        return value?.validateEmpty(AppStrings.uploadImage);
+      },
     );
   }
 
@@ -360,9 +414,40 @@ class _AddEditServiceState extends State<AddEditService> {
     return Obx(
       () => CustomButton(
         text: AppStrings.save,
-        isLoading: ProviderServicesController.i.isCreateServiceLoading.value,
+        isLoading: widget.isEdit
+            ? ProviderServicesController.i.isUpdateServiceLoading.value
+            : ProviderServicesController.i.isCreateServiceLoading.value,
         onclick: _handleSubmit,
       ),
+    );
+  }
+
+  CreateProviderServiceParams? _buildParams({
+    required String serviceTypeId,
+  }) {
+    final timeSlots =
+        ProviderServiceFieldMapper.mapTimeSlots(selectedShiftList);
+    if (timeSlots.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.selectAtLeastOneTimeSlot);
+      return null;
+    }
+
+    return CreateProviderServiceParams(
+      title: titleController.text.trim(),
+      description: descriptionController.text.trim(),
+      visitCharges: visitChargesController.text.trim(),
+      hourlyRate: hourlyRateController.text.trim(),
+      radius: radiusController.text.trim(),
+      serviceTypeId: serviceTypeId,
+      isQuickService: isQuickService,
+      isServiceActive: widget.service?.isServiceActive ?? true,
+      timeSlots: timeSlots,
+      calendar: ProviderServiceFieldMapper.mapCalendarDates(
+        selectedCalendarDates,
+      ),
+      quickServiceExtraFee:
+          isQuickService ? quickServiceExtraFeeController.text.trim() : null,
+      image: serviceImageFile,
     );
   }
 
@@ -370,72 +455,93 @@ class _AddEditServiceState extends State<AddEditService> {
     if (!serviceKey.currentState!.validate()) return;
     if (!_validateScheduleFields()) return;
 
-    if (widget.type == AddEditType.add.name) {
-      final serviceTypeId = widget.serviceTypeId.trim();
+    if (widget.isEdit) {
+      final serviceId = widget.service?.id?.trim() ?? '';
+      if (serviceId.isEmpty) {
+        AppDialogs.showToast(message: AppStrings.noServicesFound);
+        return;
+      }
+
+      final serviceTypeId =
+          widget.serviceTypeId.trim().isNotEmpty
+              ? widget.serviceTypeId.trim()
+              : widget.service?.serviceTypeId?.trim() ?? '';
       if (serviceTypeId.isEmpty) {
         AppDialogs.showToast(message: AppStrings.selectServiceType);
         return;
       }
 
-      if (serviceImageFile == null) {
+      if (serviceImageFile == null &&
+          (existingImageUrl == null || existingImageUrl!.isEmpty)) {
         AppDialogs.showToast(message: AppStrings.uploadImage);
         return;
       }
 
-      final timeSlots =
-          ProviderServiceFieldMapper.mapTimeSlots(selectedShiftList);
-      if (timeSlots.isEmpty) {
-        AppDialogs.showToast(message: AppStrings.selectAtLeastOneTimeSlot);
-        return;
-      }
+      final params = _buildParams(serviceTypeId: serviceTypeId);
+      if (params == null || !mounted) return;
 
-      final success = await ProviderServicesController.i.createService(
-        CreateProviderServiceParams(
-          title: titleController.text.trim(),
-          description: descriptionController.text.trim(),
-          visitCharges: visitChargesController.text.trim(),
-          hourlyRate: hourlyRateController.text.trim(),
-          radius: radiusController.text.trim(),
-          serviceTypeId: serviceTypeId,
-          isQuickService: isQuickService,
-          isServiceActive: true,
-          timeSlots: timeSlots,
-          calendar: ProviderServiceFieldMapper.mapCalendarDates(
-            selectedCalendarDates,
-          ),
-          quickServiceExtraFee: isQuickService
-              ? quickServiceExtraFeeController.text.trim()
-              : null,
-          image: serviceImageFile!,
-        ),
+      final success = await ProviderServicesController.i.updateService(
+        serviceId: serviceId,
+        params: params,
       );
-
       if (!success || !mounted) return;
+
+      final updatedService =
+          ProviderServicesController.i.getServiceById(serviceId);
 
       AppDialogs.showSuccessDialog(
         context,
-        description: 'Service Added successfully. ',
+        description: 'Service Updated successfully. ',
         title: AppStrings.congratulation,
         btnTxt1: AppStrings.ok,
         onTap1: () {
           AppNavigation.navigatorPop(context);
           AppNavigation.navigateReplacementNamed(
-            Constants.navigatorKey.currentContext!,
-            AppRoutes.listOfServicesScreenRoute,
+            context,
+            AppRoutes.serviceDetailsScreenRoute,
+            arguments: ServiceRoutingArgument(
+              service: updatedService ?? widget.service,
+              serviceName: params.title,
+              serviceTypeId: serviceTypeId,
+              type: isQuickService
+                  ? ServiceType.instant.name
+                  : ServiceType.schedule.name,
+            ),
           );
         },
       );
       return;
     }
 
+    final serviceTypeId = widget.serviceTypeId.trim();
+    if (serviceTypeId.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.selectServiceType);
+      return;
+    }
+
+    if (serviceImageFile == null) {
+      AppDialogs.showToast(message: AppStrings.uploadImage);
+      return;
+    }
+
+    final params = _buildParams(serviceTypeId: serviceTypeId);
+    if (params == null || !mounted) return;
+
+    final success =
+        await ProviderServicesController.i.createService(params);
+    if (!success || !mounted) return;
+
     AppDialogs.showSuccessDialog(
       context,
-      description: 'Service Updated successfully. ',
+      description: 'Service Added successfully. ',
       title: AppStrings.congratulation,
       btnTxt1: AppStrings.ok,
       onTap1: () {
         AppNavigation.navigatorPop(context);
-        AppNavigation.navigatorPop(context);
+        AppNavigation.navigateReplacementNamed(
+          Constants.navigatorKey.currentContext!,
+          AppRoutes.listOfServicesScreenRoute,
+        );
       },
     );
   }

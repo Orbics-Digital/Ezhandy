@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -16,7 +15,9 @@ class ProviderServicesRepository {
 
   ApiClient get _client => _apiClient ?? ApiClient.i;
 
-  Future<void> createService(CreateProviderServiceParams params) async {
+  Future<FormData> _buildServiceFormData(
+    CreateProviderServiceParams params,
+  ) async {
     final formData = FormData.fromMap({
       'title': params.title,
       'description': params.description,
@@ -26,32 +27,65 @@ class ProviderServicesRepository {
       'serviceTypeId': params.serviceTypeId,
       'isQuickService': params.isQuickService,
       'isServiceActive': params.isServiceActive,
-      'timeSlots': jsonEncode(params.timeSlots),
-      'calendar': jsonEncode(params.calendar),
+      'timeSlots': params.timeSlots,
+      'calendar': params.calendar,
       if (params.isQuickService &&
           params.quickServiceExtraFee != null &&
           params.quickServiceExtraFee!.isNotEmpty)
         'quickServiceExtraFee': params.quickServiceExtraFee,
     });
 
-    final fileName = params.image.path.split(Platform.pathSeparator).last;
-    formData.files.add(
-      MapEntry(
-        'image',
-        await MultipartFile.fromFile(
-          params.image.path,
-          filename: fileName,
+    if (params.image != null) {
+      final fileName =
+          params.image!.path.split(Platform.pathSeparator).last;
+      formData.files.add(
+        MapEntry(
+          'image',
+          await MultipartFile.fromFile(
+            params.image!.path,
+            filename: fileName,
+          ),
         ),
-      ),
+      );
+    }
+
+    return formData;
+  }
+
+  Options _multipartOptions() {
+    return Options(
+      contentType: Headers.multipartFormDataContentType,
+      headers: {'Accept': ApiConstants.acceptJson},
     );
+  }
+
+  Future<void> createService(CreateProviderServiceParams params) async {
+    final formData = await _buildServiceFormData(params);
 
     final response = await _client.dio.post(
       ApiEndpoints.providerServices,
       data: formData,
-      options: Options(
-        contentType: Headers.multipartFormDataContentType,
-        headers: {'Accept': ApiConstants.acceptJson},
-      ),
+      options: _multipartOptions(),
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
+
+  Future<void> updateService({
+    required String serviceId,
+    required CreateProviderServiceParams params,
+  }) async {
+    final formData = await _buildServiceFormData(params);
+
+    final response = await _client.dio.patch(
+      ApiEndpoints.providerService(serviceId),
+      data: formData,
+      options: _multipartOptions(),
     );
 
     if (response.data is! Map) return;
