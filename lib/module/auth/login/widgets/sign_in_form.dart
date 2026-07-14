@@ -1,4 +1,5 @@
 // ignore_for_file: must_be_immutable
+import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/auth/verification/routing_arguments/otp_verification_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
@@ -38,7 +39,25 @@ class _SignInFormState extends State<SignInForm> {
   /// Text Editing Controllers
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool switchOff = false;
+  bool rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberedCredentials();
+  }
+
+  Future<void> _loadRememberedCredentials() async {
+    final credentials = await SessionStorage.i.loadRememberedCredentials();
+    if (!mounted || credentials == null) return;
+
+    setState(() {
+      rememberMe = true;
+      emailController.text = credentials.email;
+      passwordController.text = credentials.password;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -166,7 +185,12 @@ class _SignInFormState extends State<SignInForm> {
   Widget _rememberMeForgetPasswordRow({BuildContext? context}) {
     return Row(
       children: [
-        AnimatedSwitch(isSwitched: switchOff, onCallBack: (r) {}),
+        AnimatedSwitch(
+          isSwitched: rememberMe,
+          onCallBack: (value) {
+            setState(() => rememberMe = value);
+          },
+        ),
         10.w.horizontalSpace,
         CustomText(
           text: AppStrings.rememberMe,
@@ -237,8 +261,14 @@ class _SignInFormState extends State<SignInForm> {
           );
 
           if (success) {
-            emailController.clear();
-            passwordController.clear();
+            if (rememberMe) {
+              await SessionStorage.i.saveRememberedCredentials(
+                email: emailController.text,
+                password: passwordController.text,
+              );
+            } else {
+              await SessionStorage.i.clearRememberedCredentials();
+            }
           }
         },
       ),

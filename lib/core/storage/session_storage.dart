@@ -19,6 +19,9 @@ class SessionStorage extends GetxService {
 
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
+  static const _rememberMeKey = 'remember_me';
+  static const _rememberedEmailKey = 'remembered_email';
+  static const _rememberedPasswordKey = 'remembered_password';
 
   final FlutterSecureStorage _secureStorage;
   SharedPreferences? _prefs;
@@ -57,5 +60,36 @@ class SessionStorage extends GetxService {
     await _secureStorage.delete(key: _tokenKey);
     await _prefs?.remove(_userKey);
     ApiClient.i.clearAuthToken();
+  }
+
+  Future<void> saveRememberedCredentials({
+    required String email,
+    required String password,
+  }) async {
+    await _secureStorage.write(key: _rememberMeKey, value: 'true');
+    await _secureStorage.write(key: _rememberedEmailKey, value: email.trim());
+    await _secureStorage.write(key: _rememberedPasswordKey, value: password);
+  }
+
+  Future<({String email, String password})?> loadRememberedCredentials() async {
+    final rememberMe = await _secureStorage.read(key: _rememberMeKey);
+    if (rememberMe != 'true') return null;
+
+    final email = await _secureStorage.read(key: _rememberedEmailKey);
+    final password = await _secureStorage.read(key: _rememberedPasswordKey);
+    if (email == null ||
+        email.isEmpty ||
+        password == null ||
+        password.isEmpty) {
+      return null;
+    }
+
+    return (email: email, password: password);
+  }
+
+  Future<void> clearRememberedCredentials() async {
+    await _secureStorage.delete(key: _rememberMeKey);
+    await _secureStorage.delete(key: _rememberedEmailKey);
+    await _secureStorage.delete(key: _rememberedPasswordKey);
   }
 }
