@@ -96,22 +96,7 @@ class _ProRequestState extends State<ProRequest> {
                     },
                   );
                 },
-                ontap2: () {
-                  AppDialogs.showSuccessDialog(
-                    context,
-                    description:
-                        AppStrings.requestHasBeenRejectedSuccessfully,
-                    title: AppStrings.congratulation,
-                    btnTxt1: AppStrings.ok,
-                    onTap1: () {
-                      AppNavigation.navigatorPop(context);
-                      AppNavigation.navigatorPopUntil(
-                        context,
-                        AppRoutes.proRequestScreenRoute,
-                      );
-                    },
-                  );
-                },
+                ontap2: () => _onRejectTap(context, request),
               );
             },
             separatorBuilder: (context, index) {
@@ -120,6 +105,39 @@ class _ProRequestState extends State<ProRequest> {
           ),
         );
       }),
+    );
+  }
+
+  void _onRejectTap(BuildContext context, AskProRequestModel request) {
+    AppDialogs.showSuccessDialog(
+      context,
+      description: 'Are you sure you want to reject this request?',
+      image: AssetPath.tumbIcon,
+      isDoneShow: false,
+      btnTxt1: AppStrings.yes,
+      btnTxt2: AppStrings.no,
+      onTap1: () async {
+        AppNavigation.navigatorPop(context);
+
+        final requestId = request.id?.trim();
+        if (requestId == null || requestId.isEmpty) return;
+
+        final success = await _controller.rejectRequest(requestId);
+        if (!context.mounted || !success) return;
+
+        AppDialogs.showSuccessDialog(
+          context,
+          description: AppStrings.requestHasBeenRejectedSuccessfully,
+          title: AppStrings.congratulation,
+          btnTxt1: AppStrings.ok,
+          onTap1: () {
+            AppNavigation.navigatorPop(context);
+          },
+        );
+      },
+      onTap2: () {
+        AppNavigation.navigatorPop(context);
+      },
     );
   }
 

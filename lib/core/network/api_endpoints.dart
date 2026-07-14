@@ -22,6 +22,9 @@ class ApiEndpoints {
   static const String myChats = 'live-chat/my-chats';
   static const String askProRequests = 'ask-pro/requests';
 
+  static String askProRejectRequest(String requestId) =>
+      'ask-pro/requests/$requestId/reject';
+
   static String chatHistory(String chatId) =>
       'live-chat/$chatId/history/chat';
 
