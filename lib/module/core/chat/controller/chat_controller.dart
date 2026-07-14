@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/chat/data/chat_repository.dart';
+import 'package:ezhandy_user/module/core/chat/model/chat_history_message_model.dart';
 import 'package:ezhandy_user/module/core/chat/model/my_chat_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:get/get.dart';
@@ -16,8 +17,11 @@ class ChatController extends GetxController {
   final ChatRepository _repository = ChatRepository();
 
   final RxList<MyChatModel> myChats = <MyChatModel>[].obs;
+  final RxList<ChatHistoryMessageModel> chatHistory =
+      <ChatHistoryMessageModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxBool isMyChatsLoading = false.obs;
+  final RxBool isChatHistoryLoading = false.obs;
 
   List<MyChatModel> get filteredMyChats {
     final query = searchQuery.value.trim().toLowerCase();
@@ -57,4 +61,31 @@ class ChatController extends GetxController {
       AppDialogs.showToast(message: e.toString());
     }
   }
+
+  Future<void> fetchChatHistory(
+    String chatId, {
+    int limit = 30,
+    int offset = 0,
+  }) async {
+    final id = chatId.trim();
+    if (id.isEmpty || isChatHistoryLoading.value) return;
+
+    isChatHistoryLoading.value = true;
+    try {
+      final messages = await _repository.getChatHistory(
+        id,
+        limit: limit,
+        offset: offset,
+      );
+      chatHistory.assignAll(messages);
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isChatHistoryLoading.value = false;
+    }
+  }
+
+  void clearChatHistory() => chatHistory.clear();
 }

@@ -21,6 +21,9 @@ class ApiEndpoints {
   static const String providerBookings = 'bookings/provider';
   static const String myChats = 'live-chat/my-chats';
 
+  static String chatHistory(String chatId) =>
+      'live-chat/$chatId/history/chat';
+
   static String providerService(String serviceId) => 'provider-services/$serviceId';
   static String product(String productId) => 'products/$productId';
   static String ownerProducts(String ownerId) => 'products/owner/$ownerId';

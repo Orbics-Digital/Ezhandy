@@ -1,6 +1,7 @@
 import 'package:ezhandy_user/core/network/api_client.dart';
 import 'package:ezhandy_user/core/network/api_endpoints.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
+import 'package:ezhandy_user/module/core/chat/model/chat_history_message_model.dart';
 import 'package:ezhandy_user/module/core/chat/model/my_chat_model.dart';
 
 class ChatRepository {
@@ -15,6 +16,24 @@ class ChatRepository {
 
     return ApiHelper.dataList(response.data)
         .map(MyChatModel.fromJson)
+        .toList();
+  }
+
+  Future<List<ChatHistoryMessageModel>> getChatHistory(
+    String chatId, {
+    int limit = 30,
+    int offset = 0,
+  }) async {
+    final response = await _client.dio.get(
+      ApiEndpoints.chatHistory(chatId),
+      queryParameters: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+
+    return ApiHelper.dataList(response.data)
+        .map(ChatHistoryMessageModel.fromJson)
         .toList();
   }
 }

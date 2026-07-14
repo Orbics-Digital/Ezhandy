@@ -1,4 +1,11 @@
 class ChatRoutingArgument {
   bool? isBooking;
-  ChatRoutingArgument({this.isBooking});
+  String? chatId;
+  String? otherUserName;
+
+  ChatRoutingArgument({
+    this.isBooking,
+    this.chatId,
+    this.otherUserName,
+  });
 }

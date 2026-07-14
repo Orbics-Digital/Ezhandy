@@ -7,13 +7,21 @@ import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 class ChatBubble extends StatelessWidget {
   final String text, name;
   final bool isSender;
+  final String? profileImage;
 
   const ChatBubble({
     required this.text,
     required this.name,
     required this.isSender,
+    this.profileImage,
     Key? key,
   }) : super(key: key);
+
+  String? get _displayImage {
+    final image = profileImage?.trim();
+    if (image == null || image.isEmpty) return null;
+    return image;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +29,7 @@ class ChatBubble extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: isSender ? MainAxisAlignment.start : MainAxisAlignment.end,
       children: [
-        if (isSender) UserImageWidget(),
+        if (isSender) UserImageWidget(image: _displayImage),
         if (isSender) 10.horizontalSpace,
         Container(
           width: 250.w, // fixed width for both sender and receiver
@@ -52,7 +60,7 @@ class ChatBubble extends StatelessWidget {
           ),
         ),
         if (!isSender) 10.horizontalSpace,
-        if (!isSender) UserImageWidget(),
+        if (!isSender) UserImageWidget(image: _displayImage),
       ],
     );
   }

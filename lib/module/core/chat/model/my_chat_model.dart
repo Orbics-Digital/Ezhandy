@@ -35,7 +35,8 @@ class MyChatUserModel {
       fullName: json['fullName']?.toString(),
       name: json['name']?.toString(),
       profileImage: json['profileImage']?.toString(),
-      phoneNumber: json['phoneNumber']?.toString(),
+      phoneNumber: json['phoneNumber']?.toString() ??
+          json['mobileNumber']?.toString(),
       isOnline: _readBool(json['isOnline']),
       lastSeen: _readDate(json['lastSeen']),
     );

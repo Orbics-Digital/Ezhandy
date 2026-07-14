@@ -211,6 +211,8 @@ class AppRouter {
                 routeSettings.arguments as ChatRoutingArgument;
             return ChatScreen(
               isBooking: chatArgument.isBooking ?? false,
+              chatId: chatArgument.chatId,
+              otherUserName: chatArgument.otherUserName,
             );
           case AppRoutes.serviceDetailsScreenRoute:
             ServiceRoutingArgument serviceArgument =

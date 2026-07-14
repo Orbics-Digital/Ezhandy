@@ -109,10 +109,17 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     return singleWidget(
                       chat: chat,
                       ontap: () {
+                        final chatId = chat.chatId?.trim();
+                        if (chatId == null || chatId.isEmpty) return;
+
                         AppNavigation.navigateTo(
                           context,
                           AppRoutes.chatScreenRoute,
-                          arguments: ChatRoutingArgument(isBooking: true),
+                          arguments: ChatRoutingArgument(
+                            isBooking: true,
+                            chatId: chatId,
+                            otherUserName: chat.otherUser?.displayName,
+                          ),
                         );
                       },
                     );
