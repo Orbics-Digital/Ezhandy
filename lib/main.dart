@@ -7,6 +7,7 @@ import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.
 import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
 import 'package:ezhandy_user/module/core/service_types/controller/service_types_controller.dart';
 import 'package:ezhandy_user/module/core/community/controller/community_controller.dart';
+import 'package:ezhandy_user/module/core/chat/controller/chat_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
 import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
 import 'package:ezhandy_user/module/core/notification/controller/notification_controller.dart';
@@ -32,6 +33,7 @@ Future<void> main() async {
   Get.put(HomeController(), permanent: true);
   Get.put(NotificationController(), permanent: true);
   Get.put(CommunityController(), permanent: true);
+  Get.put(ChatController(), permanent: true);
   Get.put(CategoriesController(), permanent: true);
   Get.put(ServiceTypesController(), permanent: true);
   Get.put(ProductsController(), permanent: true);
