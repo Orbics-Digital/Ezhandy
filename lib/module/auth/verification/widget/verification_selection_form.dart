@@ -55,7 +55,7 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
               child: Form(
                 key: verificationFormKey,
                 child: Column(children: [
-                  CustomText(text: AppStrings.viaEmail),
+                  CustomText(text: '${AppStrings.emailAddress}*'),
                   10.verticalSpace,
                   _emailTextField(),
                   SizedBox(height: 30.h),
@@ -72,7 +72,7 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
 
   CustomText signInTextWidget() {
     return CustomText(
-      text: AppStrings.passwordRecovery,
+      text: AppStrings.forgotYourPassword,
       is_alignLeft: false,
       fontSize: 18.sp,
       fontWeight: FontWeight.bold,
@@ -85,7 +85,7 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
     return CustomTextField(
       label: false,
       divider: false,
-      hint: AppStrings.infoEnail,
+      hint: AppStrings.enterEmailAddress,
       prefxicon: AssetPath.emailIcon,
       inputFormatters: [LengthLimitingTextInputFormatter(35)],
       keyboardType: TextInputType.emailAddress,
