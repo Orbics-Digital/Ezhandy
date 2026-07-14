@@ -163,6 +163,10 @@ class _AddEditServiceState extends State<AddEditService> {
                 CustomText(text: AppStrings.uploadImage),
                 5.verticalSpace,
                 _serviceImageField(),
+                if (_hasServiceImagePreview) ...[
+                  10.verticalSpace,
+                  _serviceImagePreview(),
+                ],
                 10.verticalSpace,
                 calendarWidget(),
                 10.verticalSpace,
@@ -350,6 +354,13 @@ class _AddEditServiceState extends State<AddEditService> {
     );
   }
 
+  bool get _hasServiceImagePreview {
+    if (serviceImageFile != null) return true;
+
+    final imageUrl = existingImageUrl?.trim();
+    return imageUrl != null && imageUrl.isNotEmpty;
+  }
+
   Widget _serviceImageField() {
     return CustomTextField(
       hint: AppStrings.uploadImageLabel,
@@ -378,6 +389,37 @@ class _AddEditServiceState extends State<AddEditService> {
         }
         return value?.validateEmpty(AppStrings.uploadImage);
       },
+    );
+  }
+
+  Widget _serviceImagePreview() {
+    if (serviceImageFile != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10.r),
+        child: Image.file(
+          serviceImageFile!,
+          fit: BoxFit.cover,
+          height: 180.h,
+          width: double.infinity,
+        ),
+      );
+    }
+
+    final imageUrl = existingImageUrl?.trim() ?? '';
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.r),
+      child: Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        height: 180.h,
+        width: double.infinity,
+        errorBuilder: (_, __, ___) => Image.asset(
+          AssetPath.cleaningIcon,
+          fit: BoxFit.cover,
+          height: 180.h,
+          width: double.infinity,
+        ),
+      ),
     );
   }
 
