@@ -68,6 +68,76 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
+  bool get _isMultiline => (widget.lines ?? 1) > 1;
+
+  Widget? _buildPrefixIcon() {
+    if (widget.prefixImage != null) {
+      if (!_isMultiline) return widget.prefixImage;
+
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 12.h, left: 15.w, right: 5.w),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: widget.prefixImage,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (widget.prefxicon == null) return null;
+
+    final icon = Image.asset(
+      widget.prefxicon!,
+      color: widget.prefixIconColor ?? AppColors.orange,
+      scale: 3,
+    );
+
+    if (_isMultiline) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 12.h),
+            child: GestureDetector(
+              onTap: widget.onPrefixTap,
+              child: Container(
+                width: 30.w,
+                margin: EdgeInsets.only(left: 15.w, right: 5.w),
+                alignment: Alignment.centerLeft,
+                child: icon,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return GestureDetector(
+      onTap: widget.onPrefixTap,
+      child: Container(
+        width: 30.w,
+        height: 25,
+        margin: EdgeInsets.only(left: 15.w, right: 5.w),
+        padding: EdgeInsets.only(
+          right: widget.prefixRIghtPadding ?? 5.w,
+          left: widget.prefixLeftPadding ?? 0,
+        ),
+        decoration: widget.divider == true
+            ? const BoxDecoration(
+                border: Border(right: BorderSide(color: AppColors.white)),
+              )
+            : null,
+        child: icon,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -115,10 +185,17 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     BorderRadius.circular(widget.borderRadius ?? 10.r),
                 borderSide:
                     BorderSide(color: widget.borderColor ?? AppColors.red)),
-            contentPadding: widget.prefxicon == null
-                ? EdgeInsets.only(
-                    top: 15.sp, left: 15.sp, bottom: 15.sp, right: 15.sp)
-                : widget.contentPadding ?? null,
+            contentPadding: widget.contentPadding ??
+                (widget.prefxicon == null
+                    ? EdgeInsets.only(
+                        top: 15.sp,
+                        left: 15.sp,
+                        bottom: 15.sp,
+                        right: 15.sp,
+                      )
+                    : _isMultiline
+                        ? EdgeInsets.fromLTRB(0, 14.h, 15.w, 14.h)
+                        : null),
             label: widget.label ? Text(widget.hint) : null,
             labelStyle: TextStyle(
                 color: widget.hintColor ?? AppColors.black, fontSize: 15),
@@ -130,33 +207,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
             errorStyle: const TextStyle(
                 overflow: TextOverflow.visible, color: AppColors.red),
             errorMaxLines: 3,
-            prefixIcon: widget.prefixImage ??
-                (widget.prefxicon != null
-                    ? GestureDetector(
-                        onTap: widget.onPrefixTap,
-                        child: Container(
-                          width: 30.w,
-                          height: 25,
-                          margin: EdgeInsets.only(left: 15.w, right: 5.w),
-                          padding: EdgeInsets.only(
-                            right: widget.prefixRIghtPadding ?? 5.w,
-                            left: widget.prefixLeftPadding ?? 0,
-                          ),
-                          decoration: widget.divider == true
-                              ? const BoxDecoration(
-                                  border: Border(
-                                      right:
-                                          BorderSide(color: AppColors.white)))
-                              : null,
-                          child: Image.asset(
-                            widget.prefxicon!,
-                            color: widget.prefixIconColor??AppColors.orange,
-                            scale: 3,
-                          ),
-                        ),
-                      )
-                    : null),
-            prefixIconConstraints: const BoxConstraints(),
+            prefixIcon: _buildPrefixIcon(),
+            prefixIconConstraints: _isMultiline
+                ? BoxConstraints(minWidth: 50.w, minHeight: 0)
+                : const BoxConstraints(),
             suffixIcon: widget.sufixImage != null
                 ? GestureDetector(
                     onTap: widget.onclickSufix,

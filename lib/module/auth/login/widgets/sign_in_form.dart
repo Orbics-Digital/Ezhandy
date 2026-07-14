@@ -248,7 +248,7 @@ class _SignInFormState extends State<SignInForm> {
   Widget _signInButton({required BuildContext context}) {
     return Obx(
       () => CustomButton(
-        text: AppStrings.signIn,
+        text: AppStrings.logIn,
         isLoading: AuthController.i.isLoginLoading.value,
         onclick: () async {
           FocusScope.of(context).unfocus();
