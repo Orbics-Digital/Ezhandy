@@ -35,14 +35,37 @@ class ProfilePictureWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => is_pickImage == true
-          ? AppDialogs.showImageSourceDialog( context, setFile: setFile)
-          : Utils.onTapViewImage(
-              context: context,
-              image: AssetPath.userIcon,
-              //mediaType: MediaPathType.network.name,
-              mediaType: MediaPathType.asset.name,
-            ),
+      onTap: () {
+        if (is_pickImage == true) {
+          AppDialogs.showImageSourceDialog(context, setFile: setFile);
+          return;
+        }
+
+        if (profileImage != null) {
+          Utils.onTapViewImage(
+            context: context,
+            image: profileImage!.path,
+            mediaType: MediaPathType.file.name,
+          );
+          return;
+        }
+
+        final imageUrl = profileImageUrl?.trim();
+        if (imageUrl != null && imageUrl.isNotEmpty) {
+          Utils.onTapViewImage(
+            context: context,
+            image: imageUrl,
+            mediaType: MediaPathType.network.name,
+          );
+          return;
+        }
+
+        Utils.onTapViewImage(
+          context: context,
+          image: assetPath ?? AssetPath.userIcon,
+          mediaType: MediaPathType.asset.name,
+        );
+      },
       child: _cameraIcon(context),
     );
   }
