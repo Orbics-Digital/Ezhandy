@@ -188,8 +188,33 @@ class _ListOfServicesState extends State<ListOfServices> {
                 detailsContainer(service),
               ],
             ),
+            if (service.isQuickService)
+              Positioned(
+                top: 10.h,
+                left: 0,
+                child: _quickServiceBadge(),
+              ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _quickServiceBadge() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: AppColors.black,
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(35.r),
+          bottomRight: Radius.circular(35.r),
+        ),
+      ),
+      child: CustomText(
+        text: AppStrings.quickService,
+        color: AppColors.white,
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
