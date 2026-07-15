@@ -1,6 +1,7 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:ezhandy_user/core/network/api_client.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
+import 'package:ezhandy_user/module/auth/content/controller/pages_controller.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
   Get.put(ProductsController(), permanent: true);
   Get.put(ProviderServicesController(), permanent: true);
   Get.put(BookingsController(), permanent: true);
+  Get.put(PagesController(), permanent: true);
   await AuthController.i.restoreSession();
   await CategoriesController.i.initCategories();
   await ServiceTypesController.i.initServiceTypes();

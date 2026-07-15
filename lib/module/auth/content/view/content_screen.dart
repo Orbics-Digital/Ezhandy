@@ -1,18 +1,21 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ezhandy_user/module/auth/content/controller/pages_controller.dart';
+import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
+import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class ContentScreen extends StatefulWidget {
   String? title;
   String? type;
-  // bool? isBackground;
+
   ContentScreen({super.key, this.title, this.type});
 
   @override
@@ -20,162 +23,93 @@ class ContentScreen extends StatefulWidget {
 }
 
 class _ContentScreenState extends State<ContentScreen> {
-  bool? isChecked = false;
+  final PagesController _controller = PagesController.i;
 
   @override
   void initState() {
     super.initState();
-    // AuthController.i.getContent(content_type: Get.arguments);
-
-    // if (Platform.isAndroid) WebView.platform = AndroidWebView();
+    final slug = PagesController.slugFromContentType(widget.type);
+    if (slug != null) {
+      _controller.fetchPage(slug);
+    }
   }
-
-  // var title = Get.arguments;
 
   @override
   Widget build(BuildContext context) {
-    return withBackgroundWidget();
-  }
-
-  BackgroundImage withBackgroundWidget() {
     return BackgroundImage(
-      // is_registration: false,
       leading: AssetPath.backIcon,
       onclickLead: () => Get.back(),
       title: widget.title,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-        child:
-            // Column(
-            //   children: [
-            // CustomText(
-            //   text: widget.title,
-            //   fontWeight: FontWeight.w600,
-            //   is_alignLeft: false,
-            // ),
-            // dividerWidget(),
-            contentWidget(),
-        //   ],
-        // ),
+        child: contentWidget(),
       ),
     );
   }
-
-  // Stack dividerWidget() {
-  //   return Stack(
-  //     alignment: Alignment.topCenter,
-  //     children: [
-  //       Divider(
-  //         color: AppColors.black,
-  //       ),
-  //       Positioned(
-  //         top: 3.h,
-  //         child: Container(
-  //           width: 200.w,
-  //           height: 4.h,
-  //           decoration: BoxDecoration(
-  //               color: AppColors.green, borderRadius: BorderRadius.only(topLeft: Radius.circular(5.r), topRight: Radius.circular(5.r))),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // Widget backgroundCheck() {
-  //   return Visibility(
-  //     visible: widget.type == WebContentType.bc.name,
-  //     child: Column(
-  //       children: [
-  //         checkBox(),
-  //         button(),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Padding button() {
-  //   return Padding(
-  //     padding: const EdgeInsets.only(
-  //       left: AppPadding.defaultHorizontalPadding,
-  //       right: AppPadding.defaultHorizontalPadding,
-  //       bottom: AppPadding.verticalPaddingEight,
-  //     ),
-  //     child: CustomButton(
-  //       text: AppStrings.continuee,
-  //       onclick: () {
-  //         if (isChecked!) {
-  //           AppDialogs.showSuccessAndAllDialog(context,
-  //               title: AppStrings.successful,
-  //               message: AppStrings.youHaveCompletedYourProfileSetUp,
-  //               buttonText1: AppStrings.continuee, ontapButton1: () {
-  //             AppNavigation.navigateToRemovingAll(
-  //                 context, AppRoutes.userMainMenuScreenRoute);
-  //           });
-  //         }
-  //       },
-  //       textcolor: isChecked! ? null : AppColors.fontColor,
-  //       color: !isChecked! ? AppColors.white : null,
-  //     ),
-  //   );
-  // }
-
-  // CheckBoxWidget checkBox() {
-  //   return CheckBoxWidget(
-  //     isChecked: isChecked!,
-  //     title: AppStrings.acknowledge,
-  //     ontapCheck: () {
-  //       setState(() {
-  //         isChecked = !isChecked!;
-  //       });
-  //     },
-  //     // onCheckBoxStateChanged: (v) {
-  //     //   innerState(() {
-  //     //     if (v!) {}
-  //     //     ischecked = !ischecked!;
-  //     //   });
-  //     // }
-  //   );
-  // }
 
   Widget contentWidget() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          CustomText(
-              text:
-                  "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum. It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like). It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum. It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like). It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. "),
-          25.verticalSpace
-        ],
-      ),
-    );
-  }
+    return Obx(() {
+      final isLoading = _controller.isLoading.value;
+      final page = _controller.currentPage.value;
+      final htmlContent = page?.content?.trim() ?? '';
 
-  // Widget contentWidget() {
-  //   return Stack(
-  //     children: [
-  //       Opacity(
-  //         opacity: _opacity ?? 0,
-  //         child: WebView(
-  //           initialUrl: AppStrings.webViewUrl,
-  //           // AuthController.i.content!.value,
-  //           onPageStarted: (String? url) {
-  //             log("started");
-  //           },
-  //           onPageFinished: (String? url) {
-  //             setState(() {
-  //               _opacity = 1.0;
-  //               _isLoading = false;
-  //             });
-  //           },
-  //         ),
-  //       ),
-  //       Visibility(
-  //         visible: _isLoading!,
-  //         child: const Center(
-  //           child: CircularProgressIndicator(color: AppColors.buttonColor),
-  //         ),
-  //       )
-  //     ],
-  //   );
-  // }
+      if (isLoading && page == null) {
+        return const Center(
+          child: CircularProgressIndicator(color: AppColors.orange),
+        );
+      }
+
+      if (htmlContent.isEmpty) {
+        return const EmptyMessage(message: AppStrings.noResultsFound);
+      }
+
+      return SingleChildScrollView(
+        child: Html(
+          data: htmlContent,
+          style: {
+            'body': Style(
+              margin: Margins.zero,
+              padding: HtmlPaddings.zero,
+              fontSize: FontSize(14.sp),
+              color: AppColors.black,
+            ),
+            'p': Style(
+              margin: Margins.only(bottom: 10.h),
+              lineHeight: const LineHeight(1.5),
+            ),
+            'h1': Style(
+              fontSize: FontSize(20.sp),
+              fontWeight: FontWeight.bold,
+              margin: Margins.only(bottom: 12.h, top: 8.h),
+            ),
+            'h2': Style(
+              fontSize: FontSize(18.sp),
+              fontWeight: FontWeight.bold,
+              margin: Margins.only(bottom: 10.h, top: 8.h),
+            ),
+            'h3': Style(
+              fontSize: FontSize(16.sp),
+              fontWeight: FontWeight.bold,
+              margin: Margins.only(bottom: 8.h, top: 6.h),
+            ),
+            'ul': Style(
+              margin: Margins.only(bottom: 10.h),
+              padding: HtmlPaddings.only(left: 18.w),
+            ),
+            'ol': Style(
+              margin: Margins.only(bottom: 10.h),
+              padding: HtmlPaddings.only(left: 18.w),
+            ),
+            'li': Style(
+              margin: Margins.only(bottom: 6.h),
+            ),
+            'a': Style(
+              color: AppColors.orange,
+              textDecoration: TextDecoration.underline,
+            ),
+          },
+        ),
+      );
+    });
+  }
 }
