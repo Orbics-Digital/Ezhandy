@@ -213,6 +213,8 @@ class AppRouter {
               isBooking: chatArgument.isBooking ?? false,
               chatId: chatArgument.chatId,
               otherUserName: chatArgument.otherUserName,
+              otherUserId: chatArgument.otherUserId,
+              otherUserImage: chatArgument.otherUserImage,
             );
           case AppRoutes.serviceDetailsScreenRoute:
             ServiceRoutingArgument serviceArgument =

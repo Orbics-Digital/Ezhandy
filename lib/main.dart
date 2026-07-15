@@ -1,5 +1,6 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:ezhandy_user/core/network/api_client.dart';
+import 'package:ezhandy_user/core/socket/socket_service.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/content/controller/pages_controller.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
@@ -43,7 +44,11 @@ Future<void> main() async {
   Get.put(ProviderServicesController(), permanent: true);
   Get.put(BookingsController(), permanent: true);
   Get.put(PagesController(), permanent: true);
+  Get.put(SocketService(), permanent: true);
   await AuthController.i.restoreSession();
+  if (AuthController.i.user.value != null) {
+    await SocketService.i.connect();
+  }
   await CategoriesController.i.initCategories();
   await ServiceTypesController.i.initServiceTypes();
   await NotificationController.i.fetchUnreadCount();

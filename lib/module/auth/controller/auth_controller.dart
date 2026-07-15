@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
+import 'package:ezhandy_user/core/socket/socket_service.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/data/auth_repository.dart';
 import 'package:ezhandy_user/module/auth/model/register_provider_params.dart';
@@ -121,6 +122,7 @@ class AuthController extends GetxController {
       isLoginSignUp.value = true;
 
       await NotificationController.i.fetchUnreadCount();
+      await SocketService.i.connect();
 
       if (context.mounted) {
         AppNavigation.navigateToRemovingAll(
@@ -310,6 +312,7 @@ class AuthController extends GetxController {
     } catch (e) {
       AppDialogs.showToast(message: e.toString());
     } finally {
+      SocketService.i.disconnect();
       await SessionStorage.i.clear();
       user.value = null;
       NotificationController.i.clearUnreadCount();

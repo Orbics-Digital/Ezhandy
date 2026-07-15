@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ezhandy_user/core/socket/socket_service.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
@@ -35,9 +36,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void socketConnect() {
-    // SocketService.instance?.initializeSocket();
-    // SocketService.instance?.connectSocket(context);
-    // SocketService.instance?.socketResponseMethod(context);
+    if (AuthController.i.user.value != null) {
+      SocketService.i.connect();
+    }
   }
 
   void registeredNotificationListener() {

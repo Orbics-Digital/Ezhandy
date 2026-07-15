@@ -119,6 +119,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             isBooking: true,
                             chatId: chatId,
                             otherUserName: chat.otherUser?.displayName,
+                            otherUserId: chat.otherUser?.id,
+                            otherUserImage: chat.otherUser?.profileImage,
                           ),
                         );
                       },
@@ -210,12 +212,43 @@ class _MessagesScreenState extends State<MessagesScreen> {
             ),
           ),
           const Spacer(),
-          CustomText(
-            text: chat.displayTime,
-            color: AppColors.greyLight,
-            fontWeight: FontWeight.w500,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              CustomText(
+                text: chat.displayTime,
+                color: AppColors.greyLight,
+                fontWeight: FontWeight.w500,
+              ),
+              if (chat.unreadCount > 0) ...[
+                6.verticalSpace,
+                _unreadCountBadge(chat.unreadCount),
+              ],
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _unreadCountBadge(int count) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: count > 9 ? 6.w : 8.w,
+        vertical: 4.h,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.orange,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        style: TextStyle(
+          color: AppColors.white,
+          fontSize: 11.sp,
+          fontWeight: FontWeight.bold,
+          height: 1,
+        ),
       ),
     );
   }

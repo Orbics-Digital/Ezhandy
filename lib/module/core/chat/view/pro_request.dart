@@ -123,6 +123,8 @@ class _ProRequestState extends State<ProRequest> {
             isBooking: false,
             chatId: chatId,
             otherUserName: otherUserName,
+            otherUserId: request.user?.id ?? request.userId,
+            otherUserImage: request.user?.profileImage,
           ),
         );
       },

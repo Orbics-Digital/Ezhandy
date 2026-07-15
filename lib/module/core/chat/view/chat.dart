@@ -22,11 +22,15 @@ class ChatScreen extends StatefulWidget {
   final bool isBooking;
   final String? chatId;
   final String? otherUserName;
+  final String? otherUserId;
+  final String? otherUserImage;
 
   ChatScreen({
     this.isBooking = false,
     this.chatId,
     this.otherUserName,
+    this.otherUserId,
+    this.otherUserImage,
     super.key,
   });
 
@@ -36,8 +40,10 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final ChatController _controller = ChatController.i;
   final List<ChatModel> _localMessages = [];
+  int _lastMessageCount = 0;
 
   bool get _hasChatId {
     final id = widget.chatId?.trim();
@@ -48,9 +54,61 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     if (_hasChatId) {
+      final chatId = widget.chatId!.trim();
+      _lastMessageCount = 0;
       _controller.clearChatHistory();
-      _controller.fetchChatHistory(widget.chatId!.trim());
+      _controller.setActiveChat(
+        chatId,
+        receiverId: widget.otherUserId,
+        otherUserImage: widget.otherUserImage,
+      );
+      _controller.fetchChatHistory(chatId);
     }
+  }
+
+  void _scrollToBottom({bool animate = true}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_scrollController.hasClients) return;
+
+        final maxExtent = _scrollController.position.maxScrollExtent;
+        if (maxExtent <= 0) return;
+
+        if (animate) {
+          _scrollController.animateTo(
+            maxExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        } else {
+          _scrollController.jumpTo(maxExtent);
+        }
+      });
+    });
+  }
+
+  void _scheduleScrollOnNewMessages(int messageCount) {
+    if (messageCount == _lastMessageCount) return;
+
+    final shouldAnimate = _lastMessageCount > 0;
+    _lastMessageCount = messageCount;
+    _scrollToBottom(animate: shouldAnimate);
+  }
+
+  EdgeInsets get _listPadding => EdgeInsets.only(
+        left: AppPadding.padding12,
+        right: AppPadding.padding12,
+        bottom: 20.h,
+      );
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    if (_hasChatId) {
+      _controller.clearActiveChat();
+    }
+    messageController.dispose();
+    super.dispose();
   }
 
   String? get _currentUserId => AuthController.i.user.value?.sub?.trim();
@@ -78,14 +136,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   : const EdgeInsets.only(bottom: AppPadding.padding25),
               child: Row(
                 children: [
-                  GestureDetector(
-                    child: Image.asset(
-                      AssetPath.emojiIcon,
-                      width: 27.w,
-                      height: 27.h,
-                    ),
-                  ),
-                  10.horizontalSpace,
                   Expanded(child: _messageTextField()),
                   10.horizontalSpace,
                   GestureDetector(
@@ -93,14 +143,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       AssetPath.cameraIcon,
                       width: 30.w,
                       height: 30.h,
-                    ),
-                  ),
-                  10.horizontalSpace,
-                  GestureDetector(
-                    child: Image.asset(
-                      AssetPath.mikeIcon,
-                      width: 27.w,
-                      height: 27.h,
                     ),
                   ),
                   10.horizontalSpace,
@@ -117,6 +159,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Obx(() {
       final isLoading = _controller.isChatHistoryLoading.value;
       final messages = _controller.chatHistory;
+      _scheduleScrollOnNewMessages(messages.length);
 
       if (isLoading && messages.isEmpty) {
         return const Center(
@@ -129,7 +172,8 @@ class _ChatScreenState extends State<ChatScreen> {
       }
 
       return ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: AppPadding.padding12),
+        controller: _scrollController,
+        padding: _listPadding,
         itemCount: messages.length,
         itemBuilder: (context, index) {
           final current = messages[index];
@@ -150,7 +194,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ? current.displayContent
                     : '-',
                 isSender: !current.isSentBy(_currentUserId),
-                profileImage: current.sender?.profileImage,
+                profileImage: _controller.resolveSenderProfileImage(current),
               ),
             ],
           );
@@ -162,7 +206,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildLocalMessagesList() {
     return ListView.separated(
-      padding: EdgeInsets.symmetric(horizontal: AppPadding.padding12),
+      controller: _scrollController,
+      padding: _listPadding,
       itemCount: _localMessages.length,
       itemBuilder: (context, index) {
         final current = _localMessages[index];
@@ -199,18 +244,26 @@ class _ChatScreenState extends State<ChatScreen> {
       label: false,
       sufixImage: Image.asset(AssetPath.sendIcon, width: 30.w, height: 30.h),
       onclickSufix: () {
-        if (messageController.text.trim().isEmpty) return;
+        final text = messageController.text.trim();
+        if (text.isEmpty) return;
+
+        if (_hasChatId) {
+          _controller.sendChatMessage(text);
+          messageController.clear();
+          return;
+        }
 
         setState(() {
           _localMessages.add(
             ChatModel(
-              text: messageController.text,
+              text: text,
               isSender: true,
               time: DateTime.now().toUtc(),
             ),
           );
           messageController.clear();
         });
+        _scrollToBottom();
       },
       inputFormatters: [
         LengthLimitingTextInputFormatter(Constants.descriptionMaxLength),
