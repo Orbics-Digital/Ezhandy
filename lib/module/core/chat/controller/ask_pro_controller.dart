@@ -65,4 +65,24 @@ class AskProController extends GetxController {
       AppLoader.hide();
     }
   }
+
+  Future<AskProAcceptResult?> acceptRequest(String requestId) async {
+    final id = requestId.trim();
+    if (id.isEmpty) return null;
+
+    AppLoader.show();
+    try {
+      final result = await _repository.acceptRequest(id);
+      requests.removeWhere((request) => request.id == id);
+      return result;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return null;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return null;
+    } finally {
+      AppLoader.hide();
+    }
+  }
 }

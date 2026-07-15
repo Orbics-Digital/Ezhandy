@@ -79,24 +79,8 @@ class _ProRequestState extends State<ProRequest> {
               final request = requests[index];
               return singleWidget(
                 request: request,
-                ontap1: () {
-                  AppDialogs.showSuccessDialog(
-                    context,
-                    description:
-                        AppStrings.requestHasBeenAcceptedSuccessfully,
-                    title: AppStrings.congratulation,
-                    btnTxt1: AppStrings.ok,
-                    onTap1: () {
-                      AppNavigation.navigatorPop(context);
-                      AppNavigation.navigateTo(
-                        context,
-                        AppRoutes.chatScreenRoute,
-                        arguments: ChatRoutingArgument(isBooking: false),
-                      );
-                    },
-                  );
-                },
-                ontap2: () => _onRejectTap(context, request),
+                ontap1: () => _onAcceptTap(request),
+                ontap2: () => _onRejectTap(request),
               );
             },
             separatorBuilder: (context, index) {
@@ -108,7 +92,47 @@ class _ProRequestState extends State<ProRequest> {
     );
   }
 
-  void _onRejectTap(BuildContext context, AskProRequestModel request) {
+  void _onAcceptTap(AskProRequestModel request) {
+    AppDialogs.showSuccessDialog(
+      context,
+      description: 'Are you sure you want to accept this request?',
+      image: AssetPath.tumbIcon,
+      isDoneShow: false,
+      btnTxt1: AppStrings.yes,
+      btnTxt2: AppStrings.no,
+      onTap1: () async {
+        AppNavigation.navigateCloseDialog(context);
+
+        final requestId = request.id?.trim();
+        if (requestId == null || requestId.isEmpty) return;
+
+        final otherUserName = request.user?.displayName;
+        final result = await _controller.acceptRequest(requestId);
+        if (!mounted || result == null) return;
+
+        final chatId = result.chatId?.trim();
+        if (chatId == null || chatId.isEmpty) {
+          AppDialogs.showToast(message: 'Unable to open chat.');
+          return;
+        }
+
+        AppNavigation.navigateTo(
+          context,
+          AppRoutes.chatScreenRoute,
+          arguments: ChatRoutingArgument(
+            isBooking: false,
+            chatId: chatId,
+            otherUserName: otherUserName,
+          ),
+        );
+      },
+      onTap2: () {
+        AppNavigation.navigateCloseDialog(context);
+      },
+    );
+  }
+
+  void _onRejectTap(AskProRequestModel request) {
     AppDialogs.showSuccessDialog(
       context,
       description: 'Are you sure you want to reject this request?',
@@ -117,13 +141,13 @@ class _ProRequestState extends State<ProRequest> {
       btnTxt1: AppStrings.yes,
       btnTxt2: AppStrings.no,
       onTap1: () async {
-        AppNavigation.navigatorPop(context);
+        AppNavigation.navigateCloseDialog(context);
 
         final requestId = request.id?.trim();
         if (requestId == null || requestId.isEmpty) return;
 
         final success = await _controller.rejectRequest(requestId);
-        if (!context.mounted || !success) return;
+        if (!mounted || !success) return;
 
         AppDialogs.showSuccessDialog(
           context,
@@ -131,12 +155,13 @@ class _ProRequestState extends State<ProRequest> {
           title: AppStrings.congratulation,
           btnTxt1: AppStrings.ok,
           onTap1: () {
-            AppNavigation.navigatorPop(context);
+            if (!mounted) return;
+            AppNavigation.navigateCloseDialog(context);
           },
         );
       },
       onTap2: () {
-        AppNavigation.navigatorPop(context);
+        AppNavigation.navigateCloseDialog(context);
       },
     );
   }

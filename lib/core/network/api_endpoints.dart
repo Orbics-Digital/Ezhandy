@@ -25,6 +25,9 @@ class ApiEndpoints {
   static String askProRejectRequest(String requestId) =>
       'ask-pro/requests/$requestId/reject';
 
+  static String askProAcceptRequest(String requestId) =>
+      'ask-pro/requests/$requestId/accept';
+
   static String chatHistory(String chatId) =>
       'live-chat/$chatId/history/chat';
 

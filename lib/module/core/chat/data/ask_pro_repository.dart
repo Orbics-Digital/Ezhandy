@@ -37,4 +37,30 @@ class AskProRepository {
       throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
     }
   }
+
+  Future<AskProAcceptResult> acceptRequest(String requestId) async {
+    final response = await _client.dio.patch(
+      ApiEndpoints.askProAcceptRequest(requestId),
+    );
+
+    if (response.data is! Map) {
+      throw const FormatException('Invalid response');
+    }
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+
+    final envelope = ApiHelper.dataObject(response.data);
+    final nested = envelope['data'];
+
+    if (nested is Map) {
+      return AskProAcceptResult.fromJson(
+        Map<String, dynamic>.from(nested),
+      );
+    }
+
+    return const AskProAcceptResult();
+  }
 }

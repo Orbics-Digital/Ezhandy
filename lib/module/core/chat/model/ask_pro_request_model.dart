@@ -114,3 +114,20 @@ class AskProRequestModel {
     return DateTime.tryParse(value.toString());
   }
 }
+
+class AskProAcceptResult {
+  final String? chatId;
+  final String? askProChatId;
+
+  const AskProAcceptResult({
+    this.chatId,
+    this.askProChatId,
+  });
+
+  factory AskProAcceptResult.fromJson(Map<String, dynamic> json) {
+    return AskProAcceptResult(
+      chatId: json['chatId']?.toString(),
+      askProChatId: json['askProChatId']?.toString(),
+    );
+  }
+}
