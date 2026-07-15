@@ -20,20 +20,40 @@ class ChatController extends GetxController {
   final RxList<ChatHistoryMessageModel> chatHistory =
       <ChatHistoryMessageModel>[].obs;
   final RxString searchQuery = ''.obs;
+  final RxString proChatSearchQuery = ''.obs;
   final RxBool isMyChatsLoading = false.obs;
   final RxBool isChatHistoryLoading = false.obs;
 
-  List<MyChatModel> get filteredMyChats {
-    final query = searchQuery.value.trim().toLowerCase();
-    if (query.isEmpty) return myChats;
+  List<MyChatModel> get filteredMyChats => _filterChatsByType(
+        chatType: 'private',
+        query: searchQuery.value,
+      );
 
-    return myChats.where((chat) {
+  List<MyChatModel> get filteredProChats => _filterChatsByType(
+        chatType: 'ask_pro',
+        query: proChatSearchQuery.value,
+      );
+
+  List<MyChatModel> _filterChatsByType({
+    required String chatType,
+    required String query,
+  }) {
+    final typedChats = myChats.where(
+      (chat) => chat.chatType?.trim().toLowerCase() == chatType,
+    );
+
+    final normalizedQuery = query.trim().toLowerCase();
+    if (normalizedQuery.isEmpty) return typedChats.toList();
+
+    return typedChats.where((chat) {
       final name = chat.otherUser?.displayName.trim().toLowerCase() ?? '';
-      return name.contains(query);
+      return name.contains(normalizedQuery);
     }).toList();
   }
 
   void setSearchQuery(String value) => searchQuery.value = value;
+
+  void setProChatSearchQuery(String value) => proChatSearchQuery.value = value;
 
   Future<void> fetchMyChats() async {
     if (isMyChatsLoading.value) return;
