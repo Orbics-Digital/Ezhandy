@@ -1,5 +1,5 @@
 class AppStrings {
-  static const appTitle = 'Burn Over';
+  static const appTitle = 'Ezhandy - Provider';
   //==================Font Family======================
   static const String montserrat = 'Montserrat';
 //===================Formate of Date======================
@@ -494,9 +494,9 @@ class AppStrings {
   static const String marketPlace = "Market Place";
   static const String ourStory = "Our Story?";
   static const String homeOurStoryDescription =
-      "Ezhandy was built to empower service providers. Manage bookings, chat with customers, answer pro requests, and grow your business — all from one place.";
+      "Ezhandy was built to empower providers. Manage bookings, chat with customers, answer pro requests.";
   static const String homeMarketPlaceDescription =
-      "Sell your products on the Ezhandy marketplace, reach new customers, and create an extra income stream alongside your services.";
+      "Sell your products on the Ezhandy marketplace, reach new customers.";
   static const String contactUs = "Contact Us";
   static const String privacyPolicy = "Privacy Policy";
   static const String refundPolicy = "Refund Policy";

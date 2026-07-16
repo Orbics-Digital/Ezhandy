@@ -1,6 +1,6 @@
 {
-    "name": "ezhandy_user",
-    "short_name": "ezhandy_user",
+    "name": "Ezhandy - Provider",
+    "short_name": "Ezhandy - Provider",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

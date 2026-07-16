@@ -58,6 +58,21 @@ class BookingsController extends GetxController {
     return result;
   }
 
+  List<ProviderBookingModel> get latestProviderBookings {
+    final sorted = providerBookings.toList()
+      ..sort((a, b) {
+        final aDate = a.createdAt ??
+            DateTime.tryParse(a.bookingDate ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bDate = b.createdAt ??
+            DateTime.tryParse(b.bookingDate ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        return bDate.compareTo(aDate);
+      });
+
+    return sorted.take(2).toList(growable: false);
+  }
+
   void setSearchQuery(String value) => searchQuery.value = value;
 
   void setStatusFilterByLabel(String? label) {

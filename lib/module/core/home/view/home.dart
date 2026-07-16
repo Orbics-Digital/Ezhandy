@@ -1,4 +1,7 @@
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
+import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
+import 'package:ezhandy_user/module/core/booking/model/provider_booking_model.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/booking_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:ezhandy_user/module/core/main_menu/main_menu_provider.dart';
@@ -16,6 +19,7 @@ import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/widgets/notification/notification_badge_icon.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class Home extends StatefulWidget {
@@ -32,6 +36,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _controller.fetchAskProStatus();
+    BookingsController.i.fetchProviderBookings();
   }
 
   @override
@@ -123,9 +128,7 @@ class _HomeState extends State<Home> {
                     );
                   }),
                   20.verticalSpace,
-                  bookingContainerWidget(),
-                  20.verticalSpace,
-                  bookingContainerWidget(),
+                  _latestBookingsSection(),
                   20.verticalSpace,
                   CustomButton(
                     text: AppStrings.viewAll,
@@ -147,27 +150,65 @@ class _HomeState extends State<Home> {
     );
   }
 
-  CustomContainer bookingContainerWidget() {
+  Widget _latestBookingsSection() {
+    return Obx(() {
+      final controller = BookingsController.i;
+      final bookings = controller.latestProviderBookings;
+      final isLoading = controller.isProviderBookingsLoading.value;
+
+      if (isLoading) {
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 20.h),
+          child: const Center(
+            child: CircularProgressIndicator(color: AppColors.orange),
+          ),
+        );
+      }
+
+      if (bookings.isEmpty) {
+        return const EmptyMessage(message: AppStrings.noBookingsFound);
+      }
+
+      return Column(
+        children: [
+          for (var i = 0; i < bookings.length; i++) ...[
+            if (i > 0) 20.verticalSpace,
+            bookingContainerWidget(booking: bookings[i]),
+          ],
+        ],
+      );
+    });
+  }
+
+  CustomContainer bookingContainerWidget({required ProviderBookingModel booking}) {
+    final statusLabel = BookingStatusEnum.label(booking.status);
+    final bookingId = booking.bookingId?.toString() ?? '-';
+    final date = booking.bookingDate ?? AppStrings.dummyDate;
+    final amount = booking.amount ?? '0';
+
     return CustomContainer(
         onTap: () {
-          HomeController.i.jobStatus.value = AppStrings.approved;
-          AppNavigation.navigateTo(context, AppRoutes.bookingScreenRoute,
-              arguments: BookingRoutingArgument(
-                Status: AppStrings.approved,
-              ));
+          HomeController.i.jobStatus.value = statusLabel;
+          AppNavigation.navigateTo(
+            context,
+            AppRoutes.bookingScreenRoute,
+            arguments: BookingRoutingArgument(
+              Status: statusLabel,
+              bookingId: booking.bookingId,
+            ),
+          );
         },
-        // boxShadow: AppShadows.shadow1,
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                    text: AppStrings.dummyDate,
+                    text: date,
                     color: AppColors.greyLight,
                     fontSize: 12.sp),
                 CustomText(
-                  text: "Status: ${AppStrings.approved}",
+                  text: "${AppStrings.status}: $statusLabel",
                   color: AppColors.greyLight,
                   fontSize: 12.sp,
                 ),
@@ -178,11 +219,11 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  text: "Booking ID: #1234567",
+                  text: "${AppStrings.bookingId}: #$bookingId",
                   fontWeight: FontWeight.bold,
                 ),
                 CustomText(
-                  text: "Visit Charges: \$10",
+                  text: "\$ $amount",
                   color: AppColors.orange,
                   fontWeight: FontWeight.bold,
                 ),
@@ -235,7 +276,7 @@ class _HomeState extends State<Home> {
         children: [
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(left: 25.w),
+              padding: EdgeInsets.only(left: 25.w, right: 25.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -243,14 +284,15 @@ class _HomeState extends State<Home> {
                     text: AppStrings.marketPlace,
                     fontWeight: FontWeight.bold,
                   ),
+                  8.verticalSpace,
                   CustomText(
                     text: AppStrings.homeMarketPlaceDescription,
                     color: AppColors.grey,
+                    fontSize: 12.sp,
                     maxLines: 4,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(
-                      right: AppPadding.padding18,
                       top: AppPadding.padding10,
                     ),
                     child: CustomButton(
@@ -283,7 +325,7 @@ class _HomeState extends State<Home> {
         children: [
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(left: 25.w),
+              padding: EdgeInsets.only(left: 25.w, right: 25.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -291,9 +333,11 @@ class _HomeState extends State<Home> {
                     text: AppStrings.ourStory,
                     fontWeight: FontWeight.bold,
                   ),
+                  8.verticalSpace,
                   CustomText(
                     text: AppStrings.homeOurStoryDescription,
                     color: AppColors.grey,
+                    fontSize: 12.sp,
                     maxLines: 6,
                   ),
                 ],
