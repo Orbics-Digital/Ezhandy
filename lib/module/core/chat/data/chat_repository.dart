@@ -36,4 +36,19 @@ class ChatRepository {
         .map(ChatHistoryMessageModel.fromJson)
         .toList();
   }
+
+  Future<String> findOrCreateChat({required String otherUserId}) async {
+    final response = await _client.dio.post(
+      ApiEndpoints.findOrCreateChat,
+      data: {'otherUserId': otherUserId},
+    );
+
+    final data = ApiHelper.dataObject(response.data);
+    final chatId = data['chatId']?.toString().trim();
+    if (chatId == null || chatId.isEmpty) {
+      throw Exception('Chat not found');
+    }
+
+    return chatId;
+  }
 }

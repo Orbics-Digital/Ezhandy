@@ -3,6 +3,7 @@ import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.
 import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/work_documents_routing_arguments.dart';
+import 'package:ezhandy_user/module/core/chat/controller/chat_controller.dart';
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:flutter/material.dart';
@@ -104,6 +105,33 @@ class _BookingDetailsState extends State<BookingDetails> {
     );
   }
 
+  Future<void> _openBookingChat() async {
+    final user = _detail?.user;
+    final otherUserId = user?.id?.trim();
+    if (otherUserId == null || otherUserId.isEmpty) {
+      AppDialogs.showToast(message: 'User not found');
+      return;
+    }
+
+    final chatId = await ChatController.i.findOrCreateChat(
+      otherUserId: otherUserId,
+    );
+    if (!mounted || chatId == null) return;
+
+    final userName = user?.displayName;
+    AppNavigation.navigateTo(
+      context,
+      AppRoutes.chatScreenRoute,
+      arguments: ChatRoutingArgument(
+        isBooking: true,
+        chatId: chatId,
+        otherUserName: userName != '-' ? userName : null,
+        otherUserId: otherUserId,
+        otherUserImage: user?.profileImage,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -124,20 +152,14 @@ class _BookingDetailsState extends State<BookingDetails> {
               padding: const EdgeInsets.only(right: AppPadding.padding12),
               child: showIcon
                   ? GestureDetector(
-                      onTap: () {
-                        AppNavigation.navigateTo(
-                          context,
-                          AppRoutes.chatScreenRoute,
-                          arguments: ChatRoutingArgument(isBooking: false),
-                        );
-                      },
+                      onTap: _openBookingChat,
                       child: Image.asset(
                         AssetPath.messageIcon,
                         width: 30.w,
                         height: 30.h,
                       ),
                     )
-                  : SizedBox.shrink(), // safe empty widget instead of null
+                  : SizedBox.shrink(),
             );
           },
         ),

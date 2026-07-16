@@ -25,6 +25,7 @@ class ChatController extends GetxController {
   final RxString proChatSearchQuery = ''.obs;
   final RxBool isMyChatsLoading = false.obs;
   final RxBool isChatHistoryLoading = false.obs;
+  final RxBool isFindOrCreateChatLoading = false.obs;
 
   String? _activeChatId;
   String? _activeReceiverId;
@@ -96,6 +97,24 @@ class ChatController extends GetxController {
       AppDialogs.showToast(message: ApiHelper.errorMessage(e));
     } catch (e) {
       AppDialogs.showToast(message: e.toString());
+    }
+  }
+
+  Future<String?> findOrCreateChat({required String otherUserId}) async {
+    final id = otherUserId.trim();
+    if (id.isEmpty || isFindOrCreateChatLoading.value) return null;
+
+    isFindOrCreateChatLoading.value = true;
+    try {
+      return await _repository.findOrCreateChat(otherUserId: id);
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return null;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return null;
+    } finally {
+      isFindOrCreateChatLoading.value = false;
     }
   }
 
