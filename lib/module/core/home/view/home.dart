@@ -1,11 +1,8 @@
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
-import 'package:ezhandy_user/module/core/all_services/routing_arguments/service_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/booking_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:ezhandy_user/module/core/main_menu/main_menu_provider.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
-import 'package:ezhandy_user/utils/app_shadows.dart';
-import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/switch/animated_switch.dart';
@@ -18,7 +15,6 @@ import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
-import 'package:ezhandy_user/widgets/Container/image_with_text_container.dart';
 import 'package:ezhandy_user/widgets/notification/notification_badge_icon.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
@@ -240,36 +236,40 @@ class _HomeState extends State<Home> {
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(left: 25.w),
-              child: Column(children: [
-                CustomText(
-                  text: AppStrings.marketPlace,
-                  fontWeight: FontWeight.bold,
-                ),
-                CustomText(
-                  text: AppStrings.lorem5,
-                  color: AppColors.grey,
-                  maxLines: 4,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                      right: AppPadding.padding18, top: AppPadding.padding10),
-                  child: CustomButton(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: AppStrings.marketPlace,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  CustomText(
+                    text: AppStrings.homeMarketPlaceDescription,
+                    color: AppColors.grey,
+                    maxLines: 4,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      right: AppPadding.padding18,
+                      top: AppPadding.padding10,
+                    ),
+                    child: CustomButton(
                       onclick: () {
                         AppNavigation.navigateTo(
-                            context, AppRoutes.marketPlaceScreenRoute);
-
-                        ;
+                          context,
+                          AppRoutes.marketPlaceScreenRoute,
+                        );
                       },
                       height: 40.h,
                       borderRadius: 35.r,
-                      text: AppStrings.clickHere),
-                )
-              ]),
+                      text: AppStrings.clickHere,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Image.asset(AssetPath.tab3Icon, width: 0.45.sw
-              // height: 200.h,
-              )
+          Image.asset(AssetPath.tab3Icon, width: 0.45.sw),
         ],
       ),
     );
@@ -284,19 +284,23 @@ class _HomeState extends State<Home> {
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(left: 25.w),
-              child: Column(children: [
-                CustomText(
-                  text: AppStrings.ourStory,
-                  fontWeight: FontWeight.bold,
-                ),
-                CustomText(
-                    text: AppStrings.lorem5, color: AppColors.grey, maxLines: 6)
-              ]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: AppStrings.ourStory,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  CustomText(
+                    text: AppStrings.homeOurStoryDescription,
+                    color: AppColors.grey,
+                    maxLines: 6,
+                  ),
+                ],
+              ),
             ),
           ),
-          Image.asset(AssetPath.tab1Icon, width: 0.45.sw
-              // height: 200.h,
-              )
+          Image.asset(AssetPath.tab1Icon, width: 0.45.sw),
         ],
       ),
     );

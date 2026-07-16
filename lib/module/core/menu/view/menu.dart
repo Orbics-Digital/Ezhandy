@@ -34,7 +34,6 @@ class _MenuState extends State<Menu> {
       _myJobsTap,
       _paymentLogsTap,
       _newServicesTap,
-      _affiliateEarningTap,
       _allServicesTap,
       _earningsTap,
       _proRequestTap,
@@ -45,6 +44,7 @@ class _MenuState extends State<Menu> {
       _contactUsTap,
       _aboutUsTap,
       _privacyPolicyTap,
+      _termsAndConditionsTap,
       _signOutTap,
       _deleteAccountTap,
     ];
@@ -252,16 +252,19 @@ class _MenuState extends State<Menu> {
     AppNavigation.navigateTo(context, AppRoutes.paymentLogScreenRoute);
   }
 
-  void _affiliateEarningTap() {
-    AppNavigation.navigatorPop(context);
-    AppNavigation.navigateTo(context, AppRoutes.affiliateEarningScreenRoute);
-  }
-
   void _privacyPolicyTap() {
     AppNavigation.navigatorPop(context);
     AppNavigation.navigateTo(context, AppRoutes.contentScreenRoute,
         arguments: ContentRoutingArgument(
             title: AppStrings.privacyPolicy, type: WebContentType.pp.name));
+  }
+
+  void _termsAndConditionsTap() {
+    AppNavigation.navigatorPop(context);
+    AppNavigation.navigateTo(context, AppRoutes.contentScreenRoute,
+        arguments: ContentRoutingArgument(
+            title: AppStrings.termsAndConditions,
+            type: WebContentType.tc.name));
   }
 
   void _aboutUsTap() {

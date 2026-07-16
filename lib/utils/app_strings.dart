@@ -56,7 +56,6 @@ class AppStrings {
     // jobs,
     paymentLogs,
     newServices,
-    affiliateEarning,
     allServices,
     earnings,
     proRequest,
@@ -67,8 +66,9 @@ class AppStrings {
     // orders,
     // myOrders,
     privacyPolicy,
+    termsAndConditions,
     // refundPolicy,
-    signOut,
+    logout,
     deleteAccount,
   ];
   static const List<String> appointmentTabList = [
@@ -480,6 +480,10 @@ class AppStrings {
   static const String aboutUs = "About Us";
   static const String marketPlace = "Market Place";
   static const String ourStory = "Our Story?";
+  static const String homeOurStoryDescription =
+      "Ezhandy was built to empower service providers. Manage bookings, chat with customers, answer pro requests, and grow your business — all from one place.";
+  static const String homeMarketPlaceDescription =
+      "Sell your products on the Ezhandy marketplace, reach new customers, and create an extra income stream alongside your services.";
   static const String contactUs = "Contact Us";
   static const String privacyPolicy = "Privacy Policy";
   static const String refundPolicy = "Refund Policy";
