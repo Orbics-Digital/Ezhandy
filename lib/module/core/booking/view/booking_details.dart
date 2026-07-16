@@ -365,96 +365,100 @@ class _BookingDetailsState extends State<BookingDetails> {
     return Row(
       children: [
         Expanded(
-            child: CustomButton(
-                onclick: () {
-                  AppDialogs.showSuccessDialog(context,
-                      description:
-                          "Are you sure you want to approve the appointment?",
-                      // title: AppStrings.logout,
-                      image: AssetPath.tumbIcon,
-                      isDoneShow: false,
-                      btnTxt1: AppStrings.yes,
-                      onTap1: () {
-                        AppNavigation.navigatorPop(context);
-
-                        AppDialogs.showSuccessDialog(
-                          context,
-                          description:
-                              "Appointment has been approved successfully.",
-                          // title: AppStrings.congratulation,
-                          btnTxt1: AppStrings.ok,
-                          onTap1: () {
-                            AppNavigation.navigatorPopUntil(
-                              context,
-                              AppRoutes.bookingScreenRoute,
-                            );
-                            setState(() {
-                              HomeController.i.jobStatus.value =
-                                  AppStrings.approved;
-                            });
-                          },
-                        );
-                      },
-                      btnTxt2: AppStrings.no,
-                      onTap2: () {
-                        AppNavigation.navigatorPop(context);
+          child: CustomButton(
+            onclick: () {
+              AppDialogs.showSuccessDialog(
+                context,
+                description:
+                    "Are you sure you want to Reject this \nAppointment?",
+                image: AssetPath.tumbIcon,
+                isDoneShow: false,
+                btnTxt1: AppStrings.yes,
+                onTap1: () {
+                  AppNavigation.navigatorPop(context);
+                  AppDialogs.showRejectDialog(
+                    context,
+                    barrierDismissible: true,
+                    title: "Reject Reason",
+                    isDoneShow: false,
+                    btnTxt1: AppStrings.submit,
+                    onTap1: () {
+                      AppNavigation.navigatorPop(context);
+                      setState(() {
+                        HomeController.i.jobStatus.value =
+                            AppStrings.rejected;
                       });
+                      AppDialogs.showSuccessDialog(
+                        context,
+                        description:
+                            "Appointment has been rejected successfully.",
+                        title: AppStrings.congratulation,
+                        isDoneShow: true,
+                        btnTxt1: AppStrings.ok,
+                        onTap1: () {
+                          AppNavigation.navigatorPopUntil(
+                            context,
+                            AppRoutes.bookingScreenRoute,
+                          );
+                        },
+                      );
+                    },
+                    btnTxt2: AppStrings.cancel,
+                    onTap2: () {
+                      AppNavigation.navigatorPop(context);
+                    },
+                  );
                 },
-                text: AppStrings.approve)),
+                btnTxt2: AppStrings.no,
+                onTap2: () {
+                  AppNavigation.navigatorPop(context);
+                },
+              );
+            },
+            color: AppColors.black,
+            text: AppStrings.reject,
+          ),
+        ),
         10.horizontalSpace,
         Expanded(
-            child: CustomButton(
-                onclick: () {
-                  AppDialogs.showSuccessDialog(context,
-                      description:
-                          "Are you sure you want to Reject this \nAppointment?",
-                      // title: AppStrings.logout,
-                      image: AssetPath.tumbIcon,
-                      isDoneShow: false,
-                      btnTxt1: AppStrings.yes,
-                      onTap1: () {
-                        AppNavigation.navigatorPop(context);
-                        AppDialogs.showRejectDialog(context,
-                            barrierDismissible: true,
-                            // description:
-                            //     "Are you sure you want to cancel this \nbooking?",
-                            title: "Reject Reason",
-                            // image: AssetPath.tumbIcon,
-                            isDoneShow: false,
-                            btnTxt1: AppStrings.submit,
-                            onTap1: () {
-                              AppNavigation.navigatorPop(context);
-                              setState(() {
-                                HomeController.i.jobStatus.value =
-                                    AppStrings.rejected;
-                              });
-                              AppDialogs.showSuccessDialog(
-                                context,
-                                description:
-                                    "Appointment has been rejected successfully.",
-                                title: AppStrings.congratulation,
-                                // image: AssetPath.deletePopUpIcon,
-                                isDoneShow: true,
-                                btnTxt1: AppStrings.ok,
-                                onTap1: () {
-                                  // AppNavigation.navigatorPop(context);
-                                  AppNavigation.navigatorPopUntil(
-                                      context, AppRoutes.bookingScreenRoute);
-                                },
-                              );
-                            },
-                            btnTxt2: AppStrings.cancel,
-                            onTap2: () {
-                              AppNavigation.navigatorPop(context);
-                            });
-                      },
-                      btnTxt2: AppStrings.no,
-                      onTap2: () {
-                        AppNavigation.navigatorPop(context);
+          child: CustomButton(
+            onclick: () {
+              AppDialogs.showSuccessDialog(
+                context,
+                description:
+                    "Are you sure you want to approve the appointment?",
+                image: AssetPath.tumbIcon,
+                isDoneShow: false,
+                btnTxt1: AppStrings.yes,
+                onTap1: () {
+                  AppNavigation.navigatorPop(context);
+
+                  AppDialogs.showSuccessDialog(
+                    context,
+                    description:
+                        "Appointment has been approved successfully.",
+                    btnTxt1: AppStrings.ok,
+                    onTap1: () {
+                      AppNavigation.navigatorPopUntil(
+                        context,
+                        AppRoutes.bookingScreenRoute,
+                      );
+                      setState(() {
+                        HomeController.i.jobStatus.value =
+                            AppStrings.approved;
                       });
+                    },
+                  );
                 },
-                color: AppColors.black,
-                text: AppStrings.reject))
+                btnTxt2: AppStrings.no,
+                onTap2: () {
+                  AppNavigation.navigatorPop(context);
+                },
+              );
+            },
+            text: AppStrings.accept,
+          ),
+        ),
       ],
     );
   }
