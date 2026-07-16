@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:ezhandy_user/module/core/controller/home_controller.dart';
+import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
+import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/utils.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:flutter/material.dart';
@@ -35,56 +36,101 @@ class _UploadPictureAfterWorkState extends State<UploadPictureAfterWork> {
         Get.back();
       },
       title: AppStrings.uploadPictureAfterWork,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-        child: Column(
-          children: [
-            15.verticalSpace,
+      child: Stack(
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
+            child: Column(
+              children: [
+                15.verticalSpace,
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: imageList.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 2.5 / 1.5,
+                  ),
+                  itemBuilder: (context, index) {
+                    return imageContainerWidget(
+                      ontap: () {
+                        Utils.openImagePicker(
+                          action: false,
+                          source: ImageSource.camera,
+                          context: context,
+                          setFile: (file) => _setFile(file, index),
+                        );
+                      },
+                      imagePath: imageList[index],
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                Obx(
+                  () => CustomButton(
+                    isLoading:
+                        BookingsController.i.isUpdatingBookingStatus.value,
+                    text: "End Job",
+                    onclick: () async {
+                      final bookingId =
+                          BookingsController.i.bookingDetail.value?.id;
+                      if (bookingId == null) {
+                        AppDialogs.showToast(message: 'Booking not found');
+                        return;
+                      }
 
-            // ✅ GRIDVIEW WITH 8 ITEMS
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: imageList.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 2.5 / 1.5, // square cells
-              ),
-              itemBuilder: (context, index) {
-                return imageContainerWidget(
-                    ontap: () {
-                      // if (imageList[index] == null)
-                      Utils.openImagePicker(
-                        action: false,
-                        source: ImageSource.camera,
-                        context: context,
-                        setFile: (file) => _setFile(file, index), // ✅ CORRECT
+                      final images = imageList
+                          .whereType<File>()
+                          .toList(growable: false);
+
+                      final success = await BookingsController.i
+                          .submitAfterWorkAndEndJob(
+                        bookingId: bookingId,
+                        images: images,
+                      );
+
+                      if (!context.mounted || !success) return;
+
+                      AppDialogs.showSuccessDialog(
+                        context,
+                        description: "Job ended successfully",
+                        title: AppStrings.congratulation,
+                        btnTxt1: AppStrings.ok,
+                        onTap1: () {
+                          AppNavigation.navigatorPopUntil(
+                            context,
+                            AppRoutes.bookingScreenRoute,
+                          );
+                        },
                       );
                     },
-                    imagePath: imageList[index]);
-              },
+                  ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            // ✅ YOUR BUTTON
-            CustomButton(
-              text: "End Work",
-              onclick: () {
-                HomeController.i.jobStatus.value = AppStrings.started;
-                AppNavigation.navigatorPopUntil(
-                    context, AppRoutes.bookingScreenRoute);
-              },
-            ),
-          ],
-        ),
+          ),
+          Obx(
+            () => BookingsController.i.isUpdatingBookingStatus.value
+                ? Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(
+                        color: AppColors.orange,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
 
-  _setFile(File? file, index) {
+  void _setFile(File? file, int index) {
     setState(() {
       imageList[index] = file;
     });
@@ -92,23 +138,23 @@ class _UploadPictureAfterWorkState extends State<UploadPictureAfterWork> {
 
   CustomContainer imageContainerWidget({ontap, imagePath}) {
     return CustomContainer(
-        onTap: ontap,
-        isPadding: false,
-        radius: 0,
-        borderColor: AppColors.transparent,
-        bgColor: AppColors.uploadColor,
-        // DON'T do height: 10.h, width: 10.w here
-        child: imagePath == null
-            ? Center(
-                child: CircleAvatar(
-                  radius: 15.r,
-                  backgroundColor: AppColors.orange,
-                  child: Icon(Icons.add, color: AppColors.white, size: 20.r),
-                ),
-              )
-            : Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: Image.file(imagePath, fit: BoxFit.cover),
-              ));
+      onTap: ontap,
+      isPadding: false,
+      radius: 0,
+      borderColor: AppColors.transparent,
+      bgColor: AppColors.uploadColor,
+      child: imagePath == null
+          ? Center(
+              child: CircleAvatar(
+                radius: 15.r,
+                backgroundColor: AppColors.orange,
+                child: Icon(Icons.add, color: AppColors.white, size: 20.r),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(2.0),
+              child: Image.file(imagePath, fit: BoxFit.cover),
+            ),
+    );
   }
 }

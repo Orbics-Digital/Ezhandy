@@ -18,7 +18,8 @@ import 'package:ezhandy_user/widgets/toast_dialogs_sheet/custom_dialoge.dart';
 
 // ignore: must_be_immutable
 class CustomRejectDialog extends StatelessWidget {
-  void Function()? onTap1, onTap2;
+  void Function(String reason)? onTap1;
+  void Function()? onTap2;
   String? title, btnTxt1, btnTxt2, image;
   bool isDoneShow, barrierDismissible;
   CustomRejectDialog(
@@ -36,14 +37,14 @@ class CustomRejectDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap1,
+      onTap: () {},
       child: CustomDialogs(
           image: image,
           onTap1: barrierDismissible
               ? () {
                   AppNavigation.navigatorPop(context);
                 }
-              : onTap1,
+              : null,
           btnTxt1: btnTxt1,
           isDoneShow: isDoneShow,
           // isCross: false,
@@ -68,7 +69,9 @@ class CustomRejectDialog extends StatelessWidget {
                         child: CustomButton(
                       borderRadius: 35.r,
                       text: btnTxt1 ?? "",
-                      onclick: onTap1,
+                      onclick: () {
+                        onTap1?.call(subjectController.text.trim());
+                      },
                     )),
                     10.horizontalSpace,
                     Expanded(

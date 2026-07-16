@@ -223,7 +223,7 @@ class AppDialogs {
     bool isDoneShow = true,
     bool barrierDismissible = false,
     // required String description,
-    final Function()? onTap1,
+    final Function(String reason)? onTap1,
     final Function()? onTap2,
   }) {
     return showDialog(

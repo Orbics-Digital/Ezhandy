@@ -58,6 +58,25 @@ class _BookingDetailsState extends State<BookingDetails> {
 
   BookingDetailModel? get _detail => _bookingsController.bookingDetail.value;
 
+  int? get _bookingId => widget.bookingId ?? _detail?.id;
+
+  Future<bool> _updateBookingStatus({
+    required int status,
+    String? statusReason,
+  }) async {
+    final bookingId = _bookingId;
+    if (bookingId == null) {
+      AppDialogs.showToast(message: 'Booking not found');
+      return false;
+    }
+
+    return _bookingsController.updateBookingStatus(
+      bookingId: bookingId,
+      status: status,
+      statusReason: statusReason,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -97,6 +116,8 @@ class _BookingDetailsState extends State<BookingDetails> {
         ),
         child: Obx(() {
           final isLoading = _bookingsController.isBookingDetailLoading.value;
+          final isUpdatingStatus =
+              _bookingsController.isUpdatingBookingStatus.value;
           final hasBookingId = widget.bookingId != null;
 
           if (isLoading && hasBookingId && _detail == null) {
@@ -114,6 +135,21 @@ class _BookingDetailsState extends State<BookingDetails> {
                   child: Column(
                     children: [
                       15.verticalSpace,
+                      if (_detail?.status == BookingStatusEnum.Completed.id) ...[
+                        CustomContainer(
+                          isPadding: false,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.all(AppPadding.padding12),
+                            child: CustomText(
+                              text: AppStrings.paymentDispatchedAfterVerification,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        10.verticalSpace,
+                      ],
                       CustomContainer(
                           isPadding: false,
                           child: Column(
@@ -164,7 +200,10 @@ class _BookingDetailsState extends State<BookingDetails> {
                       if (HomeController.i.jobStatus.value ==
                           AppStrings.pending) ...[
                         10.verticalSpace,
-                        approveRejectButtonRowWidget(context)
+                        approveRejectButtonRowWidget(
+                          context,
+                          isLoading: isUpdatingStatus,
+                        )
                       ],
                       rejectReasonWidget(),
                       15.verticalSpace,
@@ -281,20 +320,21 @@ class _BookingDetailsState extends State<BookingDetails> {
                         ],
                         // reportReviewButtonWidget(),
                         // endWorkButtonWidget(),
-                        goingButtonWidget(),
+                        goingButtonWidget(isLoading: isUpdatingStatus),
                       ],
-                      HomeController.i.jobStatus.value == AppStrings.inRoute
-                          ? CustomContainer(
-                              onTap: () {
-                                // AppNavigation.navigateTo(
-                                //     context, AppRoutes.MyAppointmentScreenRoute);
-                              },
-                              height: 200.h,
-                              width: 1.sw,
-                              isPadding: false,
-                              child:
-                                  Image.asset(AssetPath.map, fit: BoxFit.cover))
-                          : SizedBox.shrink(),
+                      // HomeController.i.jobStatus.value == AppStrings.inRoute
+                      //     ? CustomContainer(
+                      //         onTap: () {
+                      //           // AppNavigation.navigateTo(
+                      //           //     context, AppRoutes.MyAppointmentScreenRoute);
+                      //         },
+                      //         height: 200.h,
+                      //         width: 1.sw,
+                      //         isPadding: false,
+                      //         child: Image.asset(AssetPath.map,
+                      //             fit: BoxFit.cover))
+                      //     : SizedBox.shrink(),
+                      const SizedBox.shrink(),
                       25.verticalSpace,
                       if (HomeController.i.jobStatus.value ==
                               AppStrings.inRoute ||
@@ -317,55 +357,51 @@ class _BookingDetailsState extends State<BookingDetails> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppPadding.padding12),
                     child: CustomButton(
+                      isLoading: isUpdatingStatus,
                       text:
                           HomeController.i.jobStatus.value == AppStrings.inRoute
                               ? "Start Job"
                               : "End Job",
-                      onclick: () {
+                      onclick: () async {
                         if (HomeController.i.jobStatus.value ==
                             AppStrings.inRoute) {
-                          AppNavigation.navigateTo(context,
-                              AppRoutes.uploadPictureBeforeWorkScreenRoute);
+                          AppNavigation.navigateTo(
+                            context,
+                            AppRoutes.uploadPictureBeforeWorkScreenRoute,
+                          );
                         } else {
-                          AppDialogs.showSuccessDialog(context,
-                              description: "Are you sure you want to end job?",
-                              // title: AppStrings.logout,
-                              image: AssetPath.tumbIcon,
-                              isDoneShow: false,
-                              btnTxt1: AppStrings.yes,
-                              onTap1: () {
-                                HomeController.i.jobStatus.value =
-                                    AppStrings.completedPaid;
-                                AppNavigation.navigatorPop(context);
-                                AppDialogs.showSuccessDialog(
-                                  context,
-                                  description: "Job ended successfully",
-                                  title: AppStrings.congratulation,
-                                  btnTxt1: AppStrings.ok,
-                                  onTap1: () {
-                                    AppNavigation.navigatorPopUntil(
-                                        context, AppRoutes.bookingScreenRoute);
-                                  },
-                                );
-                              },
-                              btnTxt2: AppStrings.no,
-                              onTap2: () {
-                                AppNavigation.navigatorPop(context);
-                              });
+                          AppNavigation.navigateTo(
+                            context,
+                            AppRoutes.uploadPictureAfterWorkScreenRoute,
+                          );
                         }
                       },
                     ),
                   ))
             ],
+            if (isUpdatingStatus)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(
+                    color: AppColors.orange,
+                  ),
+                ),
+              ),
           ]);
         }));
   }
 
-  Row approveRejectButtonRowWidget(BuildContext context) {
+  Row approveRejectButtonRowWidget(
+    BuildContext context, {
+    bool isLoading = false,
+  }) {
     return Row(
       children: [
         Expanded(
           child: CustomButton(
+            isLoading: isLoading,
             onclick: () {
               AppDialogs.showSuccessDialog(
                 context,
@@ -382,12 +418,14 @@ class _BookingDetailsState extends State<BookingDetails> {
                     title: "Reject Reason",
                     isDoneShow: false,
                     btnTxt1: AppStrings.submit,
-                    onTap1: () {
+                    onTap1: (reason) async {
                       AppNavigation.navigatorPop(context);
-                      setState(() {
-                        HomeController.i.jobStatus.value =
-                            AppStrings.rejected;
-                      });
+                      final success = await _updateBookingStatus(
+                        status: BookingStatusEnum.Rejected.id,
+                        statusReason: reason,
+                      );
+                      if (!mounted || !success) return;
+
                       AppDialogs.showSuccessDialog(
                         context,
                         description:
@@ -422,6 +460,7 @@ class _BookingDetailsState extends State<BookingDetails> {
         10.horizontalSpace,
         Expanded(
           child: CustomButton(
+            isLoading: isLoading,
             onclick: () {
               AppDialogs.showSuccessDialog(
                 context,
@@ -430,8 +469,13 @@ class _BookingDetailsState extends State<BookingDetails> {
                 image: AssetPath.tumbIcon,
                 isDoneShow: false,
                 btnTxt1: AppStrings.yes,
-                onTap1: () {
+                onTap1: () async {
                   AppNavigation.navigatorPop(context);
+
+                  final success = await _updateBookingStatus(
+                    status: BookingStatusEnum.Assigned.id,
+                  );
+                  if (!mounted || !success) return;
 
                   AppDialogs.showSuccessDialog(
                     context,
@@ -443,10 +487,6 @@ class _BookingDetailsState extends State<BookingDetails> {
                         context,
                         AppRoutes.bookingScreenRoute,
                       );
-                      setState(() {
-                        HomeController.i.jobStatus.value =
-                            AppStrings.approved;
-                      });
                     },
                   );
                 },
@@ -724,10 +764,11 @@ class _BookingDetailsState extends State<BookingDetails> {
             }));
   }
 
-  Widget goingButtonWidget() {
+  Widget goingButtonWidget({bool isLoading = false}) {
     return Visibility(
         visible: (HomeController.i.jobStatus.value == AppStrings.approved),
         child: CustomButton(
+            isLoading: isLoading,
             text:
                 // (
                 // HomeController.i.jobStatus.value == BookingType.Upcoming.name ||
@@ -743,16 +784,16 @@ class _BookingDetailsState extends State<BookingDetails> {
                 //             context, AppRoutes.videoCallScreenRoute);
                 //       }
                 //     :
-                () {
-              setState(() {
-                HomeController.i.jobStatus.value = AppStrings.inRoute;
-              });
+                () async {
+              final success = await _updateBookingStatus(
+                status: BookingStatusEnum.InRoute.id,
+              );
+              if (!mounted || !success) return;
+
               AppDialogs.showSuccessDialog(
                 context,
                 description: AppStrings.jobStatusUpdated,
-                // title: AppStrings.deleteAccount,
                 image: AssetPath.tumbIcon,
-                // isDoneShow: false,
                 btnTxt1: AppStrings.ok,
                 onTap1: () {
                   AppNavigation.navigatorPop(context);

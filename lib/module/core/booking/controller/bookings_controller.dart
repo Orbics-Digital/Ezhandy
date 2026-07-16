@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/booking/data/bookings_repository.dart';
@@ -27,6 +29,7 @@ class BookingsController extends GetxController {
 
   final Rxn<BookingDetailModel> bookingDetail = Rxn<BookingDetailModel>();
   final RxBool isBookingDetailLoading = false.obs;
+  final RxBool isUpdatingBookingStatus = false.obs;
 
   String get selectedStatusLabel {
     final statusId = selectedStatusId.value;
@@ -105,5 +108,114 @@ class BookingsController extends GetxController {
 
   void clearBookingDetail() {
     bookingDetail.value = null;
+  }
+
+  Future<bool> updateBookingStatus({
+    required int bookingId,
+    required int status,
+    String? statusReason,
+  }) async {
+    if (isUpdatingBookingStatus.value) return false;
+
+    isUpdatingBookingStatus.value = true;
+    try {
+      await _repository.updateBookingStatus(
+        bookingId: bookingId,
+        status: status,
+        statusReason: statusReason,
+      );
+
+      final detail = await _repository.getBookingDetail(bookingId);
+      bookingDetail.value = detail;
+      HomeController.i.jobStatus.value = detail.jobStatusLabel;
+      await refreshProviderBookings();
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isUpdatingBookingStatus.value = false;
+    }
+  }
+
+  Future<bool> submitBeforeWorkAndStartJob({
+    required int bookingId,
+    required List<File> images,
+  }) async {
+    if (isUpdatingBookingStatus.value) return false;
+
+    if (images.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
+      return false;
+    }
+
+    isUpdatingBookingStatus.value = true;
+    try {
+      await _repository.uploadBeforeWork(
+        bookingId: bookingId,
+        images: images,
+      );
+
+      await _repository.updateBookingStatus(
+        bookingId: bookingId,
+        status: BookingStatusEnum.Started.id,
+      );
+
+      final detail = await _repository.getBookingDetail(bookingId);
+      bookingDetail.value = detail;
+      HomeController.i.jobStatus.value = detail.jobStatusLabel;
+      await refreshProviderBookings();
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isUpdatingBookingStatus.value = false;
+    }
+  }
+
+  Future<bool> submitAfterWorkAndEndJob({
+    required int bookingId,
+    required List<File> images,
+  }) async {
+    if (isUpdatingBookingStatus.value) return false;
+
+    if (images.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
+      return false;
+    }
+
+    isUpdatingBookingStatus.value = true;
+    try {
+      await _repository.uploadAfterWork(
+        bookingId: bookingId,
+        images: images,
+      );
+
+      await _repository.updateBookingStatus(
+        bookingId: bookingId,
+        status: BookingStatusEnum.Completed.id,
+      );
+
+      final detail = await _repository.getBookingDetail(bookingId);
+      bookingDetail.value = detail;
+      HomeController.i.jobStatus.value = detail.jobStatusLabel;
+      await refreshProviderBookings();
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isUpdatingBookingStatus.value = false;
+    }
   }
 }

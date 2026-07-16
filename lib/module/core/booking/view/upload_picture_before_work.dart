@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:ezhandy_user/module/core/controller/home_controller.dart';
+import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
+import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/utils.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:flutter/material.dart';
@@ -35,51 +36,88 @@ class _UploadPictureBeforeWorkState extends State<UploadPictureBeforeWork> {
         Get.back();
       },
       title: AppStrings.uploadPictureBeforeWork,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-        child: Column(
-          children: [
-            15.verticalSpace,
+      child: Stack(
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
+            child: Column(
+              children: [
+                15.verticalSpace,
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: imageList.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 2.5 / 1.5,
+                  ),
+                  itemBuilder: (context, index) {
+                    return imageContainerWidget(
+                      ontap: () {
+                        Utils.openImagePicker(
+                          action: false,
+                          source: ImageSource.camera,
+                          context: context,
+                          setFile: (file) => _setFile(file, index),
+                        );
+                      },
+                      imagePath: imageList[index],
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                Obx(
+                  () => CustomButton(
+                    isLoading:
+                        BookingsController.i.isUpdatingBookingStatus.value,
+                    text: "Start Job",
+                    onclick: () async {
+                      final bookingId =
+                          BookingsController.i.bookingDetail.value?.id;
+                      if (bookingId == null) {
+                        AppDialogs.showToast(message: 'Booking not found');
+                        return;
+                      }
 
-            // ✅ GRIDVIEW WITH 8 ITEMS
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: imageList.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 2.5 / 1.5, // square cells
-              ),
-              itemBuilder: (context, index) {
-                return imageContainerWidget(
-                    ontap: () {
-                      // if (imageList[index] == null)
-                      Utils.openImagePicker(
-                        action: false,
-                        source: ImageSource.camera,
-                        context: context,
-                        setFile: (file) => _setFile(file, index), // ✅ CORRECT
+                      final images = imageList
+                          .whereType<File>()
+                          .toList(growable: false);
+
+                      final success = await BookingsController.i
+                          .submitBeforeWorkAndStartJob(
+                        bookingId: bookingId,
+                        images: images,
+                      );
+
+                      if (!context.mounted || !success) return;
+
+                      AppNavigation.navigatorPopUntil(
+                        context,
+                        AppRoutes.bookingScreenRoute,
                       );
                     },
-                    imagePath: imageList[index]);
-              },
+                  ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            // ✅ YOUR BUTTON
-            CustomButton(
-              text: "Start Job",
-              onclick: () {
-                HomeController.i.jobStatus.value = AppStrings.started;
-                AppNavigation.navigatorPopUntil(
-                    context, AppRoutes.bookingScreenRoute);
-              },
-            ),
-          ],
-        ),
+          ),
+          Obx(
+            () => BookingsController.i.isUpdatingBookingStatus.value
+                ? Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(
+                        color: AppColors.orange,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

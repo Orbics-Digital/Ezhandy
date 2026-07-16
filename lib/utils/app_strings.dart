@@ -586,6 +586,8 @@ class AppStrings {
   static const String started = "Started";
   static const String completedPaid = "Completed Paid";
   static const String completedUnPaid = "Completed Un-Paid";
+  static const String paymentDispatchedAfterVerification =
+      "Payment will be dispatched once user verify the booking";
   static const String completedPaidUrgent = "Completed Paid Urgent";
   static const String assigned = "Assigned";
   static const String inRoute = "In - Route";
