@@ -450,7 +450,9 @@ class AppStrings {
   static const String pastSubscription = "Past Subscription";
   static const String subscribedOn = "Subscribed On";
   static const String paymentDate = "Payment Date";
-  static const String visitAmount = "Visit Amount";
+  static const String grossAmount = "Gross Amount";
+  static const String customerName = "Customer Name";
+  static const String customerEmail = "Customer Email";
   static const String commission = "Commission";
   static const String paymentAmount = "Payment Amount";
   static const String expiresOn = "Expires On";
