@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/data/payment_repository.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/model/provider_wallet_model.dart';
+import 'package:ezhandy_user/module/core/subscription_n_payment/model/subscription_log_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:get/get.dart';
 
@@ -18,8 +19,17 @@ class PaymentController extends GetxController {
   final Rxn<ProviderWalletModel> providerWallet = Rxn<ProviderWalletModel>();
   final RxBool isProviderWalletLoading = false.obs;
 
+  final RxList<SubscriptionLogModel> subscriptionLogs = <SubscriptionLogModel>[].obs;
+  final RxBool isSubscriptionLogsLoading = false.obs;
+
   List<ProviderPaymentLogModel> get paymentLogs =>
       providerWallet.value?.logs ?? [];
+
+  List<SubscriptionLogModel> get currentSubscriptions =>
+      subscriptionLogs.where((log) => !log.isExpired).toList();
+
+  List<SubscriptionLogModel> get pastSubscriptions =>
+      subscriptionLogs.where((log) => log.isExpired).toList();
 
   String get totalEarnedDisplay =>
       providerWallet.value?.displayTotalEarned ?? '\$0.00';
@@ -42,6 +52,31 @@ class PaymentController extends GetxController {
   Future<void> refreshProviderWallet() async {
     try {
       providerWallet.value = await _repository.getProviderWallet();
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    }
+  }
+
+  Future<void> fetchSubscriptionLogs() async {
+    if (isSubscriptionLogsLoading.value) return;
+
+    isSubscriptionLogsLoading.value = true;
+    try {
+      subscriptionLogs.assignAll(await _repository.getSubscriptionLogs());
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isSubscriptionLogsLoading.value = false;
+    }
+  }
+
+  Future<void> refreshSubscriptionLogs() async {
+    try {
+      subscriptionLogs.assignAll(await _repository.getSubscriptionLogs());
     } on DioException catch (e) {
       AppDialogs.showToast(message: ApiHelper.errorMessage(e));
     } catch (e) {

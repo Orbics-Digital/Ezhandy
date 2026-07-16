@@ -24,6 +24,7 @@ class ApiEndpoints {
   static const String askProStatus = 'ask-pro/status';
   static const String askProProviderActivateFree = 'ask-pro/provider/activate-free';
   static const String providerWallet = 'payment/provider-wallet';
+  static const String paymentLogs = 'payment/logs';
 
   static String page(String slug) => 'pages/$slug';
 
