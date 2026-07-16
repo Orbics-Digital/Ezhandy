@@ -112,6 +112,7 @@ class _ProChatState extends State<ProChat> {
                             arguments: ChatRoutingArgument(
                               isBooking: false,
                               chatId: chatId,
+                              chatType: chat.chatType,
                               otherUserName: chat.otherUser?.displayName,
                               otherUserId: chat.otherUser?.id,
                               otherUserImage: chat.otherUser?.profileImage,

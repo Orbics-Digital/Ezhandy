@@ -17,10 +17,12 @@ import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
+import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class ChatScreen extends StatefulWidget {
   final bool isBooking;
   final String? chatId;
+  final String? chatType;
   final String? otherUserName;
   final String? otherUserId;
   final String? otherUserImage;
@@ -28,6 +30,7 @@ class ChatScreen extends StatefulWidget {
   ChatScreen({
     this.isBooking = false,
     this.chatId,
+    this.chatType,
     this.otherUserName,
     this.otherUserId,
     this.otherUserImage,
@@ -49,6 +52,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final id = widget.chatId?.trim();
     return id != null && id.isNotEmpty;
   }
+
+  bool get _isProChat =>
+      widget.chatType?.trim().toLowerCase() == 'ask_pro';
 
   @override
   void initState() {
@@ -115,12 +121,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userName = widget.otherUserName?.trim().isNotEmpty == true
+        ? widget.otherUserName!.trim()
+        : AppStrings.dummyName;
+
     return BackgroundImage(
       leading: AssetPath.backIcon,
       onclickLead: () => Get.back(),
-      title: widget.otherUserName?.trim().isNotEmpty == true
-          ? widget.otherUserName!.trim()
-          : AppStrings.dummyName,
+      title: _isProChat ? null : userName,
+      titleWidget: _isProChat ? _proChatTitle(userName) : null,
       child: Column(
         children: [
           Expanded(
@@ -152,6 +161,36 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _proChatTitle(String userName) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: CustomText(
+            text: userName,
+            fontSize: 20.sp,
+            maxLines: 1,
+          ),
+        ),
+        6.horizontalSpace,
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+          decoration: BoxDecoration(
+            color: AppColors.orange,
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: CustomText(
+            text: 'Pro',
+            color: AppColors.white,
+            fontSize: 10.sp,
+            fontWeight: FontWeight.w700,
+            height: 1.1,
+          ),
+        ),
+      ],
     );
   }
 

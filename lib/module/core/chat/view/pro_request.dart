@@ -122,6 +122,7 @@ class _ProRequestState extends State<ProRequest> {
           arguments: ChatRoutingArgument(
             isBooking: false,
             chatId: chatId,
+            chatType: 'ask_pro',
             otherUserName: otherUserName,
             otherUserId: request.user?.id ?? request.userId,
             otherUserImage: request.user?.profileImage,

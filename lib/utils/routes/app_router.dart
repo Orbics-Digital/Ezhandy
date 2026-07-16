@@ -218,6 +218,7 @@ class AppRouter {
             return ChatScreen(
               isBooking: chatArgument.isBooking ?? false,
               chatId: chatArgument.chatId,
+              chatType: chatArgument.chatType,
               otherUserName: chatArgument.otherUserName,
               otherUserId: chatArgument.otherUserId,
               otherUserImage: chatArgument.otherUserImage,
