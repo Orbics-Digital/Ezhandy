@@ -32,6 +32,7 @@ import 'package:ezhandy_user/module/core/booking/view/edit_invoice.dart';
 import 'package:ezhandy_user/module/core/booking/view/invoice_screen.dart';
 import 'package:ezhandy_user/module/core/booking/view/upload_picture_after_work.dart';
 import 'package:ezhandy_user/module/core/booking/view/upload_picture_before_work.dart';
+import 'package:ezhandy_user/module/core/booking/routing_arguments/work_documents_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/booking/view/work_document.dart';
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/chat/view/chat.dart';
@@ -185,7 +186,11 @@ class AppRouter {
           case AppRoutes.uploadPictureAfterWorkScreenRoute:
             return UploadPictureAfterWork();
           case AppRoutes.workDocumentsScreenRoute:
-            return WorkDocuments();
+            final workDocumentsArguments =
+                routeSettings.arguments as WorkDocumentsRoutingArgument?;
+            return WorkDocuments(
+              serviceName: workDocumentsArguments?.serviceName,
+            );
           case AppRoutes.invoiceScreenRoute:
             return InvoiceScreen();
           case AppRoutes.editInvoiceScreenRoute:

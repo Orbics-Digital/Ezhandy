@@ -138,9 +138,52 @@ class BookingDetailServiceModel {
   String get displayHourlyRate => _formatMoney(hourlyRate);
 }
 
+class WorkDocumentItemModel {
+  final int? id;
+  final String? imagePath;
+  final String? title;
+  final String? description;
+
+  const WorkDocumentItemModel({
+    this.id,
+    this.imagePath,
+    this.title,
+    this.description,
+  });
+
+  String get displayImagePath {
+    final value = imagePath?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return '';
+  }
+
+  String get displayTitle {
+    final value = title?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return '';
+  }
+
+  String get displayDescription {
+    final value = description?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return '';
+  }
+
+  bool get hasImage => displayImagePath.isNotEmpty;
+
+  factory WorkDocumentItemModel.fromJson(Map<String, dynamic> json) {
+    return WorkDocumentItemModel(
+      id: _readInt(json['id']),
+      imagePath: json['imagePath']?.toString(),
+      title: json['title']?.toString(),
+      description: json['description']?.toString(),
+    );
+  }
+}
+
 class BookingWorkDocumentsModel {
-  final List<String> before;
-  final List<String> after;
+  final List<WorkDocumentItemModel> before;
+  final List<WorkDocumentItemModel> after;
 
   const BookingWorkDocumentsModel({
     this.before = const [],
@@ -149,10 +192,24 @@ class BookingWorkDocumentsModel {
 
   factory BookingWorkDocumentsModel.fromJson(Map<String, dynamic> json) {
     return BookingWorkDocumentsModel(
-      before: _readStringList(json['before']),
-      after: _readStringList(json['after']),
+      before: _readWorkDocumentList(json['before']),
+      after: _readWorkDocumentList(json['after']),
     );
   }
+}
+
+List<WorkDocumentItemModel> _readWorkDocumentList(dynamic value) {
+  if (value is! List) return const [];
+
+  return value
+      .whereType<Map>()
+      .map(
+        (item) => WorkDocumentItemModel.fromJson(
+          Map<String, dynamic>.from(item),
+        ),
+      )
+      .where((item) => item.hasImage)
+      .toList();
 }
 
 class BookingDetailModel {

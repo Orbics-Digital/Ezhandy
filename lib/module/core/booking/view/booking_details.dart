@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
+import 'package:ezhandy_user/module/core/booking/routing_arguments/work_documents_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:flutter/material.dart';
@@ -238,9 +239,15 @@ class _BookingDetailsState extends State<BookingDetails> {
                                         GestureDetector(
                                           onTap: () {
                                             AppNavigation.navigateTo(
-                                                context,
-                                                AppRoutes
-                                                    .workDocumentsScreenRoute);
+                                              context,
+                                              AppRoutes
+                                                  .workDocumentsScreenRoute,
+                                              arguments:
+                                                  WorkDocumentsRoutingArgument(
+                                                serviceName: _detail
+                                                    ?.service?.displayTitle,
+                                              ),
+                                            );
                                           },
                                           child: Image.asset(
                                               AssetPath.documentTotalIcon,
