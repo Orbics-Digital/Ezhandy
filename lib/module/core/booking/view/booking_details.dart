@@ -168,6 +168,25 @@ class _BookingDetailsState extends State<BookingDetails> {
                       ],
                       rejectReasonWidget(),
                       15.verticalSpace,
+                      CustomContainer(
+                        isPadding: false,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.all(AppPadding.padding12),
+                              child: CustomText(
+                                text: AppStrings.userDetails,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Divider(color: AppColors.blueDark),
+                            userDetailsWidget(),
+                          ],
+                        ),
+                      ),
+                      15.verticalSpace,
                       if (HomeController.i.jobStatus.value ==
                               AppStrings.approved ||
                           HomeController.i.jobStatus.value ==
@@ -178,25 +197,6 @@ class _BookingDetailsState extends State<BookingDetails> {
                               AppStrings.completedPaid ||
                           HomeController.i.jobStatus.value ==
                               AppStrings.completedUnPaid) ...[
-                        CustomContainer(
-                            isPadding: false,
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(
-                                      AppPadding.padding12),
-                                  child: CustomText(
-                                      text: AppStrings.userDetails,
-                                      // color: AppColors.blueDark,
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Divider(color: AppColors.blueDark),
-                                userDetailsWidget(),
-                                // reScheduleWidget(),
-                              ],
-                            )),
-                        15.verticalSpace,
                         if (HomeController.i.jobStatus.value ==
                                 AppStrings.started ||
                             HomeController.i.jobStatus.value ==
@@ -514,7 +514,6 @@ class _BookingDetailsState extends State<BookingDetails> {
 
   Padding bookingDetailsWidget() {
     final detail = _detail;
-    final user = detail?.user;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
@@ -530,20 +529,8 @@ class _BookingDetailsState extends State<BookingDetails> {
             secondText: detail?.displayBookingDate ?? '-',
           ),
           TwoTextRow(
-            firstText: '${AppStrings.userName}:',
-            secondText: user?.displayName ?? '-',
-          ),
-          TwoTextRow(
-            firstText: '${AppStrings.phoneNumber}:',
-            secondText: user?.displayPhone ?? '-',
-          ),
-          TwoTextRow(
-            firstText: '${AppStrings.emailAddress}:',
-            secondText: user?.displayEmail ?? '-',
-          ),
-          TwoTextRow(
             firstText: '${AppStrings.address}:',
-            secondText: user?.displayAddress ?? '-',
+            secondText: detail?.user?.displayAddress ?? '-',
           ),
           TwoTextRow(
             firstText: '${AppStrings.serviceDate}:',
@@ -552,6 +539,17 @@ class _BookingDetailsState extends State<BookingDetails> {
           TwoTextRow(
             firstText: '${AppStrings.serviceTime}:',
             secondText: detail?.displayServiceTime ?? '-',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.starttime}:',
+            secondText:
+                HomeController.i.jobStatus.value == AppStrings.started ||
+                        HomeController.i.jobStatus.value ==
+                            AppStrings.completedPaid ||
+                        HomeController.i.jobStatus.value ==
+                            AppStrings.completedUnPaid
+                    ? AppStrings.dummytime
+                    : '-',
           ),
           10.verticalSpace,
         ],
@@ -575,14 +573,10 @@ class _BookingDetailsState extends State<BookingDetails> {
             firstText: '${AppStrings.phoneNumber}:',
             secondText: user?.displayPhone ?? '-',
           ),
-          HomeController.i.jobStatus.value == AppStrings.started ||
-                  HomeController.i.jobStatus.value ==
-                      AppStrings.completedPaid ||
-                  HomeController.i.jobStatus.value == AppStrings.completedUnPaid
-              ? TwoTextRow(
-                  firstText: "${AppStrings.starttime}:",
-                  secondText: AppStrings.dummytime)
-              : SizedBox.shrink(),
+          TwoTextRow(
+            firstText: '${AppStrings.emailAddress}:',
+            secondText: user?.displayEmail ?? '-',
+          ),
           10.verticalSpace,
         ],
       ),
