@@ -77,6 +77,33 @@ class _BookingDetailsState extends State<BookingDetails> {
     );
   }
 
+  String? _statusInfoMessage() {
+    switch (BookingStatusEnum.fromId(_detail?.status)) {
+      case BookingStatusEnum.InRoute:
+        return AppStrings.mustUploadBeforeWorkImages;
+      case BookingStatusEnum.Started:
+        return AppStrings.mustUploadAfterWorkImages;
+      case BookingStatusEnum.Completed:
+        return AppStrings.paymentDispatchedAfterVerification;
+      default:
+        return null;
+    }
+  }
+
+  Widget _statusInfoCard(String message) {
+    return CustomContainer(
+      isPadding: false,
+      child: Padding(
+        padding: const EdgeInsets.all(AppPadding.padding12),
+        child: CustomText(
+          text: message,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -119,6 +146,7 @@ class _BookingDetailsState extends State<BookingDetails> {
           final isUpdatingStatus =
               _bookingsController.isUpdatingBookingStatus.value;
           final hasBookingId = widget.bookingId != null;
+          final statusInfoMessage = _statusInfoMessage();
 
           if (isLoading && hasBookingId && _detail == null) {
             return const Center(
@@ -135,19 +163,8 @@ class _BookingDetailsState extends State<BookingDetails> {
                   child: Column(
                     children: [
                       15.verticalSpace,
-                      if (_detail?.status == BookingStatusEnum.Completed.id) ...[
-                        CustomContainer(
-                          isPadding: false,
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.all(AppPadding.padding12),
-                            child: CustomText(
-                              text: AppStrings.paymentDispatchedAfterVerification,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
+                      if (statusInfoMessage != null) ...[
+                        _statusInfoCard(statusInfoMessage),
                         10.verticalSpace,
                       ],
                       CustomContainer(

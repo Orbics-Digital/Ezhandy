@@ -588,6 +588,10 @@ class AppStrings {
   static const String completedUnPaid = "Completed Un-Paid";
   static const String paymentDispatchedAfterVerification =
       "Payment will be dispatched once user verify the booking";
+  static const String mustUploadBeforeWorkImages =
+      "You must upload before work images to start the job";
+  static const String mustUploadAfterWorkImages =
+      "You must upload after work images to end the job";
   static const String completedPaidUrgent = "Completed Paid Urgent";
   static const String assigned = "Assigned";
   static const String inRoute = "In - Route";
