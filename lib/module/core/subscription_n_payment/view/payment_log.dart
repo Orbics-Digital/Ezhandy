@@ -54,7 +54,7 @@ class _PaymentLogState extends State<PaymentLog> {
                 itemCount: 15,
                 padding: EdgeInsets.only(bottom: AppPadding.padding18),
                 itemBuilder: (BuildContext ctxt, int index) {
-                  return pastSubscriptionWidget();
+                  return paymentLogCardWidget();
                 },
                 separatorBuilder: (BuildContext context, int index) {
                   return 10.verticalSpace;
@@ -68,24 +68,39 @@ class _PaymentLogState extends State<PaymentLog> {
     );
   }
 
-  Widget pastSubscriptionWidget() {
+  Widget paymentLogCardWidget() {
     return CustomContainer(
       child: Column(
         children: [
           10.verticalSpace,
           TwoTextRow(
-              firstText: "${AppStrings.subscribedOn}:", secondText: "Reviews"),
-          10.verticalSpace,
+            firstText: '${AppStrings.bookingId}:',
+            secondText: '#1234567',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.expiresOn}:",
-              secondText: AppStrings.dummyDate),
-          10.verticalSpace,
+            firstText: '${AppStrings.bookingDate}:',
+            secondText: '08/07/2022',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.amountPaid}:",
-              secondText: AppStrings.dummyAmount),
-          10.verticalSpace,
+            firstText: '${AppStrings.paymentDate}:',
+            secondText: '08/07/2025',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.duration}:", secondText: "Monthly"),
+            firstText: '${AppStrings.visitAmount}:',
+            secondText: '\$20.00',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.additional}:',
+            secondText: '\$20.00',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.commission}:',
+            secondText: '\$20.00',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.paymentAmount}:',
+            secondText: '\$45.00',
+          ),
           10.verticalSpace,
         ],
       ),

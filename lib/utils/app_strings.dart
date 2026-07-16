@@ -449,6 +449,10 @@ class AppStrings {
   static const String currentSubscription = "Current Subscription";
   static const String pastSubscription = "Past Subscription";
   static const String subscribedOn = "Subscribed On";
+  static const String paymentDate = "Payment Date";
+  static const String visitAmount = "Visit Amount";
+  static const String commission = "Commission";
+  static const String paymentAmount = "Payment Amount";
   static const String expiresOn = "Expires On";
   static const String amountPaid = "Amount Paid";
   static const String duration = "Duration";
