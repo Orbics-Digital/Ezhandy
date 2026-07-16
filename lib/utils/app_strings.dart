@@ -451,6 +451,12 @@ class AppStrings {
   static const String subscribedOn = "Subscribed On";
   static const String paymentDate = "Payment Date";
   static const String grossAmount = "Gross Amount";
+  static const String availableBalance = "Available Balance";
+  static const String withdrawn = "Withdrawn";
+  static const String currency = "Currency";
+  static const String grossEarnings = "Gross Earnings";
+  static const String commissionDeducted = "Commission Deducted";
+  static const String netPayout = "Net Payout";
   static const String customerName = "Customer Name";
   static const String customerEmail = "Customer Email";
   static const String commission = "Commission";
@@ -466,6 +472,7 @@ class AppStrings {
   static const String showing = "Showing";
   static const String yourReferralCode = "Your Referral Code";
   static const String totalEarnings = "Total Earnings";
+  static const String totalEarned = "Total Earned";
   static const String dummyRefCode = "30OFFDEC10BI";
 
   /// Menu

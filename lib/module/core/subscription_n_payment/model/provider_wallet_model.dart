@@ -135,6 +135,29 @@ class ProviderWalletModel {
   String get displayTotalEarned =>
       _formatMoney(wallet.totalEarned, wallet.currency);
 
+  String get displayAvailableBalance =>
+      _formatMoney(wallet.availableBalance, wallet.currency);
+
+  String get displayWalletTotalEarned =>
+      _formatMoney(wallet.totalEarned, wallet.currency);
+
+  String get displayWalletTotalWithdrawn =>
+      _formatMoney(wallet.totalWithdrawn, wallet.currency);
+
+  String get displayCurrency =>
+      wallet.currency?.trim().toUpperCase() ?? 'USD';
+
+  String get displayGrossTotal =>
+      _formatMoney(summary.grossTotal, wallet.currency);
+
+  String get displayCommissionDeducted {
+    final symbol = wallet.currency?.trim().toLowerCase() == 'usd' ? '\$' : '\$';
+    return '-$symbol${summary.commissionTotal.toStringAsFixed(2)}';
+  }
+
+  String get displayNetTotal =>
+      _formatMoney(summary.netTotal, wallet.currency);
+
   factory ProviderWalletModel.fromJson(Map<String, dynamic> json) {
     return ProviderWalletModel(
       wallet: json['wallet'] is Map
