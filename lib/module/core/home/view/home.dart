@@ -65,7 +65,8 @@ class _HomeState extends State<Home> {
                           5.horizontalSpace,
                           CustomText(
                             text: askProActive ? "Active" : "In-Active",
-                            color: AppColors.green,
+                            color:
+                                askProActive ? AppColors.green : AppColors.red,
                             fontWeight: FontWeight.bold,
                           ),
                           const Spacer(),
