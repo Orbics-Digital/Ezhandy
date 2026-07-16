@@ -21,6 +21,8 @@ class ApiEndpoints {
   static const String providerBookings = 'bookings/provider';
   static const String myChats = 'live-chat/my-chats';
   static const String askProRequests = 'ask-pro/requests';
+  static const String askProStatus = 'ask-pro/status';
+  static const String askProProviderActivateFree = 'ask-pro/provider/activate-free';
 
   static String page(String slug) => 'pages/$slug';
 

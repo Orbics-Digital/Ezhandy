@@ -1,12 +1,65 @@
 // import 'package:calendar_view/calendar_view.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:get/get.dart';
+import 'package:dio/dio.dart';
+import 'package:ezhandy_user/core/network/api_helper.dart';
+import 'package:ezhandy_user/module/core/chat/data/ask_pro_repository.dart';
+import 'package:ezhandy_user/utils/app_dialogs.dart';
 
 class HomeController extends GetxController {
   static HomeController get i => Get.find();
 
+  final AskProRepository _askProRepository = AskProRepository();
+
   RxInt selectedTab = 0.obs;
   RxString jobStatus = AppStrings.pending.obs;
+
+  final RxBool askProActive = false.obs;
+  final RxBool isAskPro = false.obs;
+  final RxBool isAskProStatusLoading = false.obs;
+  final RxBool isAskProToggleLoading = false.obs;
+
+  Future<void> fetchAskProStatus() async {
+    if (isAskProStatusLoading.value) return;
+
+    isAskProStatusLoading.value = true;
+    try {
+      final status = await _askProRepository.getProviderStatus();
+      askProActive.value = status.askProActive;
+      isAskPro.value = status.isAskPro;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isAskProStatusLoading.value = false;
+    }
+  }
+
+  Future<bool> toggleAskProActive(bool value) async {
+    if (isAskProToggleLoading.value) return false;
+
+    final previousActive = askProActive.value;
+    isAskProToggleLoading.value = true;
+    askProActive.value = value;
+
+    try {
+      final status = await _askProRepository.toggleProviderActivateFree();
+      askProActive.value = status.askProActive;
+      isAskPro.value = status.isAskPro;
+      return true;
+    } on DioException catch (e) {
+      askProActive.value = previousActive;
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      askProActive.value = previousActive;
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isAskProToggleLoading.value = false;
+    }
+  }
 //   var selectedDate = DateTime.now().obs;
 //   var selectedWeek = 1.obs;
 //   var selectedDay = Rx<DateTime?>(null);

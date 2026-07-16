@@ -2,6 +2,7 @@ import 'package:ezhandy_user/core/network/api_client.dart';
 import 'package:ezhandy_user/core/network/api_endpoints.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/chat/model/ask_pro_request_model.dart';
+import 'package:ezhandy_user/module/core/chat/model/ask_pro_status_model.dart';
 
 class AskProRepository {
   AskProRepository({ApiClient? apiClient}) : _apiClient = apiClient;
@@ -62,5 +63,28 @@ class AskProRepository {
     }
 
     return const AskProAcceptResult();
+  }
+
+  Future<AskProStatusModel> getProviderStatus() async {
+    final response = await _client.dio.get(ApiEndpoints.askProStatus);
+    return AskProStatusModel.fromJson(_statusPayload(response.data));
+  }
+
+  Future<AskProStatusModel> toggleProviderActivateFree() async {
+    final response = await _client.dio.post(
+      ApiEndpoints.askProProviderActivateFree,
+    );
+    return AskProStatusModel.fromJson(_statusPayload(response.data));
+  }
+
+  Map<String, dynamic> _statusPayload(dynamic responseData) {
+    final envelope = ApiHelper.dataObject(responseData);
+    final nested = envelope['data'];
+
+    if (nested is Map) {
+      return Map<String, dynamic>.from(nested);
+    }
+
+    return envelope;
   }
 }

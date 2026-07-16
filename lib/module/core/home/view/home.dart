@@ -30,7 +30,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool isBecomeAPro = false;
+  final HomeController _controller = HomeController.i;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.fetchAskProStatus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,40 +52,55 @@ class _HomeState extends State<Home> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  CustomContainer(
-                      // boxShadow: AppShadows.shadow2,
+                  Obx(() {
+                    final askProActive = _controller.askProActive.value;
+                    final isLoading = _controller.isAskProStatusLoading.value ||
+                        _controller.isAskProToggleLoading.value;
+
+                    return CustomContainer(
                       child: Row(
-                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(text: "Become A Pro:"),
-                      5.horizontalSpace,
-                      CustomText(
-                        text: isBecomeAPro ? "Active" : "In-Active",
-                        color: AppColors.green,
-                        fontWeight: FontWeight.bold,
+                        children: [
+                          CustomText(text: "Become A Pro:"),
+                          5.horizontalSpace,
+                          CustomText(
+                            text: askProActive ? "Active" : "In-Active",
+                            color: AppColors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          const Spacer(),
+                          IgnorePointer(
+                            ignoring: isLoading,
+                            child: AnimatedSwitch(
+                              key: ValueKey(askProActive),
+                              isSwitched: askProActive,
+                              onCallBack: (value) async {
+                                final wasActive = _controller.askProActive.value;
+                                final success =
+                                    await _controller.toggleAskProActive(value);
+                                if (!success || !context.mounted) return;
+
+                                if (!wasActive &&
+                                    _controller.askProActive.value) {
+                                  AppDialogs.showSuccessDialog(
+                                    context,
+                                    description: AppStrings.nowYouArePro,
+                                    title: AppStrings.youreOfficiallyAPro,
+                                    btnTxt1: AppStrings.ok,
+                                    onTap1: () {
+                                      AppNavigation.navigatorPopUntil(
+                                        context,
+                                        AppRoutes.mainMenuScreenRoute,
+                                      );
+                                    },
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      Spacer(),
-                      AnimatedSwitch(
-                          isSwitched: isBecomeAPro,
-                          onCallBack: (r) {
-                            setState(() {
-                              isBecomeAPro = r;
-                            });
-                            if (isBecomeAPro) {
-                              AppDialogs.showSuccessDialog(
-                                context,
-                                description: AppStrings.nowYouArePro,
-                                title: AppStrings.youreOfficiallyAPro,
-                                btnTxt1: AppStrings.ok,
-                                onTap1: () {
-                                  AppNavigation.navigatorPopUntil(
-                                      context, AppRoutes.mainMenuScreenRoute);
-                                },
-                              );
-                            }
-                          }),
-                    ],
-                  )),
+                    );
+                  }),
                   20.verticalSpace,
                   Obx(() {
                     final isQuickProvider =
