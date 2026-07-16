@@ -178,6 +178,7 @@ class AppRouter {
                 routeSettings.arguments as BookingRoutingArgument;
             return BookingDetails(
               status: bookingArgument.Status,
+              bookingId: bookingArgument.bookingId,
             );
           case AppRoutes.uploadPictureBeforeWorkScreenRoute:
             return UploadPictureBeforeWork();

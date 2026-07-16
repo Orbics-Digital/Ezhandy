@@ -1,5 +1,7 @@
 import 'dart:developer';
-import 'package:ezhandy_user/module/core/booking/routing_arguments/booking_routing_arguments.dart';
+import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +9,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
-import 'package:ezhandy_user/utils/constant.dart';
-import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
@@ -21,8 +21,14 @@ import 'package:ezhandy_user/widgets/row/two_text_row.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class BookingDetails extends StatefulWidget {
-  String status;
-  BookingDetails({required this.status, super.key});
+  final String status;
+  final int? bookingId;
+
+  BookingDetails({
+    required this.status,
+    this.bookingId,
+    super.key,
+  });
 
   @override
   State<BookingDetails> createState() => _BookingDetailsState();
@@ -30,6 +36,27 @@ class BookingDetails extends StatefulWidget {
 
 class _BookingDetailsState extends State<BookingDetails> {
   int? currentHourIndex;
+  final BookingsController _bookingsController = BookingsController.i;
+
+  @override
+  void initState() {
+    super.initState();
+    HomeController.i.jobStatus.value = widget.status;
+
+    final bookingId = widget.bookingId;
+    if (bookingId != null) {
+      _bookingsController.fetchBookingDetail(bookingId);
+    }
+  }
+
+  @override
+  void dispose() {
+    _bookingsController.clearBookingDetail();
+    super.dispose();
+  }
+
+  BookingDetailModel? get _detail => _bookingsController.bookingDetail.value;
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -38,7 +65,7 @@ class _BookingDetailsState extends State<BookingDetails> {
           Get.back();
         },
         // appBarheight: 50.h,
-        title: AppStrings.job,
+        title: AppStrings.bookingDetails,
         actionWidget: Obx(
           () {
             bool showIcon = HomeController.i.jobStatus.value ==
@@ -68,6 +95,15 @@ class _BookingDetailsState extends State<BookingDetails> {
           },
         ),
         child: Obx(() {
+          final isLoading = _bookingsController.isBookingDetailLoading.value;
+          final hasBookingId = widget.bookingId != null;
+
+          if (isLoading && hasBookingId && _detail == null) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.orange),
+            );
+          }
+
           return Stack(children: [
             Positioned.fill(
               child: SingleChildScrollView(
@@ -417,20 +453,21 @@ class _BookingDetailsState extends State<BookingDetails> {
   }
 
   Widget rejectReasonWidget() {
+    final status = _detail?.status;
+
     return Visibility(
-      visible: HomeController.i.jobStatus.value == AppStrings.rejected ||
-          HomeController.i.jobStatus.value == AppStrings.cancelled,
+      visible: BookingStatusEnum.showsReason(status),
       child: Column(
         children: [
           10.verticalSpace,
           CustomText(
-              text: AppStrings.reason,
-              // color: AppColors.blueDark,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold),
+            text: BookingStatusEnum.reasonTitle(status),
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+          ),
           10.verticalSpace,
           CustomText(
-            text: AppStrings.lorem5,
+            text: _detail?.displayReason ?? '-',
             color: AppColors.grey,
           ),
         ],
@@ -439,17 +476,25 @@ class _BookingDetailsState extends State<BookingDetails> {
   }
 
   Padding serviceDetailsWidget() {
+    final service = _detail?.service;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
       child: Column(
         children: [
           5.verticalSpace,
           TwoTextRow(
-              firstText: "${AppStrings.service}:", secondText: "Type Name"),
+            firstText: '${AppStrings.service}:',
+            secondText: service?.displayTitle ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.visitCharges}:", secondText: "\$10"),
+            firstText: '${AppStrings.visitCharges}:',
+            secondText: service?.displayVisitCharges ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.hourlyRate}:", secondText: "\$10"),
+            firstText: '${AppStrings.hourlyRate}:',
+            secondText: service?.displayHourlyRate ?? '-',
+          ),
           10.verticalSpace,
         ],
       ),
@@ -457,35 +502,46 @@ class _BookingDetailsState extends State<BookingDetails> {
   }
 
   Padding bookingDetailsWidget() {
+    final detail = _detail;
+    final user = detail?.user;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
       child: Column(
         children: [
           5.verticalSpace,
           TwoTextRow(
-              firstText: "${AppStrings.bookingId}:",
-              secondText: "#${AppStrings.dummyOrderNumber}"),
+            firstText: '${AppStrings.bookingId}:',
+            secondText: detail?.displayBookingId ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.bookingDate}:",
-              secondText: AppStrings.dummyDate),
+            firstText: '${AppStrings.bookingDate}:',
+            secondText: detail?.displayBookingDate ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.userName}:",
-              secondText: AppStrings.dummyName),
+            firstText: '${AppStrings.userName}:',
+            secondText: user?.displayName ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.phoneNumber}:",
-              secondText: AppStrings.dummyPhoneNUmber),
+            firstText: '${AppStrings.phoneNumber}:',
+            secondText: user?.displayPhone ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.emailAddress}:",
-              secondText: AppStrings.dummyEmail),
+            firstText: '${AppStrings.emailAddress}:',
+            secondText: user?.displayEmail ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.address}:",
-              secondText: AppStrings.lorem1),
+            firstText: '${AppStrings.address}:',
+            secondText: user?.displayAddress ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.serviceDate}:",
-              secondText: AppStrings.dummyDate),
+            firstText: '${AppStrings.serviceDate}:',
+            secondText: detail?.displayServiceDate ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.serviceTime}:",
-              secondText: AppStrings.dummytime),
+            firstText: '${AppStrings.serviceTime}:',
+            secondText: detail?.displayServiceTime ?? '-',
+          ),
           10.verticalSpace,
         ],
       ),
@@ -493,17 +549,21 @@ class _BookingDetailsState extends State<BookingDetails> {
   }
 
   Padding userDetailsWidget() {
+    final user = _detail?.user;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
       child: Column(
         children: [
           5.verticalSpace,
           TwoTextRow(
-              firstText: "${AppStrings.userName}:",
-              secondText: AppStrings.dummyName),
+            firstText: '${AppStrings.userName}:',
+            secondText: user?.displayName ?? '-',
+          ),
           TwoTextRow(
-              firstText: "${AppStrings.phoneNumber}:",
-              secondText: AppStrings.dummyPhoneNUmber),
+            firstText: '${AppStrings.phoneNumber}:',
+            secondText: user?.displayPhone ?? '-',
+          ),
           HomeController.i.jobStatus.value == AppStrings.started ||
                   HomeController.i.jobStatus.value ==
                       AppStrings.completedPaid ||

@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/booking/data/bookings_repository.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
 import 'package:ezhandy_user/module/core/booking/model/provider_booking_model.dart';
+import 'package:ezhandy_user/module/core/controller/home_controller.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:get/get.dart';
@@ -22,6 +24,9 @@ class BookingsController extends GetxController {
   final RxBool isProviderBookingsLoading = false.obs;
   final RxString searchQuery = ''.obs;
   final RxnInt selectedStatusId = RxnInt();
+
+  final Rxn<BookingDetailModel> bookingDetail = Rxn<BookingDetailModel>();
+  final RxBool isBookingDetailLoading = false.obs;
 
   String get selectedStatusLabel {
     final statusId = selectedStatusId.value;
@@ -79,5 +84,26 @@ class BookingsController extends GetxController {
     } catch (e) {
       AppDialogs.showToast(message: e.toString());
     }
+  }
+
+  Future<void> fetchBookingDetail(int id) async {
+    if (isBookingDetailLoading.value) return;
+
+    isBookingDetailLoading.value = true;
+    try {
+      final detail = await _repository.getBookingDetail(id);
+      bookingDetail.value = detail;
+      HomeController.i.jobStatus.value = detail.jobStatusLabel;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isBookingDetailLoading.value = false;
+    }
+  }
+
+  void clearBookingDetail() {
+    bookingDetail.value = null;
   }
 }

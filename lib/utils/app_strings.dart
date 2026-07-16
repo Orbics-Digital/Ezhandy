@@ -862,6 +862,7 @@ class AppStrings {
   static const String appliedToCampaign =
       "You have successfully applied for Campaign ABC. We will notify you with further updates shortly.";
   static const String rejectionReason = "Rejection Reason";
+  static const String cancellationReason = "Cancellation Reason";
 
   /// Create Edit Profile
   static const String cOOLedComplianceSupportDashboard =

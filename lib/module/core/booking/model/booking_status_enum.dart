@@ -1,18 +1,27 @@
 import 'package:ezhandy_user/utils/app_strings.dart';
 
 enum BookingStatusEnum {
-  pending(1),
-  rejected(2),
-  assigned(3),
-  inRoute(4),
-  started(5),
-  completed(6),
-  userVerifiedIsDone(7),
-  cancelled(8);
+  Pending(1),
+  Rejected(2),
+  Assigned(3),
+  InRoute(4),
+  Started(5),
+  Completed(6),
+  UserVerifiedIsDone(7),
+  Cancelled(8);
 
   const BookingStatusEnum(this.id);
 
   final int id;
+
+  static BookingStatusEnum? fromId(int? statusId) {
+    if (statusId == null) return null;
+
+    for (final status in BookingStatusEnum.values) {
+      if (status.id == statusId) return status;
+    }
+    return null;
+  }
 
   static List<String> get dropdownLabels => [
         AppStrings.all,
@@ -29,25 +38,40 @@ enum BookingStatusEnum {
   }
 
   static String label(int? statusId) {
-    switch (statusId) {
-      case 1:
+    switch (fromId(statusId)) {
+      case BookingStatusEnum.Pending:
         return AppStrings.pending;
-      case 2:
+      case BookingStatusEnum.Rejected:
         return AppStrings.rejected;
-      case 3:
+      case BookingStatusEnum.Assigned:
         return AppStrings.assigned;
-      case 4:
+      case BookingStatusEnum.InRoute:
         return AppStrings.inRoute;
-      case 5:
+      case BookingStatusEnum.Started:
         return AppStrings.started;
-      case 6:
+      case BookingStatusEnum.Completed:
         return AppStrings.completed;
-      case 7:
+      case BookingStatusEnum.UserVerifiedIsDone:
         return AppStrings.verified;
-      case 8:
+      case BookingStatusEnum.Cancelled:
         return AppStrings.cancelled;
       default:
         return '-';
+    }
+  }
+
+  static bool showsReason(int? statusId) {
+    return statusId == Rejected.id || statusId == Cancelled.id;
+  }
+
+  static String reasonTitle(int? statusId) {
+    switch (fromId(statusId)) {
+      case BookingStatusEnum.Cancelled:
+        return AppStrings.cancellationReason;
+      case BookingStatusEnum.Rejected:
+        return AppStrings.rejectionReason;
+      default:
+        return AppStrings.reason;
     }
   }
 }

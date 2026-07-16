@@ -108,6 +108,7 @@ class _MyBookingState extends State<MyBooking> {
                                   AppRoutes.bookingScreenRoute,
                                   arguments: BookingRoutingArgument(
                                     Status: statusLabel,
+                                    bookingId: booking.bookingId,
                                   ),
                                 );
                               },
