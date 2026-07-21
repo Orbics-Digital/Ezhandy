@@ -26,6 +26,13 @@ class BookingsController extends GetxController {
   final RxBool isProviderBookingsLoading = false.obs;
   final RxString searchQuery = ''.obs;
   final RxnInt selectedStatusId = RxnInt();
+  final RxString selectedBookingType = AppStrings.all.obs;
+
+  static const List<String> bookingTypeFilterLabels = [
+    AppStrings.all,
+    AppStrings.urgent,
+    AppStrings.scheduled,
+  ];
 
   final Rxn<BookingDetailModel> bookingDetail = Rxn<BookingDetailModel>();
   final RxBool isBookingDetailLoading = false.obs;
@@ -43,6 +50,13 @@ class BookingsController extends GetxController {
     final statusId = selectedStatusId.value;
     if (statusId != null) {
       result = result.where((booking) => booking.status == statusId).toList();
+    }
+
+    final type = selectedBookingType.value;
+    if (type == AppStrings.urgent) {
+      result = result.where((booking) => booking.isQuick).toList();
+    } else if (type == AppStrings.scheduled) {
+      result = result.where((booking) => !booking.isQuick).toList();
     }
 
     final query = searchQuery.value.trim();
@@ -77,6 +91,10 @@ class BookingsController extends GetxController {
 
   void setStatusFilterByLabel(String? label) {
     selectedStatusId.value = BookingStatusEnum.idFromLabel(label);
+  }
+
+  void setBookingTypeFilter(String? label) {
+    selectedBookingType.value = label ?? AppStrings.all;
   }
 
   Future<void> fetchProviderBookings() async {

@@ -31,8 +31,6 @@ class MyBooking extends StatefulWidget {
 }
 
 class _MyBookingState extends State<MyBooking> {
-  String? typeValue;
-  var typeValueList = ["All", "Urgent", "Scheduled"];
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -159,29 +157,20 @@ class _MyBookingState extends State<MyBooking> {
   }
 
   Widget typeFilterDropDown() {
-    return CustomDropDown2(
-      dropDownHeight: 220.h,
-      // width: 95.w, // 👈 Controls button width
-      dropDownWidth: .94.sw, // 👈 Controls dropdown menu width
-      dropDownData: typeValueList,
-      borderRadius: 10.r,
-      // isPrefix: true,
-      hintText: "Type: ",
-      dropdownValue: typeValue,
-      dropdownListColor: AppColors.white,
-      // borderColor: AppColors.greyBorder,
-      hintTextColor: AppColors.black,
-      onChanged: (value) {
-        setState(() {
-          typeValue = value.toString();
-        });
-      },
-      // validator: (value) {
-      //   if (value == null || value.isEmpty) {
-      //     return AppStrings.selectGender;
-      //   }
-      //   return null;
-      // },
+    return Obx(
+      () => CustomDropDown2(
+        dropDownHeight: 220.h,
+        dropDownWidth: .94.sw,
+        dropDownData: BookingsController.bookingTypeFilterLabels,
+        borderRadius: 10.r,
+        hintText: 'Type: ',
+        dropdownValue: BookingsController.i.selectedBookingType.value,
+        dropdownListColor: AppColors.white,
+        hintTextColor: AppColors.black,
+        onChanged: (value) {
+          BookingsController.i.setBookingTypeFilter(value?.toString());
+        },
+      ),
     );
   }
 

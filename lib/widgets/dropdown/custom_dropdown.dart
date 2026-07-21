@@ -163,6 +163,7 @@
 // }
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -237,12 +238,14 @@ class _CustomDropDown2State extends State<CustomDropDown2> {
                 style: TextStyle(
                   color: widget.color ?? AppColors.black,
                   fontSize: widget.fontSize!.sp,
+                  fontFamily: AppStrings.montserrat,
                 ),
                 hint: Text(
                   widget.hintText ?? "",
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: widget.hintTextColor ?? AppColors.greyBorder,
+                    fontFamily: AppStrings.montserrat,
                   ),
                 ),
                 decoration: InputDecoration(

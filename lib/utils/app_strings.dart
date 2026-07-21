@@ -580,6 +580,8 @@ class AppStrings {
 
 //   My Appointments
   static const String all = "All";
+  static const String urgent = "Urgent";
+  static const String scheduled = "Scheduled";
   static const String read = "Read";
   static const String unread = "Unread";
   static const String pending = "Pending";
