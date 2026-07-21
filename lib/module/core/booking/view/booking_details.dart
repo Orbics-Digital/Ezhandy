@@ -608,16 +608,20 @@ class _BookingDetailsState extends State<BookingDetails> {
             secondText: detail?.displayBookingDate ?? '-',
           ),
           TwoTextRow(
-            firstText: '${AppStrings.address}:',
-            secondText: detail?.user?.displayAddress ?? '-',
-          ),
-          TwoTextRow(
             firstText: '${AppStrings.serviceDate}:',
             secondText: detail?.displayServiceDate ?? '-',
           ),
           TwoTextRow(
             firstText: '${AppStrings.serviceTime}:',
             secondText: detail?.displayServiceTime ?? '-',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.duration}:',
+            secondText: detail?.displayDuration ?? '-',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.charges}:',
+            secondText: detail?.displayCharges ?? '-',
           ),
           TwoTextRow(
             firstText: '${AppStrings.starttime}:',

@@ -264,6 +264,10 @@ class BookingDetailModel {
 
   String get displayServiceTime => _formatTimeSlots(timeSlots);
 
+  String get displayDuration => _formatDuration(duration);
+
+  String get displayCharges => _formatMoney(totalAmount);
+
   String get displayStatusLabel => jobStatusLabel;
 
   String get displayReason {
@@ -407,6 +411,19 @@ String _formatTimeSlot(String value) {
             : '${part[0].toUpperCase()}${part.substring(1)}',
       )
       .join(' ');
+}
+
+String _formatDuration(int? minutes) {
+  if (minutes == null || minutes <= 0) return '-';
+
+  final hours = minutes ~/ 60;
+  final remainingMinutes = minutes % 60;
+
+  if (hours > 0 && remainingMinutes > 0) {
+    return '${hours}hr ${remainingMinutes}min';
+  }
+  if (hours > 0) return '${hours}hr';
+  return '${remainingMinutes}min';
 }
 
 String _formatMoney(String? value) {
