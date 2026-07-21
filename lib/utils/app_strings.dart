@@ -391,6 +391,7 @@ class AppStrings {
   static const String searchAnything = "Search anything....";
   static const String searchByBookingId = "Search by booking id";
   static const String noBookingsFound = "No bookings found";
+  static const String noReviewsFound = "No reviews found";
   static const String ourServices = "Our Services";
   static const String seeAll = "See All";
   static const String cleaning = "Cleaning";

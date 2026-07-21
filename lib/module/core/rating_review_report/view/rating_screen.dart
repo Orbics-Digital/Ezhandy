@@ -1,3 +1,5 @@
+import 'package:ezhandy_user/module/core/rating_review_report/controller/ratings_controller.dart';
+import 'package:ezhandy_user/module/core/rating_review_report/model/provider_rating_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -7,6 +9,7 @@ import 'package:ezhandy_user/utils/app_shadows.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/indicator/percentage_indicator.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:ezhandy_user/widgets/rating_star/rating_star.dart';
@@ -20,96 +23,110 @@ class RatingScreen extends StatefulWidget {
 }
 
 class _RatingScreenState extends State<RatingScreen> {
-  // double initialRating = 4;
+  final RatingsController _controller = RatingsController.i;
 
-  final List<Map<String, dynamic>> ratings = [
-    {"num": "5", "count": "300", "percent": 0.8},
-    {"num": "4", "count": "150", "percent": 0.7},
-    {"num": "3", "count": "100", "percent": 0.6},
-    {"num": "2", "count": "50", "percent": 0.5},
-    {"num": "1", "count": "10", "percent": 0.4},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _controller.fetchProviderRatings();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
       leading: AssetPath.backIcon,
-      onclickLead: () {
-        Get.back();
-      },
+      onclickLead: Get.back,
       title: AppStrings.reviewAndRating,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-        child: Column(
-          children: [
-            20.verticalSpace,
+        child: Obx(() {
+          if (_controller.isLoading.value && _controller.ratings.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.orange),
+            );
+          }
 
-            /// Row: Ratings chart + Overall rating number
-            Row(
-              children: [
-                ratingBarWidget(),
-                10.horizontalSpace,
-                avgRatingWidget(),
-              ],
+          final reviews = _controller.sortedRatings;
+
+          return RefreshIndicator(
+            color: AppColors.orange,
+            onRefresh: _controller.refreshProviderRatings,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  20.verticalSpace,
+                  Row(
+                    children: [
+                      ratingBarWidget(),
+                      10.horizontalSpace,
+                      avgRatingWidget(),
+                    ],
+                  ),
+                  15.verticalSpace,
+                  if (reviews.isEmpty)
+                    SizedBox(
+                      height: 0.45.sh,
+                      child: const Center(
+                        child: EmptyMessage(
+                          message: AppStrings.noReviewsFound,
+                        ),
+                      ),
+                    )
+                  else
+                    ...[
+                      for (var i = 0; i < reviews.length; i++) ...[
+                        if (i > 0) 10.verticalSpace,
+                        reviewContainer(reviews[i]),
+                      ],
+                    ],
+                  25.verticalSpace,
+                ],
+              ),
             ),
-            reviewListWidget(),
-
-            25.verticalSpace,
-          ],
-        ),
+          );
+        }),
       ),
     );
   }
 
-  Widget reviewListWidget() {
-    return Expanded(
-      child: ListView.separated(
-        // scrollDirection: Axis.horizontal,
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
-          return reviewContainer();
-        },
-        separatorBuilder: (context, index) {
-          return 10.verticalSpace;
-        },
-        itemCount: 5,
-      ),
-    );
-  }
-
-  CustomContainer reviewContainer() {
+  CustomContainer reviewContainer(ProviderRatingModel review) {
     return CustomContainer(
-        boxShadow: AppShadows.shadow1,
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ratingWidget(initialRating: 4.5),
-            5.verticalSpace,
-            CustomText(
-                text: AppStrings.dummyEventName,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold),
-            5.verticalSpace,
-            CustomText(
-              text: AppStrings.lorem5,
-              color: AppColors.grey,
-            ),
-          ],
-        ));
+      boxShadow: AppShadows.shadow1,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ratingWidget(initialRating: review.ratingValue),
+          5.verticalSpace,
+          CustomText(
+            text: review.displayDate,
+            fontSize: 12.sp,
+            color: AppColors.greyLight,
+          ),
+          5.verticalSpace,
+          CustomText(
+            text: review.displayReview,
+            color: AppColors.grey,
+          ),
+        ],
+      ),
+    );
   }
 
   Column ratingBarWidget() {
+    final breakdown = _controller.ratingBreakdown;
+
     return Column(
-      children: ratings
-          .map((r) => Padding(
-                padding: EdgeInsets.only(bottom: 10.h),
-                child: ratingIndicatorWidget(
-                  ratNum: r["num"],
-                  ratCount: r["count"],
-                  percent: r["percent"],
-                ),
-              ))
+      children: breakdown
+          .map(
+            (item) => Padding(
+              padding: EdgeInsets.only(bottom: 10.h),
+              child: ratingIndicatorWidget(
+                ratNum: item.star.toString(),
+                percent: item.percent,
+              ),
+            ),
+          )
           .toList(),
     );
   }
@@ -122,7 +139,7 @@ class _RatingScreenState extends State<RatingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              text: AppStrings.dummyRating,
+              text: _controller.averageRatingDisplay,
               fontSize: 30.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.black,
@@ -137,7 +154,7 @@ class _RatingScreenState extends State<RatingScreen> {
           ],
         ),
         CustomText(
-          text: "278 ${AppStrings.reviews}",
+          text: '${_controller.totalReviews} ${AppStrings.reviews}',
           is_alignLeft: false,
           fontSize: 10.sp,
         ),
@@ -147,20 +164,15 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Widget ratingWidget({required double initialRating}) {
     return RatingStar(
-      ignoreGestures: true, // Change to false if you want it clickable
+      ignoreGestures: true,
       itemSize: 25.sp,
       initialRating: initialRating,
-      onRatingUpdate: (rating) {
-        setState(() {
-          initialRating = rating;
-        });
-      },
+      onRatingUpdate: (_) {},
     );
   }
 
   Row ratingIndicatorWidget({
     required String ratNum,
-    required String ratCount,
     required double percent,
   }) {
     return Row(
@@ -173,15 +185,9 @@ class _RatingScreenState extends State<RatingScreen> {
         ),
         10.horizontalSpace,
         SizedBox(
-          width: 0.6.sw, // Fixed width for bars so they align neatly
+          width: 0.6.sw,
           child: PercentageIndicator(percent: percent),
         ),
-        10.horizontalSpace,
-        // CustomText(
-        //   align: Alignment.topCenter,
-        //   text: ratCount,
-        //   is_alignLeft: false,
-        // ),
       ],
     );
   }

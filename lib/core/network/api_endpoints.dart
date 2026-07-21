@@ -55,4 +55,7 @@ class ApiEndpoints {
       'community/posts/$postId/reactions';
   static String quickProvider(String providerId) =>
       'provider-services/quick-provider/$providerId';
+
+  static String providerRatings(String providerId) =>
+      'admin/providers/$providerId/ratings';
 }
