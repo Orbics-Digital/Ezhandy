@@ -189,4 +189,24 @@ class AuthRepository {
       throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
     }
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await _client.dio.post(
+      ApiEndpoints.changePassword,
+      data: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
 }

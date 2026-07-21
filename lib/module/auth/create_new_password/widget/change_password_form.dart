@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:ezhandy_user/utils/app_colors.dart';
+import 'package:get/get.dart';
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
@@ -12,7 +13,7 @@ import 'package:ezhandy_user/utils/validator_extensions.dart';
 import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
-import 'package:ezhandy_user/widgets/toast_dialogs_sheet/toast.dart';
+import 'package:ezhandy_user/utils/app_colors.dart';
 
 class ChangePasswordForm extends StatefulWidget {
   const ChangePasswordForm({super.key});
@@ -143,14 +144,27 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
   }
 
   Widget buttonWidget(context) {
-    return CustomButton(
+    return Obx(
+      () => CustomButton(
         text: AppStrings.update,
-        onclick: () {
+        isLoading: AuthController.i.isChangePasswordLoading.value,
+        onclick: () async {
           final isValid = rsesetpassKey.currentState!.validate();
-          if (!isValid) {
-            return;
-          }
+          if (!isValid) return;
+
           rsesetpassKey.currentState!.save();
+          FocusScope.of(context).unfocus();
+
+          final success = await AuthController.i.changePassword(
+            currentPassword: oldPasswordController.text,
+            newPassword: passwordController.text,
+          );
+          if (!success || !context.mounted) return;
+
+          oldPasswordController.clear();
+          passwordController.clear();
+          confirmPasswordController.clear();
+
           AppDialogs.showSuccessDialog(
             context,
             description: AppStrings.passwordHasBeenUpdated,
@@ -158,19 +172,13 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
             btnTxt1: AppStrings.ok,
             onTap1: () {
               AppNavigation.navigateToRemovingAll(
-                  context, AppRoutes.userProfileScreenRoute);
+                context,
+                AppRoutes.userProfileScreenRoute,
+              );
             },
           );
-          // AppNavigation.navigateTo(
-          //     context, AppRoutes.otpVerificationScreenRoute,
-          //     arguments: OtpVerificationRoutingArgument(
-          //         type: OtpType.forget.name,
-          //         emailAndPhone: emailController.text,
-          //         text: emailController.text));
-          // AuthController.i
-          //     .forgotPass(email: forgotPassRepo.email_controller.text);
-          ToastMessage(toastmsg: AppStrings.otpSendedToYourEmail);
-          FocusScope.of(context).unfocus();
-        });
+        },
+      ),
+    );
   }
 }

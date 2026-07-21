@@ -34,6 +34,7 @@ class AuthController extends GetxController {
   final RxBool isVerifyEmailOtpLoading = false.obs;
   final RxBool isResendVerificationLoading = false.obs;
   final RxBool isResetPasswordLoading = false.obs;
+  final RxBool isChangePasswordLoading = false.obs;
   final RxBool isQuickProviderLoading = false.obs;
   final RxBool isLoginSignUp = true.obs;
 
@@ -280,6 +281,30 @@ class AuthController extends GetxController {
       return false;
     } finally {
       isResetPasswordLoading.value = false;
+    }
+  }
+
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (isChangePasswordLoading.value) return false;
+
+    isChangePasswordLoading.value = true;
+    try {
+      await _authRepository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isChangePasswordLoading.value = false;
     }
   }
 
