@@ -72,8 +72,10 @@ class BookingsController extends GetxController {
     return result;
   }
 
-  List<ProviderBookingModel> get latestProviderBookings {
-    final sorted = providerBookings.toList()
+  List<ProviderBookingModel> get pendingHomeBookings {
+    final pending = providerBookings
+        .where((booking) => booking.status == BookingStatusEnum.Pending.id)
+        .toList()
       ..sort((a, b) {
         final aDate = a.createdAt ??
             DateTime.tryParse(a.bookingDate ?? '') ??
@@ -84,7 +86,7 @@ class BookingsController extends GetxController {
         return bDate.compareTo(aDate);
       });
 
-    return sorted.take(2).toList(growable: false);
+    return pending.take(3).toList(growable: false);
   }
 
   void setSearchQuery(String value) => searchQuery.value = value;

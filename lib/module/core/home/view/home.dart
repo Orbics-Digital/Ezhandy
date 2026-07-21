@@ -19,7 +19,6 @@ import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/widgets/notification/notification_badge_icon.dart';
-import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class Home extends StatefulWidget {
@@ -129,14 +128,7 @@ class _HomeState extends State<Home> {
                     );
                   }),
                   20.verticalSpace,
-                  _latestBookingsSection(),
-                  20.verticalSpace,
-                  CustomButton(
-                    text: AppStrings.viewAll,
-                    onclick: () {
-                      HomeController.i.selectedTab.value = 2;
-                    },
-                  ),
+                  _pendingBookingsSection(),
                   20.verticalSpace,
                   ourStoryWidget(),
                   20.verticalSpace,
@@ -151,10 +143,10 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _latestBookingsSection() {
+  Widget _pendingBookingsSection() {
     return Obx(() {
       final controller = BookingsController.i;
-      final bookings = controller.latestProviderBookings;
+      final bookings = controller.pendingHomeBookings;
       final isLoading = controller.isProviderBookingsLoading.value;
 
       if (isLoading) {
@@ -167,7 +159,7 @@ class _HomeState extends State<Home> {
       }
 
       if (bookings.isEmpty) {
-        return const EmptyMessage(message: AppStrings.noBookingsFound);
+        return const SizedBox.shrink();
       }
 
       return Column(
@@ -176,6 +168,13 @@ class _HomeState extends State<Home> {
             if (i > 0) 20.verticalSpace,
             bookingContainerWidget(booking: bookings[i]),
           ],
+          20.verticalSpace,
+          CustomButton(
+            text: AppStrings.viewAll,
+            onclick: () {
+              HomeController.i.selectedTab.value = 2;
+            },
+          ),
         ],
       );
     });
