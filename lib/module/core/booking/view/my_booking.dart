@@ -118,6 +118,11 @@ class _MyBookingState extends State<MyBooking> {
                               bookingId:
                                   booking.bookingId?.toString() ?? '-',
                               total: booking.amount ?? '0',
+                              isQuick: booking.isQuick,
+                              showUnpaid: !booking.isPaid &&
+                                  BookingStatusEnum.showsUnpaidTag(
+                                    booking.status,
+                                  ),
                             );
                           },
                           separatorBuilder: (context, index) {
@@ -211,7 +216,7 @@ class _MyBookingState extends State<MyBooking> {
           10.horizontalSpace,
       
         CustomText(
-          text: AppStrings.jobs,
+          text: AppStrings.myBookings,
           // fontFamily: AppStrings.montserrat,
           // color: AppColors.blueDark,
           fontWeight: FontWeight.w500,
@@ -223,12 +228,37 @@ class _MyBookingState extends State<MyBooking> {
     );
   }
 
-  Widget singleWidget({date, bookingId, status, total, ontap}) {
+  Widget singleWidget({
+    date,
+    bookingId,
+    status,
+    total,
+    ontap,
+    bool isQuick = false,
+    bool showUnpaid = false,
+  }) {
     return CustomContainer(
       onTap: ontap,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          5.verticalSpace,
+          if (isQuick || showUnpaid)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isQuick) _bookingTagLabel(
+                  text: AppStrings.quick,
+                  color: AppColors.orange,
+                ),
+                if (isQuick && showUnpaid) 4.horizontalSpace,
+                if (showUnpaid)
+                  _bookingTagLabel(
+                    text: AppStrings.unpaid,
+                    color: AppColors.red,
+                  ),
+              ],
+            ),
+          if (isQuick || showUnpaid) 8.verticalSpace else 5.verticalSpace,
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -242,7 +272,7 @@ class _MyBookingState extends State<MyBooking> {
                 text: "${AppStrings.status}: $status",
                 color: AppColors.greyLight,
                 fontSize: 10.sp,
-              )
+              ),
             ],
           ),
           10.verticalSpace,
@@ -264,6 +294,29 @@ class _MyBookingState extends State<MyBooking> {
               ]),
           5.verticalSpace,
         ],
+      ),
+    );
+  }
+
+  Widget _bookingTagLabel({
+    required String text,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6.r),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: AppColors.white,
+          fontSize: 8.sp,
+          fontWeight: FontWeight.w600,
+          height: 1,
+          fontFamily: AppStrings.montserrat,
+        ),
       ),
     );
   }

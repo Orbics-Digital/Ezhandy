@@ -64,6 +64,10 @@ enum BookingStatusEnum {
     return statusId == Rejected.id || statusId == Cancelled.id;
   }
 
+  static bool showsUnpaidTag(int? statusId) {
+    return statusId == Completed.id || statusId == UserVerifiedIsDone.id;
+  }
+
   static String reasonTitle(int? statusId) {
     switch (fromId(statusId)) {
       case BookingStatusEnum.Cancelled:
