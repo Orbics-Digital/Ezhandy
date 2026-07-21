@@ -3,6 +3,8 @@ import 'package:ezhandy_user/module/core/chat/model/my_chat_model.dart';
 class ChatHistoryMessageModel {
   final int? id;
   final String? content;
+  final String? filePath;
+  final String? clientMsgId;
   final String? messageType;
   final bool isRead;
   final DateTime? createdAt;
@@ -13,6 +15,8 @@ class ChatHistoryMessageModel {
   const ChatHistoryMessageModel({
     this.id,
     this.content,
+    this.filePath,
+    this.clientMsgId,
     this.messageType,
     this.isRead = false,
     this.createdAt,
@@ -22,6 +26,10 @@ class ChatHistoryMessageModel {
   });
 
   String get displayContent => content?.trim() ?? '';
+
+  String get displayFilePath => filePath?.trim() ?? '';
+
+  bool get hasImage => displayFilePath.isNotEmpty;
 
   String get senderDisplayName => sender?.displayName ?? '-';
 
@@ -35,6 +43,8 @@ class ChatHistoryMessageModel {
     return ChatHistoryMessageModel(
       id: _readInt(json['id']),
       content: json['content']?.toString(),
+      filePath: json['filePath']?.toString(),
+      clientMsgId: json['clientMsgId']?.toString(),
       messageType: json['messageType']?.toString(),
       isRead: _readBool(json['isRead']),
       createdAt: _readDate(json['createdAt']),

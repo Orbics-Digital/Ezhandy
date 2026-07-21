@@ -10,6 +10,7 @@ class SocketConstants {
   static const String joinChatError = 'joinChatError';
   static const String connected = 'connected';
   static const String sendMessage = 'sendMessage';
+  static const String uploadFile = 'uploadFile';
   static const String messageReceived = 'messageReceived';
   static const String chatUpdated = 'chatUpdated';
 }

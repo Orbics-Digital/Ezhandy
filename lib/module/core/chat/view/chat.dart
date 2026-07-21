@@ -11,6 +11,7 @@ import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/constant.dart';
+import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/widgets/Container/bubble_chat_container.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
@@ -119,6 +120,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String? get _currentUserId => AuthController.i.user.value?.sub?.trim();
 
+  void _pickAndSendImage(File file) {
+    _controller.sendChatImage(file);
+  }
+
+  void _openImagePicker() {
+    AppDialogs.showImageSourceDialog(
+      context,
+      setFile: _pickAndSendImage,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userName = widget.otherUserName?.trim().isNotEmpty == true
@@ -143,19 +155,30 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: Platform.isAndroid
                   ? EdgeInsets.zero
                   : const EdgeInsets.only(bottom: AppPadding.padding25),
-              child: Row(
-                children: [
-                  Expanded(child: _messageTextField()),
-                  10.horizontalSpace,
-                  GestureDetector(
-                    child: Image.asset(
-                      AssetPath.cameraIcon,
-                      width: 30.w,
-                      height: 30.h,
+              child: Obx(
+                () => Row(
+                  children: [
+                    Expanded(child: _messageTextField()),
+                    10.horizontalSpace,
+                    GestureDetector(
+                      onTap: _hasChatId &&
+                              !_controller.isSendingChatImage.value
+                          ? _openImagePicker
+                          : null,
+                      child: Opacity(
+                        opacity: _controller.isSendingChatImage.value
+                            ? 0.5
+                            : 1,
+                        child: Image.asset(
+                          AssetPath.cameraIcon,
+                          width: 30.w,
+                          height: 30.h,
+                        ),
+                      ),
                     ),
-                  ),
-                  10.horizontalSpace,
-                ],
+                    10.horizontalSpace,
+                  ],
+                ),
               ),
             ),
           ),
@@ -229,9 +252,13 @@ class _ChatScreenState extends State<ChatScreen> {
               if (showDateDivider) _buildDateDivider(currentTime),
               ChatBubble(
                 name: current.senderDisplayName,
-                text: current.displayContent.isNotEmpty
-                    ? current.displayContent
-                    : '-',
+                text: current.hasImage
+                    ? ''
+                    : (current.displayContent.isNotEmpty
+                        ? current.displayContent
+                        : '-'),
+                imagePath:
+                    current.hasImage ? current.displayFilePath : null,
                 isSender: !current.isSentBy(_currentUserId),
                 profileImage: _controller.resolveSenderProfileImage(current),
               ),

@@ -7,6 +7,7 @@ import 'package:ezhandy_user/module/core/chat/model/chat_history_message_model.d
 import 'package:ezhandy_user/module/core/chat/model/my_chat_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:get/get.dart';
+import 'dart:io';
 
 class ChatController extends GetxController {
   static ChatController get i {
@@ -26,6 +27,7 @@ class ChatController extends GetxController {
   final RxBool isMyChatsLoading = false.obs;
   final RxBool isChatHistoryLoading = false.obs;
   final RxBool isFindOrCreateChatLoading = false.obs;
+  final RxBool isSendingChatImage = false.obs;
 
   String? _activeChatId;
   String? _activeReceiverId;
@@ -231,6 +233,84 @@ class ChatController extends GetxController {
     );
   }
 
+  Future<void> sendChatImage(File image) async {
+    final chatId = _activeChatId?.trim();
+    if (chatId == null || chatId.isEmpty || isSendingChatImage.value) return;
+
+    final receiverId = _activeReceiverId?.trim();
+    if (receiverId == null || receiverId.isEmpty) {
+      AppDialogs.showToast(message: 'Receiver not found');
+      return;
+    }
+
+    if (!SocketService.i.isUserOnline.value) {
+      AppDialogs.showToast(message: 'Chat connection not ready');
+      return;
+    }
+
+    final currentUser = AuthController.i.user.value;
+    final userId = currentUser?.sub?.trim();
+    if (userId == null || userId.isEmpty) return;
+
+    final fileName = image.path.split(Platform.pathSeparator).last;
+    final clientMsgId =
+        'temp-img-${DateTime.now().millisecondsSinceEpoch}-${DateTime.now().microsecondsSinceEpoch}';
+
+    isSendingChatImage.value = true;
+    try {
+      final optimistic = ChatHistoryMessageModel(
+        filePath: image.path,
+        clientMsgId: clientMsgId,
+        messageType: 'image',
+        createdAt: DateTime.now().toUtc(),
+        senderId: userId,
+        chatId: chatId,
+        sender: currentUser == null
+            ? null
+            : MyChatUserModel(
+                id: userId,
+                fullName: currentUser.fullName,
+                profileImage: currentUser.profileImage,
+              ),
+      );
+      chatHistory.add(optimistic);
+      chatHistory.refresh();
+
+      await SocketService.i.uploadFile(
+        chatId: chatId,
+        receiverId: receiverId,
+        clientMsgId: clientMsgId,
+        file: image,
+        fileName: fileName,
+        mimeType: _mimeTypeFromFileName(fileName),
+      );
+    } catch (e) {
+      chatHistory.removeWhere(
+        (item) => item.clientMsgId == clientMsgId && item.id == null,
+      );
+      chatHistory.refresh();
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isSendingChatImage.value = false;
+    }
+  }
+
+  String _mimeTypeFromFileName(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      case 'heic':
+        return 'image/heic';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
   void _onMessageReceived(Map<String, dynamic> data) {
     final messageJson = _extractMessageJson(data);
     if (messageJson == null) return;
@@ -247,10 +327,21 @@ class ChatController extends GetxController {
     final userId = AuthController.i.user.value?.sub?.trim();
     if (message.isSentBy(userId)) {
       final optimisticIndex = chatHistory.lastIndexWhere(
-        (item) =>
-            item.id == null &&
-            item.isSentBy(userId) &&
-            item.displayContent == message.displayContent,
+        (item) {
+          if (item.id != null || !item.isSentBy(userId)) return false;
+
+          final incomingClientId = message.clientMsgId?.trim();
+          if (incomingClientId != null && incomingClientId.isNotEmpty) {
+            return item.clientMsgId == incomingClientId;
+          }
+
+          if (message.hasImage && item.hasImage) {
+            return true;
+          }
+
+          return !message.hasImage &&
+              item.displayContent == message.displayContent;
+        },
       );
       if (optimisticIndex >= 0) {
         final preservedImage =
@@ -280,6 +371,8 @@ class ChatController extends GetxController {
     return ChatHistoryMessageModel(
       id: message.id,
       content: message.content,
+      filePath: message.filePath,
+      clientMsgId: message.clientMsgId,
       messageType: message.messageType,
       isRead: message.isRead,
       createdAt: message.createdAt,

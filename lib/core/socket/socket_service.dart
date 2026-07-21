@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:ezhandy_user/core/socket/socket_constants.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:get/get.dart';
@@ -162,21 +165,20 @@ class SocketService extends GetxService {
 
   void sendMessage({
     required String chatId,
-    required String content,
     required String senderId,
+    String content = '',
     String? receiverId,
-    String messageType = 'text',
   }) {
     final id = chatId.trim();
-    final text = content.trim();
     final from = senderId.trim();
-    if (id.isEmpty || text.isEmpty || from.isEmpty) return;
+    final text = content.trim();
+    if (id.isEmpty || from.isEmpty || text.isEmpty) return;
 
     final payload = <String, dynamic>{
       'chatId': id,
-      'content': text,
-      'messageType': messageType,
+      'messageType': 'text',
       'senderId': from,
+      'content': text,
     };
 
     final to = receiverId?.trim();
@@ -185,6 +187,31 @@ class SocketService extends GetxService {
     }
 
     _socket?.emit(SocketConstants.sendMessage, payload);
+  }
+
+  Future<void> uploadFile({
+    required String chatId,
+    required String receiverId,
+    required String clientMsgId,
+    required File file,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    final id = chatId.trim();
+    final to = receiverId.trim();
+    final msgId = clientMsgId.trim();
+    if (id.isEmpty || to.isEmpty || msgId.isEmpty) return;
+
+    final bytes = await file.readAsBytes();
+
+    _socket?.emit(SocketConstants.uploadFile, {
+      'receiverId': to,
+      'chatId': id,
+      'clientMsgId': msgId,
+      'fileName': fileName,
+      'mimeType': mimeType,
+      'data': Uint8List.fromList(bytes),
+    });
   }
 
   void disconnect({bool clearPending = true}) {
