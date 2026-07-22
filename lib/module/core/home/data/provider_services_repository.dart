@@ -117,6 +117,23 @@ class ProviderServicesRepository {
     }
   }
 
+  Future<bool> updateServiceStatus({
+    required String serviceId,
+    required bool isServiceActive,
+  }) async {
+    final response = await _client.dio.patch(
+      ApiEndpoints.providerServiceStatus(serviceId),
+      data: {
+        'isServiceActive': isServiceActive,
+      },
+    );
+
+    final data = ApiHelper.dataObject(response.data);
+    final value = data['isServiceActive'];
+    if (value is bool) return value;
+    return value?.toString().toLowerCase() == 'true';
+  }
+
   Future<bool> toggleQuickProvider({
     required String providerId,
     required bool isQuickProvider,

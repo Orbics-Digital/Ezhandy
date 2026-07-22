@@ -27,6 +27,7 @@ class ProviderServicesController extends GetxController {
   final RxBool isCreateServiceLoading = false.obs;
   final RxBool isUpdateServiceLoading = false.obs;
   final RxBool isDeleteServiceLoading = false.obs;
+  final RxBool isUpdateServiceStatusLoading = false.obs;
   final RxBool isProviderServicesLoading = false.obs;
   final RxBool isPastWorkLoading = false.obs;
 
@@ -139,6 +140,62 @@ class ProviderServicesController extends GetxController {
     } finally {
       isDeleteServiceLoading.value = false;
     }
+  }
+
+  Future<bool> updateServiceStatus({
+    required String serviceId,
+    required bool isServiceActive,
+  }) async {
+    final id = serviceId.trim();
+    if (id.isEmpty || isUpdateServiceStatusLoading.value) return false;
+
+    isUpdateServiceStatusLoading.value = true;
+    try {
+      final updatedStatus = await _repository.updateServiceStatus(
+        serviceId: id,
+        isServiceActive: isServiceActive,
+      );
+      _updateServiceActiveInList(id, updatedStatus);
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isUpdateServiceStatusLoading.value = false;
+    }
+  }
+
+  void _updateServiceActiveInList(String serviceId, bool isServiceActive) {
+    final index =
+        providerServices.indexWhere((service) => service.id == serviceId);
+    if (index == -1) return;
+
+    final current = providerServices[index];
+    providerServices[index] = ProviderServiceModel(
+      id: current.id,
+      userId: current.userId,
+      title: current.title,
+      description: current.description,
+      visitCharges: current.visitCharges,
+      hourlyRate: current.hourlyRate,
+      imageUrl: current.imageUrl,
+      radius: current.radius,
+      rating: current.rating,
+      timeSlots: current.timeSlots,
+      calendar: current.calendar,
+      isServiceActive: isServiceActive,
+      isDeleted: current.isDeleted,
+      serviceTypeId: current.serviceTypeId,
+      subServiceId: current.subServiceId,
+      isQuickService: current.isQuickService,
+      quickServiceExtraFee: current.quickServiceExtraFee,
+      createdAt: current.createdAt,
+      updatedAt: current.updatedAt,
+      serviceType: current.serviceType,
+    );
   }
 
   Future<void> fetchPastWorkByService(String serviceId) async {

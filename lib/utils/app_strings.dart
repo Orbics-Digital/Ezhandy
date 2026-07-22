@@ -279,6 +279,17 @@ class AppStrings {
   static const String status = "Status";
   static const String activeNow = "Active Now";
   static const String active = "Active";
+  static const String inactive = "Inactive";
+  static const String activateService = "Activate Service";
+  static const String deactivateService = "Deactivate Service";
+  static const String serviceActivatedSuccessfully =
+      "Service activated successfully";
+  static const String serviceDeactivatedSuccessfully =
+      "Service deactivated successfully";
+  static const String areYouSureYouWantToActivateThisService =
+      "Are you sure you want to activate this service?";
+  static const String areYouSureYouWantToDeactivateThisService =
+      "Are you sure you want to deactivate this service?";
   static const String EnterStatus = "Enter Status";
   static const String uploadProfileImage = "Upload Profile Image";
   static const String upload = "Upload";

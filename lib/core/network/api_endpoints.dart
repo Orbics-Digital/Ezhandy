@@ -47,6 +47,8 @@ class ApiEndpoints {
       'live-chat/$chatId/history/chat';
 
   static String providerService(String serviceId) => 'provider-services/$serviceId';
+  static String providerServiceStatus(String serviceId) =>
+      'provider-services/status/$serviceId';
   static String product(String productId) => 'products/$productId';
   static String ownerProducts(String ownerId) => 'products/owner/$ownerId';
 

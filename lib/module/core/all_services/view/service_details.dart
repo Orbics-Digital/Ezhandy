@@ -34,8 +34,15 @@ class ServiceDetails extends StatefulWidget {
 }
 
 class _ServiceDetailsState extends State<ServiceDetails> {
+  late bool _isServiceActive;
+
   ProviderServiceModel? get _service => widget.service;
 
+  @override
+  void initState() {
+    super.initState();
+    _isServiceActive = widget.service?.isServiceActive ?? true;
+  }
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -43,116 +50,179 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       onclickLead: () => Get.back(),
       title: AppStrings.serviceDetails,
       appBarheight: 50,
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: SingleChildScrollView(
+            _serviceImage(),
+            15.verticalSpace,
+            CustomText(
+              text: _service?.title ?? AppStrings.titleName,
+              fontWeight: FontWeight.w700,
+              fontSize: 16.sp,
+            ),
+            5.verticalSpace,
+            CustomText(
+              text: _service?.description ?? AppStrings.lorem5,
+            ),
+            15.verticalSpace,
+            CustomContainer(
+              isPadding: false,
+              child: chargesDetailsWidget(),
+            ),
+            if (_service?.isQuickService == true) ...[
+              15.verticalSpace,
+              CustomContainer(
+                isPadding: false,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _serviceImage(),
-                    15.verticalSpace,
-                    CustomText(
-                      text: _service?.title ?? AppStrings.titleName,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16.sp,
-                    ),
-                    5.verticalSpace,
-                    CustomText(
-                      text: _service?.description ?? AppStrings.lorem5,
-                    ),
-                    15.verticalSpace,
-                    CustomContainer(
-                      isPadding: false,
-                      child: chargesDetailsWidget(),
-                    ),
-                    if (_service?.isQuickService == true) ...[
-                      15.verticalSpace,
-                      CustomContainer(
-                        isPadding: false,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.all(AppPadding.padding12),
-                              child: CustomText(
-                                text: AppStrings.quickService,
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Divider(color: AppColors.blueDark),
-                            quickChargesDetailsWidget(),
-                          ],
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.all(AppPadding.padding12),
+                      child: CustomText(
+                        text: AppStrings.quickService,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                    15.verticalSpace,
-                    CustomContainer(
-                      isPadding: false,
-                      child: scheduleDetailsWidget(),
                     ),
-                    10.verticalSpace,
+                    const Divider(color: AppColors.blueDark),
+                    quickChargesDetailsWidget(),
                   ],
                 ),
               ),
+            ],
+            15.verticalSpace,
+            CustomContainer(
+              isPadding: false,
+              child: scheduleDetailsWidget(),
             ),
-            CustomButton(
-              text: AppStrings.pastWork,
-              onclick: () {
-                final serviceId = _service?.id?.trim();
-                if (serviceId == null || serviceId.isEmpty) {
-                  AppDialogs.showToast(message: AppStrings.noServicesFound);
-                  return;
-                }
-
-                AppNavigation.navigateTo(
-                  context,
-                  AppRoutes.pastworkScreenRoute,
-                  arguments: PastWorkRoutingArgument(serviceId: serviceId),
-                );
-              },
-            ),
-            10.verticalSpace,
-            Row(
-              children: [
-                Expanded(
-                  child: Obx(
-                    () => CustomButton(
-                      color: AppColors.black,
-                      text: AppStrings.remove,
-                      isLoading:
-                          ProviderServicesController.i.isDeleteServiceLoading.value,
-                      onclick: _handleDeleteService,
-                    ),
-                  ),
-                ),
-                10.horizontalSpace,
-                Expanded(
-                  child: CustomButton(
-                    text: AppStrings.edit,
-                    onclick: () {
-                      AppNavigation.navigateReplacementNamed(
-                        context,
-                        AppRoutes.addEditServiceScreenRoute,
-                        arguments: ServiceRoutingArgument(
-                          service: _service,
-                          serviceName: _service?.title ?? AppStrings.edit,
-                          serviceTypeId: _service?.serviceTypeId,
-                          type: AddEditType.edit.name,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+            15.verticalSpace,
+            _actionButtonsWidget(),
             25.verticalSpace,
           ],
         ),
       ),
+    );
+  }
+
+  Widget _actionButtonsWidget() {
+    return Column(
+      children: [
+        CustomButton(
+          text: AppStrings.pastWork,
+          onclick: () {
+            final serviceId = _service?.id?.trim();
+            if (serviceId == null || serviceId.isEmpty) {
+              AppDialogs.showToast(message: AppStrings.noServicesFound);
+              return;
+            }
+
+            AppNavigation.navigateTo(
+              context,
+              AppRoutes.pastworkScreenRoute,
+              arguments: PastWorkRoutingArgument(serviceId: serviceId),
+            );
+          },
+        ),
+        10.verticalSpace,
+        Obx(
+          () => CustomButton(
+            color: _isServiceActive ? AppColors.black : AppColors.orange,
+            text: _isServiceActive
+                ? AppStrings.deactivateService
+                : AppStrings.activateService,
+            isLoading:
+                ProviderServicesController.i.isUpdateServiceStatusLoading.value,
+            onclick: _handleToggleServiceStatus,
+          ),
+        ),
+        10.verticalSpace,
+        Row(
+          children: [
+            Expanded(
+              child: Obx(
+                () => CustomButton(
+                  color: AppColors.black,
+                  text: AppStrings.remove,
+                  isLoading: ProviderServicesController
+                      .i.isDeleteServiceLoading.value,
+                  onclick: _handleDeleteService,
+                ),
+              ),
+            ),
+            10.horizontalSpace,
+            Expanded(
+              child: CustomButton(
+                text: AppStrings.edit,
+                onclick: () {
+                  AppNavigation.navigateReplacementNamed(
+                    context,
+                    AppRoutes.addEditServiceScreenRoute,
+                    arguments: ServiceRoutingArgument(
+                      service: _service,
+                      serviceName: _service?.title ?? AppStrings.edit,
+                      serviceTypeId: _service?.serviceTypeId,
+                      type: AddEditType.edit.name,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _handleToggleServiceStatus() {
+    final serviceId = _service?.id?.trim() ?? '';
+    if (serviceId.isEmpty) {
+      AppDialogs.showToast(message: AppStrings.noServicesFound);
+      return;
+    }
+
+    final activating = !_isServiceActive;
+
+    AppDialogs.showSuccessDialog(
+      context,
+      description: activating
+          ? AppStrings.areYouSureYouWantToActivateThisService
+          : AppStrings.areYouSureYouWantToDeactivateThisService,
+      image: AssetPath.tumbIcon,
+      isDoneShow: false,
+      btnTxt1: AppStrings.yes,
+      onTap1: () async {
+        AppNavigation.navigatorPop(context);
+
+        final success = await ProviderServicesController.i.updateServiceStatus(
+          serviceId: serviceId,
+          isServiceActive: activating,
+        );
+        if (!success || !mounted) return;
+
+        final updatedService =
+            ProviderServicesController.i.getServiceById(serviceId);
+        setState(() {
+          _isServiceActive =
+              updatedService?.isServiceActive ?? activating;
+        });
+
+        AppDialogs.showSuccessDialog(
+          context,
+          description: activating
+              ? AppStrings.serviceActivatedSuccessfully
+              : AppStrings.serviceDeactivatedSuccessfully,
+          title: AppStrings.congratulation,
+          btnTxt1: AppStrings.ok,
+          onTap1: () {
+            AppNavigation.navigatorPop(context);
+          },
+        );
+      },
+      btnTxt2: AppStrings.no,
+      onTap2: () {
+        AppNavigation.navigatorPop(context);
+      },
     );
   }
 
@@ -176,18 +246,8 @@ class _ServiceDetailsState extends State<ServiceDetails> {
             await ProviderServicesController.i.deleteService(serviceId);
         if (!success || !mounted) return;
 
-        AppDialogs.showSuccessDialog(
-          context,
-          description: AppStrings.serviceDeleteSuccessfully,
-          title: AppStrings.congratulation,
-          btnTxt1: AppStrings.ok,
-          onTap1: () {
-            AppNavigation.navigatorPopUntil(
-              context,
-              AppRoutes.listOfServicesScreenRoute,
-            );
-          },
-        );
+        AppDialogs.showToast(message: AppStrings.serviceDeleteSuccessfully);
+        Get.back();
       },
       btnTxt2: AppStrings.no,
       onTap2: () {
@@ -213,6 +273,13 @@ class _ServiceDetailsState extends State<ServiceDetails> {
           TwoTextRow(
             firstText: '${AppStrings.radius}:',
             secondText: _service?.displayRadius ?? '-',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.status}:',
+            secondText:
+                _isServiceActive ? AppStrings.active : AppStrings.inactive,
+            secondColor:
+                _isServiceActive ? AppColors.green : AppColors.red,
           ),
           if ((_service?.serviceType?.displayName ?? '').isNotEmpty)
             TwoTextRow(
