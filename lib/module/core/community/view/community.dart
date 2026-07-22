@@ -70,6 +70,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 final items = _controller.filteredPosts;
                 final isLoading = _controller.isLoading.value;
 
+                if (isLoading && items.isEmpty) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.orange),
+                  );
+                }
+
                 if (!isLoading && items.isEmpty) {
                   return RefreshIndicator(
                     color: AppColors.orange,

@@ -5,7 +5,6 @@ import 'package:ezhandy_user/module/core/community/model/community_comment_model
 import 'package:ezhandy_user/module/core/community/model/community_post_model.dart';
 import 'package:ezhandy_user/module/core/community/model/community_reactions_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
-import 'package:ezhandy_user/utils/app_loader.dart';
 import 'package:get/get.dart';
 
 class CommunityController extends GetxController {
@@ -213,7 +212,6 @@ class CommunityController extends GetxController {
     if (isLoading.value) return;
 
     isLoading.value = true;
-    AppLoader.show();
     try {
       posts.assignAll(await _repository.getPosts());
     } on DioException catch (e) {
@@ -222,7 +220,6 @@ class CommunityController extends GetxController {
       AppDialogs.showToast(message: e.toString());
     } finally {
       isLoading.value = false;
-      AppLoader.hide();
     }
   }
 }
