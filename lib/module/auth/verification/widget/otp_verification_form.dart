@@ -95,12 +95,15 @@ class _OtpVerificationFormState extends State<OtpVerificationForm> {
                 child: Column(
                   children: [
                     CustomText(
-                        is_alignLeft: false,
-                        text: widget.type == OtpType.forget.name
-                            ? AppStrings.otpCodeForgetMessage
-                            : widget.emailAndPhone == OtpCodeType.email.name
-                                ? AppStrings.otpCodeEmailMessage
-                                : AppStrings.otpCodePhoneMessage),
+                      is_alignLeft: false,
+                      text: widget.type == OtpType.forget.name
+                          ? AppStrings.otpCodeForgetMessage
+                          : widget.type == OtpType.signup.name
+                              ? AppStrings.otpCodeSignupMessage
+                              : widget.emailAndPhone == OtpCodeType.email.name
+                                  ? AppStrings.otpCodeEmailMessage
+                                  : AppStrings.otpCodePhoneMessage,
+                    ),
                     20.verticalSpace,
                     // CustomText(text: AppStrings.verificationCode + "*"),
                     // 10.verticalSpace,

@@ -326,7 +326,9 @@ class AppStrings {
   static const String otpCodePhoneMessage =
       'Please check your phone for verification code. Your code is 4 digit in length';
   static const String otpCodeForgetMessage =
-      'Enter the OTP sent to your registered number to verify your identity';
+      'Enter the OTP sent to your registered email';
+  static const String otpCodeSignupMessage =
+      'Enter the OTP sent to your registered email to verify your identity';
   static const String didnotReceiveCode = "Didn't received th e code? ";
   static const resend = "Resend";
   static const String verificationCode = "Verification Code";
