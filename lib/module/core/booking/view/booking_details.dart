@@ -73,6 +73,9 @@ class _BookingDetailsState extends State<BookingDetails> {
 
   bool get _isCompletedPaid => _detail?.isCompletedPaid ?? false;
 
+  bool get _showsChatIcon =>
+      BookingStatusEnum.showsChatIcon(_detail?.status);
+
   Future<bool> _updateBookingStatus({
     required int status,
     String? statusReason,
@@ -161,10 +164,8 @@ class _BookingDetailsState extends State<BookingDetails> {
         title: AppStrings.bookingDetails,
         actionWidget: Obx(
           () {
-            bool showIcon = HomeController.i.jobStatus.value ==
-                    AppStrings.inRoute ||
-                HomeController.i.jobStatus.value == AppStrings.started ||
-                _isCompletedUnpaid;
+            _bookingsController.bookingDetail.value;
+            final showIcon = _showsChatIcon;
 
             return Padding(
               padding: const EdgeInsets.only(right: AppPadding.padding12),

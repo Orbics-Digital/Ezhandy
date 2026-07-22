@@ -85,6 +85,17 @@ enum BookingStatusEnum {
     return statusId == UserVerifiedIsDone.id;
   }
 
+  static bool showsChatIcon(int? statusId) {
+    switch (fromId(statusId)) {
+      case BookingStatusEnum.Assigned:
+      case BookingStatusEnum.InRoute:
+      case BookingStatusEnum.Started:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   static String reasonTitle(int? statusId) {
     switch (fromId(statusId)) {
       case BookingStatusEnum.Cancelled:
