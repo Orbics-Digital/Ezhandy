@@ -121,6 +121,9 @@ class _MyBookingState extends State<MyBooking> {
                                   BookingStatusEnum.showsUnpaidTag(
                                     booking.status,
                                   ),
+                              showVerified: BookingStatusEnum.showsVerifiedTag(
+                                booking.status,
+                              ),
                             );
                           },
                           separatorBuilder: (context, index) {
@@ -225,13 +228,14 @@ class _MyBookingState extends State<MyBooking> {
     ontap,
     bool isQuick = false,
     bool showUnpaid = false,
+    bool showVerified = false,
   }) {
     return CustomContainer(
       onTap: ontap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isQuick || showUnpaid)
+          if (isQuick || showUnpaid || showVerified)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -239,15 +243,21 @@ class _MyBookingState extends State<MyBooking> {
                   text: AppStrings.quick,
                   color: AppColors.orange,
                 ),
-                if (isQuick && showUnpaid) 4.horizontalSpace,
+                if (isQuick && (showUnpaid || showVerified)) 4.horizontalSpace,
                 if (showUnpaid)
                   _bookingTagLabel(
                     text: AppStrings.unpaid,
                     color: AppColors.red,
                   ),
+                if (showUnpaid && showVerified) 4.horizontalSpace,
+                if (showVerified)
+                  _bookingTagLabel(
+                    text: AppStrings.verified,
+                    color: AppColors.green,
+                  ),
               ],
             ),
-          if (isQuick || showUnpaid) 8.verticalSpace else 5.verticalSpace,
+          if (isQuick || showUnpaid || showVerified) 8.verticalSpace else 5.verticalSpace,
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

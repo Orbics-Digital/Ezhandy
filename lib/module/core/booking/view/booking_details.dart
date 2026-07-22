@@ -61,6 +61,18 @@ class _BookingDetailsState extends State<BookingDetails> {
 
   int? get _bookingId => widget.bookingId ?? _detail?.id;
 
+  BookingStatusEnum? get _bookingStatus =>
+      BookingStatusEnum.fromId(_detail?.status);
+
+  bool get _isStarted => _bookingStatus == BookingStatusEnum.Started;
+
+  bool get _isCompletedOrVerified =>
+      _detail?.isCompletedOrVerified ?? false;
+
+  bool get _isCompletedUnpaid => _detail?.isCompletedUnpaid ?? false;
+
+  bool get _isCompletedPaid => _detail?.isCompletedPaid ?? false;
+
   Future<bool> _updateBookingStatus({
     required int status,
     String? statusReason,
@@ -85,6 +97,7 @@ class _BookingDetailsState extends State<BookingDetails> {
       case BookingStatusEnum.Started:
         return AppStrings.mustUploadAfterWorkImages;
       case BookingStatusEnum.Completed:
+      case BookingStatusEnum.UserVerifiedIsDone:
         return AppStrings.paymentDispatchedAfterVerification;
       default:
         return null;
@@ -146,7 +159,7 @@ class _BookingDetailsState extends State<BookingDetails> {
             bool showIcon = HomeController.i.jobStatus.value ==
                     AppStrings.inRoute ||
                 HomeController.i.jobStatus.value == AppStrings.started ||
-                HomeController.i.jobStatus.value == AppStrings.completedUnPaid;
+                _isCompletedUnpaid;
 
             return Padding(
               padding: const EdgeInsets.only(right: AppPadding.padding12),
@@ -244,7 +257,6 @@ class _BookingDetailsState extends State<BookingDetails> {
                           isLoading: isUpdatingStatus,
                         )
                       ],
-                      rejectReasonWidget(),
                       15.verticalSpace,
                       CustomContainer(
                         isPadding: false,
@@ -264,6 +276,7 @@ class _BookingDetailsState extends State<BookingDetails> {
                           ],
                         ),
                       ),
+                      rejectReasonWidget(),
                       15.verticalSpace,
                       if (HomeController.i.jobStatus.value ==
                               AppStrings.approved ||
@@ -271,16 +284,8 @@ class _BookingDetailsState extends State<BookingDetails> {
                               AppStrings.inRoute ||
                           HomeController.i.jobStatus.value ==
                               AppStrings.started ||
-                          HomeController.i.jobStatus.value ==
-                              AppStrings.completedPaid ||
-                          HomeController.i.jobStatus.value ==
-                              AppStrings.completedUnPaid) ...[
-                        if (HomeController.i.jobStatus.value ==
-                                AppStrings.started ||
-                            HomeController.i.jobStatus.value ==
-                                AppStrings.completedPaid ||
-                            HomeController.i.jobStatus.value ==
-                                AppStrings.completedUnPaid) ...[
+                          _isCompletedOrVerified) ...[
+                        if (_isStarted || _isCompletedOrVerified) ...[
                           CustomContainer(
                               isPadding: false,
                               child: Column(
@@ -549,16 +554,38 @@ class _BookingDetailsState extends State<BookingDetails> {
       visible: BookingStatusEnum.showsReason(status),
       child: Column(
         children: [
-          10.verticalSpace,
-          CustomText(
-            text: BookingStatusEnum.reasonTitle(status),
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-          ),
-          10.verticalSpace,
-          CustomText(
-            text: _detail?.displayReason ?? '-',
-            color: AppColors.grey,
+          15.verticalSpace,
+          CustomContainer(
+            isPadding: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(AppPadding.padding12),
+                  child: CustomText(
+                    text: BookingStatusEnum.reasonTitle(status),
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Divider(color: AppColors.blueDark),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppPadding.padding12,
+                  ),
+                  child: Column(
+                    children: [
+                      5.verticalSpace,
+                      CustomText(
+                        text: _detail?.displayReason ?? '-',
+                        color: AppColors.grey,
+                      ),
+                      10.verticalSpace,
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -624,15 +651,16 @@ class _BookingDetailsState extends State<BookingDetails> {
             secondText: detail?.displayCharges ?? '-',
           ),
           TwoTextRow(
+            firstText: '${AppStrings.paymentStatus}:',
+            secondText: detail?.displayPaymentStatus ?? '-',
+          ),
+          TwoTextRow(
+            firstText: '${AppStrings.verificationStatus}:',
+            secondText: detail?.displayVerificationStatus ?? '-',
+          ),
+          TwoTextRow(
             firstText: '${AppStrings.starttime}:',
-            secondText:
-                HomeController.i.jobStatus.value == AppStrings.started ||
-                        HomeController.i.jobStatus.value ==
-                            AppStrings.completedPaid ||
-                        HomeController.i.jobStatus.value ==
-                            AppStrings.completedUnPaid
-                    ? AppStrings.dummytime
-                    : '-',
+            secondText: detail?.displayStartTime ?? '-',
           ),
           10.verticalSpace,
         ],
@@ -707,7 +735,7 @@ class _BookingDetailsState extends State<BookingDetails> {
 
   Widget reportReviewButtonWidget() {
     return Visibility(
-        visible: (HomeController.i.jobStatus.value == AppStrings.completedPaid),
+        visible: _isCompletedPaid,
         child: Row(
           children: [
             Expanded(
@@ -762,8 +790,7 @@ class _BookingDetailsState extends State<BookingDetails> {
 
   Widget endWorkButtonWidget() {
     return Visibility(
-        visible:
-            (HomeController.i.jobStatus.value == AppStrings.completedUnPaid),
+        visible: _isCompletedUnpaid,
         child: CustomButton(
             text:
                 // (

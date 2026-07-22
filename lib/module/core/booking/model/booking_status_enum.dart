@@ -50,9 +50,8 @@ enum BookingStatusEnum {
       case BookingStatusEnum.Started:
         return AppStrings.started;
       case BookingStatusEnum.Completed:
-        return AppStrings.completed;
       case BookingStatusEnum.UserVerifiedIsDone:
-        return AppStrings.verified;
+        return AppStrings.completed;
       case BookingStatusEnum.Cancelled:
         return AppStrings.cancelled;
       default:
@@ -66,6 +65,10 @@ enum BookingStatusEnum {
 
   static bool showsUnpaidTag(int? statusId) {
     return statusId == Completed.id || statusId == UserVerifiedIsDone.id;
+  }
+
+  static bool showsVerifiedTag(int? statusId) {
+    return statusId == UserVerifiedIsDone.id;
   }
 
   static String reasonTitle(int? statusId) {

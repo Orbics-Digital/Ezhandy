@@ -216,7 +216,7 @@ class _EditInvoiceState extends State<EditInvoice> {
               CustomButton(
                 text: AppStrings.update,
                 onclick: () {
-                  HomeController.i.jobStatus.value = AppStrings.completedUnPaid;
+                  HomeController.i.jobStatus.value = AppStrings.completed;
                   AppDialogs.showSuccessDialog(
                     context,
                     description: AppStrings.invoiceUpdatedSuccessfully,

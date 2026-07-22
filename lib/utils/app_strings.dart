@@ -590,6 +590,9 @@ class AppStrings {
   static const String completedPaid = "Completed Paid";
   static const String completedUnPaid = "Completed Un-Paid";
   static const String unpaid = "Unpaid";
+  static const String paid = "Paid";
+  static const String paymentStatus = "Payment Status";
+  static const String verificationStatus = "Verification Status";
   static const String quick = "Quick";
   static const String paymentDispatchedAfterVerification =
       "Payment will be dispatched once user verify the booking";

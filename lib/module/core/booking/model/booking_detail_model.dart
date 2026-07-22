@@ -223,6 +223,7 @@ class BookingDetailModel {
   final int? duration;
   final String? bookingType;
   final String? notes;
+  final String? startTime;
   final bool isPaid;
   final String? paymentId;
   final DateTime? createdAt;
@@ -243,6 +244,7 @@ class BookingDetailModel {
     this.duration,
     this.bookingType,
     this.notes,
+    this.startTime,
     this.isPaid = false,
     this.paymentId,
     this.createdAt,
@@ -264,9 +266,28 @@ class BookingDetailModel {
 
   String get displayServiceTime => _formatTimeSlots(timeSlots);
 
+  String get displayStartTime => _formatStartTime(startTime);
+
   String get displayDuration => _formatDuration(duration);
 
   String get displayCharges => _formatMoney(totalAmount);
+
+  String get displayPaymentStatus =>
+      isPaid ? AppStrings.paid : AppStrings.unpaid;
+
+  bool get isUserVerified =>
+      BookingStatusEnum.fromId(status) == BookingStatusEnum.UserVerifiedIsDone;
+
+  String get displayVerificationStatus {
+    switch (BookingStatusEnum.fromId(status)) {
+      case BookingStatusEnum.UserVerifiedIsDone:
+        return AppStrings.verified;
+      case BookingStatusEnum.Completed:
+        return AppStrings.pending;
+      default:
+        return '-';
+    }
+  }
 
   String get displayStatusLabel => jobStatusLabel;
 
@@ -282,9 +303,7 @@ class BookingDetailModel {
         return AppStrings.approved;
       case BookingStatusEnum.Completed:
       case BookingStatusEnum.UserVerifiedIsDone:
-        return isPaid
-            ? AppStrings.completedPaid
-            : AppStrings.completedUnPaid;
+        return AppStrings.completed;
       default:
         final label = statusLabel?.trim();
         if (label != null && label.isNotEmpty) {
@@ -293,6 +312,20 @@ class BookingDetailModel {
         return BookingStatusEnum.label(status);
     }
   }
+
+  bool get isCompletedOrVerified {
+    switch (BookingStatusEnum.fromId(status)) {
+      case BookingStatusEnum.Completed:
+      case BookingStatusEnum.UserVerifiedIsDone:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get isCompletedUnpaid => isCompletedOrVerified && !isPaid;
+
+  bool get isCompletedPaid => isCompletedOrVerified && isPaid;
 
   factory BookingDetailModel.fromJson(Map<String, dynamic> json) {
     return BookingDetailModel(
@@ -306,6 +339,7 @@ class BookingDetailModel {
       duration: _readInt(json['duration']),
       bookingType: json['bookingType']?.toString(),
       notes: json['notes']?.toString(),
+      startTime: _readStartTime(json),
       isPaid: _readBool(json['isPaid']),
       paymentId: json['paymentId']?.toString(),
       createdAt: _readDate(json['createdAt']),
@@ -347,7 +381,7 @@ String _normalizeStatusLabel(String label) {
   }
   if (normalized == 'started') return AppStrings.started;
   if (normalized == 'completed') {
-    return AppStrings.completedPaid;
+    return AppStrings.completed;
   }
   return label;
 }
@@ -411,6 +445,26 @@ String _formatTimeSlot(String value) {
             : '${part[0].toUpperCase()}${part.substring(1)}',
       )
       .join(' ');
+}
+
+String? _readStartTime(Map<String, dynamic> json) {
+  final value = json['startedAt'] ?? json['startTime'];
+  if (value == null) return null;
+
+  final trimmed = value.toString().trim();
+  return trimmed.isEmpty ? null : trimmed;
+}
+
+String _formatStartTime(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return '-';
+
+  final parsed = DateTime.tryParse(trimmed);
+  if (parsed != null) {
+    return DateFormat('hh:mm a').format(parsed.toLocal());
+  }
+
+  return trimmed;
 }
 
 String _formatDuration(int? minutes) {
