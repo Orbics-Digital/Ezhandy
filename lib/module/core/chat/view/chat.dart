@@ -69,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
         receiverId: widget.otherUserId,
         otherUserImage: widget.otherUserImage,
       );
+      _controller.markChatAsRead(chatId);
       _controller.fetchChatHistory(chatId);
     }
   }

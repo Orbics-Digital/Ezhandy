@@ -37,6 +37,20 @@ class ChatRepository {
         .toList();
   }
 
+  Future<void> markChatAsRead(String chatId) async {
+    final response = await _client.dio.patch(
+      ApiEndpoints.markChatRead(chatId),
+    );
+
+    final data = response.data;
+    if (data is! Map) return;
+
+    final root = Map<String, dynamic>.from(data);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
+
   Future<String> findOrCreateChat({required String otherUserId}) async {
     final response = await _client.dio.post(
       ApiEndpoints.findOrCreateChat,

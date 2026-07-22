@@ -148,6 +148,36 @@ class ChatController extends GetxController {
     }
   }
 
+  Future<void> markChatAsRead(String chatId) async {
+    final id = chatId.trim();
+    if (id.isEmpty) return;
+
+    try {
+      await _repository.markChatAsRead(id);
+      _clearUnreadCount(id);
+    } on DioException {
+      // Keep chat usable even if read receipt fails.
+    } catch (_) {}
+  }
+
+  void _clearUnreadCount(String chatId) {
+    final index = myChats.indexWhere((chat) => chat.chatId?.trim() == chatId);
+    if (index == -1) return;
+
+    final chat = myChats[index];
+    if (chat.unreadCount == 0) return;
+
+    myChats[index] = MyChatModel(
+      chatId: chat.chatId,
+      chatType: chat.chatType,
+      unreadCount: 0,
+      isLocked: chat.isLocked,
+      otherUser: chat.otherUser,
+      lastMessage: chat.lastMessage,
+      lastMessageTime: chat.lastMessageTime,
+    );
+  }
+
   void clearChatHistory() => chatHistory.clear();
 
   void setActiveChat(
