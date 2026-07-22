@@ -49,7 +49,14 @@ class BookingsController extends GetxController {
 
     final statusId = selectedStatusId.value;
     if (statusId != null) {
-      result = result.where((booking) => booking.status == statusId).toList();
+      result = result
+          .where(
+            (booking) => BookingStatusEnum.matchesStatusFilter(
+              booking.status,
+              statusId,
+            ),
+          )
+          .toList();
     }
 
     final type = selectedBookingType.value;

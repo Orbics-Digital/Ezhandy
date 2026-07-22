@@ -23,10 +23,24 @@ enum BookingStatusEnum {
     return null;
   }
 
-  static List<String> get dropdownLabels => [
-        AppStrings.all,
-        for (final status in BookingStatusEnum.values) label(status.id),
-      ];
+  static List<String> get dropdownLabels {
+    final labels = <String>[AppStrings.all];
+    final seen = <String>{};
+
+    for (final status in BookingStatusEnum.values) {
+      final value = label(status.id);
+      if (seen.add(value)) {
+        labels.add(value);
+      }
+    }
+
+    return labels;
+  }
+
+  static bool matchesStatusFilter(int? bookingStatus, int? filterStatusId) {
+    if (filterStatusId == null) return true;
+    return label(bookingStatus) == label(filterStatusId);
+  }
 
   static int? idFromLabel(String? value) {
     if (value == null || value == AppStrings.all) return null;
