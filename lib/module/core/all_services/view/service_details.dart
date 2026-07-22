@@ -1,5 +1,6 @@
 import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
 import 'package:ezhandy_user/module/core/all_services/model/provider_service_model.dart';
+import 'package:ezhandy_user/module/core/all_services/routing_arguments/past_work_routing_arguments%20copy.dart';
 import 'package:ezhandy_user/module/core/all_services/routing_arguments/service_routing_arguments.dart';
 import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
@@ -101,7 +102,17 @@ class _ServiceDetailsState extends State<ServiceDetails> {
             CustomButton(
               text: AppStrings.pastWork,
               onclick: () {
-                AppNavigation.navigateTo(context, AppRoutes.pastworkScreenRoute);
+                final serviceId = _service?.id?.trim();
+                if (serviceId == null || serviceId.isEmpty) {
+                  AppDialogs.showToast(message: AppStrings.noServicesFound);
+                  return;
+                }
+
+                AppNavigation.navigateTo(
+                  context,
+                  AppRoutes.pastworkScreenRoute,
+                  arguments: PastWorkRoutingArgument(serviceId: serviceId),
+                );
               },
             ),
             10.verticalSpace,

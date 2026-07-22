@@ -1,4 +1,6 @@
 class PastWorkRoutingArgument {
   String? type;
-  PastWorkRoutingArgument({ this.type});
+  String? serviceId;
+
+  PastWorkRoutingArgument({this.type, this.serviceId});
 }

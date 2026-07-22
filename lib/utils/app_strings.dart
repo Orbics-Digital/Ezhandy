@@ -609,6 +609,7 @@ class AppStrings {
   static const String delivered = "Delivered";
   static const String past = "Past";
   static const String pastWork = "Past Work";
+  static const String noPastWorkFound = "No past work found";
   static const String remove = "Remove";
   static const String appointmentType = "Appointment Type";
   // static const String bookingId = "Booking ID";
@@ -627,6 +628,8 @@ class AppStrings {
   static const String withdraw = "Withdraw";
   static const String uploadPictureBeforeWork = "Upload Picture Before Work";
   static const String uploadPictureAfterWork = "Upload Picture After Work";
+  static const String beforeWork = "Before Work";
+  static const String afterWork = "After Work";
 
   static const String amountToBankAccount =
       "Are you sure you want to withdraw this amount to your bank account?";

@@ -25,6 +25,8 @@ class ApiEndpoints {
   static const String updateBookingStatus = 'bookings/booking/status';
   static const String beforeWork = 'bookings/before-work';
   static const String afterWork = 'bookings/after-work';
+  static String pastWorkByService(String serviceId) =>
+      'bookings/past-work/service/$serviceId';
   static const String myChats = 'live-chat/my-chats';
   static const String findOrCreateChat = 'live-chat/find-or-create';
   static const String askProRequests = 'ask-pro/requests';

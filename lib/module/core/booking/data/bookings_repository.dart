@@ -7,6 +7,7 @@ import 'package:ezhandy_user/core/network/api_endpoints.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/provider_booking_model.dart';
+import 'package:ezhandy_user/module/core/all_services/model/past_work_booking_model.dart';
 
 class BookingsRepository {
   BookingsRepository({ApiClient? apiClient}) : _apiClient = apiClient;
@@ -27,6 +28,16 @@ class BookingsRepository {
     final response = await _client.dio.get(ApiEndpoints.bookingDetail('$id'));
     final data = ApiHelper.dataObject(response.data);
     return BookingDetailModel.fromJson(data);
+  }
+
+  Future<List<PastWorkBookingModel>> getPastWorkByService(String serviceId) async {
+    final response = await _client.dio.get(
+      ApiEndpoints.pastWorkByService(serviceId.trim()),
+    );
+
+    return ApiHelper.dataList(response.data)
+        .map(PastWorkBookingModel.fromJson)
+        .toList();
   }
 
   Future<void> updateBookingStatus({

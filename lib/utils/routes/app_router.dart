@@ -161,7 +161,9 @@ class AppRouter {
               type: workArgument?.type ?? "",
             );
           case AppRoutes.pastworkScreenRoute:
-            return PastWork();
+            final pastWorkArguments =
+                routeSettings.arguments as PastWorkRoutingArgument?;
+            return PastWork(serviceId: pastWorkArguments?.serviceId);
           // // case AppRoutes.customerSupportScreenRoute:
           // //   return CustomerSupport();
           // // case AppRoutes.educationsScreenScreenRoute:

@@ -1,8 +1,6 @@
-import 'package:ezhandy_user/module/core/all_services/routing_arguments/past_work_routing_arguments%20copy.dart';
-import 'package:ezhandy_user/utils/app_dialogs.dart';
-import 'package:ezhandy_user/utils/enums.dart';
-import 'package:ezhandy_user/utils/routes/app_navigation.dart';
-import 'package:ezhandy_user/utils/routes/app_route.dart';
+import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
+import 'package:ezhandy_user/module/core/all_services/model/past_work_booking_model.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -10,165 +8,208 @@ import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
+import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class PastWork extends StatefulWidget {
-  PastWork({super.key});
+  final String? serviceId;
+
+  PastWork({this.serviceId, super.key});
 
   @override
   State<PastWork> createState() => _PastWorkState();
 }
 
 class _PastWorkState extends State<PastWork> {
+  final ProviderServicesController _controller = ProviderServicesController.i;
+
+  String? get _serviceId => widget.serviceId?.trim();
+
+  @override
+  void initState() {
+    super.initState();
+    final serviceId = _serviceId;
+    if (serviceId != null && serviceId.isNotEmpty) {
+      _controller.fetchPastWorkByService(serviceId);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.clearPastWorkBookings();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
-        leading: AssetPath.backIcon,
-        onclickLead: () {
-          Get.back();
-        },
-        // appBarheight: 50.h,
-        title: AppStrings.pastWork,
-        actionWidget: actionWidget(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppPadding.padding12,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                ListView.separated(
-                  physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    // final item = notifications[index];
-                    return singleQuestionWidget(taskDetail: AppStrings.lorem5);
-                  },
-                  separatorBuilder: (context, index) {
-                    return 10.verticalSpace;
-                  },
-                ),
-                25.verticalSpace,
-              ],
-            ),
-          ),
-        ));
-  }
+      leading: AssetPath.backIcon,
+      onclickLead: Get.back,
+      title: AppStrings.pastWork,
+      // actionWidget: actionWidget(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppPadding.padding12,
+        ),
+        child: Obx(() {
+          final serviceId = _serviceId;
+          if (serviceId == null || serviceId.isEmpty) {
+            return const Center(
+              child: EmptyMessage(message: AppStrings.noServicesFound),
+            );
+          }
 
-  GestureDetector actionWidget() {
-    return GestureDetector(
-      onTap: () {
-        AppNavigation.navigateTo(
-            context, AppRoutes.addEditPastWorkScreenRoute,
-            arguments: PastWorkRoutingArgument(type: AddEditType.add.name));
-      },
-      child: Container(
-          height: 40.h,
-          width: 40.w,
-          // padding: EdgeInsets.all(8),
-          margin: EdgeInsets.all(10.sp),
-          decoration: BoxDecoration(
-              // boxShadow: AppShadows.shadow4,
-              color: AppColors.orange,
-              shape: BoxShape.circle),
-          child: Icon(Icons.add)),
+          if (_controller.isPastWorkLoading.value &&
+              _controller.pastWorkBookings.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.orange),
+            );
+          }
+
+          final bookings = _controller.pastWorkBookings;
+
+          return RefreshIndicator(
+            color: AppColors.orange,
+            onRefresh: () => _controller.refreshPastWorkByService(serviceId),
+            child: bookings.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: 0.4.sh),
+                      const Center(
+                        child: EmptyMessage(
+                          message: AppStrings.noPastWorkFound,
+                        ),
+                      ),
+                    ],
+                  )
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(top: 10.h, bottom: 25.h),
+                    itemCount: bookings.length,
+                    itemBuilder: (context, index) {
+                      return singleQuestionWidget(booking: bookings[index]);
+                    },
+                    separatorBuilder: (context, index) => 10.verticalSpace,
+                  ),
+          );
+        }),
+      ),
     );
   }
 
-  Widget singleQuestionWidget({taskDetail}) {
-    return Column(children: [
-      20.verticalSpace,
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: CustomText(
-              text: "Past Work Name Title Here",
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          // Spacer(),
-          GestureDetector(
-              onTap: () {
-                AppNavigation.navigateTo(
-                    context, AppRoutes.addEditPastWorkScreenRoute,
-                    arguments:
-                        PastWorkRoutingArgument(type: AddEditType.edit.name));
-              },
-              child: Image.asset(
-                AssetPath.editPastIcon,
-                color: AppColors.grey,
-                scale: 3.5.sp,
-              )),
-          15.horizontalSpace,
-          GestureDetector(
-              onTap: () {
-                AppDialogs.showSuccessDialog(context,
-                    description:
-                        AppStrings.areYouSureYouWantToDeleteThisWorkHistory,
-                    // title: AppStrings.deleteAccount,
-                    image: AssetPath.deleteWithCircleIcon,
-                    isDoneShow: false,
-                    btnTxt1: AppStrings.yes,
-                    onTap1: () {
-                      AppNavigation.navigatorPop(context);
-                      AppDialogs.showSuccessDialog(
-                        context,
-                        description: AppStrings.workHistoryDeleteSuccessfully,
-                        title: AppStrings.congratulation,
-                        btnTxt1: AppStrings.ok,
-                        onTap1: () {
-                          AppNavigation.navigatorPopUntil(
-                              context, AppRoutes.pastworkScreenRoute);
-                        },
-                      );
-                    },
-                    btnTxt2: AppStrings.no,
-                    onTap2: () {
-                      AppNavigation.navigatorPop(context);
-                    });
-              },
-              child: Image.asset(
-                AssetPath.deletePastIcon,
-                color: AppColors.grey,
-                scale: 3.5.sp,
-              )),
-          // Image.asset(AssetPath.editIcon,color: AppColors.grey,scale: 2.sp,)
-        ],
-      ),
-      10.verticalSpace,
-      CustomText(text: taskDetail),
-      10.verticalSpace,
-      imageListWidget()
-      // 10.verticalSpace,
-      // imageListWidget(),
-    ]);
+  // GestureDetector actionWidget() {
+  //   return GestureDetector(
+  //     onTap: () {
+  //       AppNavigation.navigateTo(
+  //         context,
+  //         AppRoutes.addEditPastWorkScreenRoute,
+  //         arguments: PastWorkRoutingArgument(type: AddEditType.add.name),
+  //       );
+  //     },
+  //     child: Container(
+  //       height: 40.h,
+  //       width: 40.w,
+  //       margin: EdgeInsets.all(10.sp),
+  //       decoration: const BoxDecoration(
+  //         color: AppColors.orange,
+  //         shape: BoxShape.circle,
+  //       ),
+  //       child: const Icon(Icons.add, color: AppColors.white),
+  //     ),
+  //   );
+  // }
+
+  Widget singleQuestionWidget({required PastWorkBookingModel booking}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        10.verticalSpace,
+        CustomText(
+          text: booking.displayTitle,
+          fontSize: 16.sp,
+          fontWeight: FontWeight.bold,
+        ),
+        5.verticalSpace,
+        CustomText(
+          text: booking.displayBookingDate,
+          fontSize: 12.sp,
+          color: AppColors.greyLight,
+        ),
+        10.verticalSpace,
+        CustomText(text: booking.displayDetail),
+        ...workDocumentsSection(booking),
+      ],
+    );
   }
 
-  Widget imageListWidget() {
-    return Container(
+  List<Widget> workDocumentsSection(PastWorkBookingModel booking) {
+    final beforeImages = booking.workDocuments.before
+        .where((item) => item.hasImage)
+        .toList();
+    final afterImages = booking.workDocuments.after
+        .where((item) => item.hasImage)
+        .toList();
+
+    if (beforeImages.isEmpty && afterImages.isEmpty) {
+      return const [];
+    }
+
+    return [
+      10.verticalSpace,
+      if (beforeImages.isNotEmpty) ...[
+        CustomText(
+          text: AppStrings.beforeWork,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w600,
+        ),
+        8.verticalSpace,
+        imageListWidget(beforeImages),
+      ],
+      if (afterImages.isNotEmpty) ...[
+        if (beforeImages.isNotEmpty) 12.verticalSpace,
+        CustomText(
+          text: AppStrings.afterWork,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w600,
+        ),
+        8.verticalSpace,
+        imageListWidget(afterImages),
+      ],
+    ];
+  }
+
+  Widget imageListWidget(List<WorkDocumentItemModel> images) {
+    return SizedBox(
       height: 120.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          return Container(
-            width: .45.sw,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.r),
-                image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: NetworkImage(
-                        "https://t4.ftcdn.net/jpg/02/14/20/51/360_F_214205168_JqvyKVeKzYGTpQEdy3Y1c7CUh6fRMg0W.jpg"))),
+          final imagePath = images[index].displayImagePath;
+
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(10.r),
+            child: Image.network(
+              imagePath,
+              width: .45.sw,
+              height: 120.h,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: .45.sw,
+                height: 120.h,
+                color: AppColors.greyBorder,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.broken_image_outlined,
+                  color: AppColors.greyLight,
+                ),
+              ),
+            ),
           );
         },
-        separatorBuilder: (context, index) {
-          return 10.horizontalSpace;
-        },
-        itemCount: 5,
+        separatorBuilder: (context, index) => 10.horizontalSpace,
+        itemCount: images.length,
       ),
     );
   }

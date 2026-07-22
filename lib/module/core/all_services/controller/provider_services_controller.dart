@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/all_services/model/create_provider_service_params.dart';
+import 'package:ezhandy_user/module/core/all_services/model/past_work_booking_model.dart';
 import 'package:ezhandy_user/module/core/all_services/model/provider_service_model.dart';
+import 'package:ezhandy_user/module/core/booking/data/bookings_repository.dart';
 import 'package:ezhandy_user/module/core/home/data/provider_services_repository.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:get/get.dart';
@@ -15,14 +17,18 @@ class ProviderServicesController extends GetxController {
   }
 
   final ProviderServicesRepository _repository = ProviderServicesRepository();
+  final BookingsRepository _bookingsRepository = BookingsRepository();
 
   final RxList<ProviderServiceModel> providerServices =
       <ProviderServiceModel>[].obs;
+  final RxList<PastWorkBookingModel> pastWorkBookings =
+      <PastWorkBookingModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxBool isCreateServiceLoading = false.obs;
   final RxBool isUpdateServiceLoading = false.obs;
   final RxBool isDeleteServiceLoading = false.obs;
   final RxBool isProviderServicesLoading = false.obs;
+  final RxBool isPastWorkLoading = false.obs;
 
   List<ProviderServiceModel> get filteredProviderServices {
     final query = searchQuery.value.trim().toLowerCase();
@@ -134,4 +140,37 @@ class ProviderServicesController extends GetxController {
       isDeleteServiceLoading.value = false;
     }
   }
+
+  Future<void> fetchPastWorkByService(String serviceId) async {
+    final id = serviceId.trim();
+    if (id.isEmpty || isPastWorkLoading.value) return;
+
+    isPastWorkLoading.value = true;
+    try {
+      final bookings = await _bookingsRepository.getPastWorkByService(id);
+      pastWorkBookings.assignAll(bookings);
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isPastWorkLoading.value = false;
+    }
+  }
+
+  Future<void> refreshPastWorkByService(String serviceId) async {
+    final id = serviceId.trim();
+    if (id.isEmpty) return;
+
+    try {
+      final bookings = await _bookingsRepository.getPastWorkByService(id);
+      pastWorkBookings.assignAll(bookings);
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    }
+  }
+
+  void clearPastWorkBookings() => pastWorkBookings.clear();
 }
