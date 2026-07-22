@@ -96,6 +96,12 @@ class _RatingScreenState extends State<RatingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          CustomText(
+            text: review.displayUserName,
+            fontWeight: FontWeight.w600,
+            fontSize: 14.sp,
+          ),
+          5.verticalSpace,
           ratingWidget(initialRating: review.ratingValue),
           5.verticalSpace,
           CustomText(

@@ -1,5 +1,28 @@
 import 'package:intl/intl.dart';
 
+class ProviderRatingUserModel {
+  final String? id;
+  final String? fullName;
+  final String? profileImage;
+  final String? email;
+
+  const ProviderRatingUserModel({
+    this.id,
+    this.fullName,
+    this.profileImage,
+    this.email,
+  });
+
+  factory ProviderRatingUserModel.fromJson(Map<String, dynamic> json) {
+    return ProviderRatingUserModel(
+      id: json['id']?.toString(),
+      fullName: json['fullName']?.toString(),
+      profileImage: json['profileImage']?.toString(),
+      email: json['email']?.toString(),
+    );
+  }
+}
+
 class ProviderRatingModel {
   final String? id;
   final String? ratedUserId;
@@ -8,6 +31,7 @@ class ProviderRatingModel {
   final String? review;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final ProviderRatingUserModel? ratingUser;
 
   const ProviderRatingModel({
     this.id,
@@ -17,6 +41,7 @@ class ProviderRatingModel {
     this.review,
     this.createdAt,
     this.updatedAt,
+    this.ratingUser,
   });
 
   factory ProviderRatingModel.fromJson(Map<String, dynamic> json) {
@@ -28,10 +53,17 @@ class ProviderRatingModel {
       review: json['review']?.toString(),
       createdAt: _readDate(json['createdAt']),
       updatedAt: _readDate(json['updatedAt']),
+      ratingUser: _readRatingUser(json['ratingUser'] ?? json['user']),
     );
   }
 
   double get ratingValue => (rating ?? 0).toDouble();
+
+  String get displayUserName {
+    final value = ratingUser?.fullName?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return '-';
+  }
 
   String get displayReview {
     final value = review?.trim();
@@ -55,4 +87,12 @@ int? _readInt(dynamic value) {
 DateTime? _readDate(dynamic value) {
   if (value == null) return null;
   return DateTime.tryParse(value.toString());
+}
+
+ProviderRatingUserModel? _readRatingUser(dynamic value) {
+  if (value is! Map) return null;
+
+  return ProviderRatingUserModel.fromJson(
+    Map<String, dynamic>.from(value),
+  );
 }
