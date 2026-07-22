@@ -1,8 +1,10 @@
 import 'package:ezhandy_user/module/core/all_services/controller/provider_services_controller.dart';
+import 'package:ezhandy_user/module/core/all_services/model/create_provider_service_params.dart';
 import 'package:ezhandy_user/module/core/all_services/model/provider_service_model.dart';
 import 'package:ezhandy_user/module/core/all_services/routing_arguments/past_work_routing_arguments%20copy.dart';
 import 'package:ezhandy_user/module/core/all_services/routing_arguments/service_routing_arguments.dart';
 import 'package:ezhandy_user/utils/enums.dart';
+import 'package:ezhandy_user/widgets/calendar/calendar.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -309,20 +311,99 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   }
 
   Widget scheduleDetailsWidget() {
+    final timeSlots = _service?.timeSlotDisplayItems ?? const [];
+    final availableDates = _service?.availableCalendarDates ?? const [];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           5.verticalSpace,
-          TwoTextRow(
-            firstText: '${AppStrings.timeSlots}:',
-            secondText: _service?.displayTimeSlots ?? '-',
+          CustomText(
+            text: AppStrings.timeSlots,
+            fontWeight: FontWeight.w600,
           ),
-          TwoTextRow(
-            firstText: '${AppStrings.availableDates}:',
-            secondText: _service?.displayCalendar ?? '-',
+          8.verticalSpace,
+          if (timeSlots.isEmpty)
+            CustomText(
+              text: '-',
+              color: AppColors.grey,
+            )
+          else
+            Column(
+              children: [
+                for (var i = 0; i < timeSlots.length; i++) ...[
+                  if (i > 0) 8.verticalSpace,
+                  _timeSlotCard(timeSlots[i]),
+                ],
+              ],
+            ),
+          15.verticalSpace,
+          CustomText(
+            text: AppStrings.availableDates,
+            fontWeight: FontWeight.w600,
           ),
+          8.verticalSpace,
+          if (availableDates.isEmpty)
+            CustomText(
+              text: '-',
+              color: AppColors.grey,
+            )
+          else
+            CustomCalendar(
+              key: ValueKey(
+                availableDates.map((date) => date.toIso8601String()).join(','),
+              ),
+              highlightedDates: availableDates,
+              initialFocusedDate: availableDates.first,
+              readOnly: true,
+            ),
           10.verticalSpace,
+        ],
+      ),
+    );
+  }
+
+  Widget _timeSlotCard(TimeSlotDisplayInfo slot) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: AppColors.orange.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: AppColors.orange.withOpacity(0.35)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 4.w,
+            height: slot.range.isEmpty ? 24.h : 36.h,
+            decoration: BoxDecoration(
+              color: AppColors.orange,
+              borderRadius: BorderRadius.circular(4.r),
+            ),
+          ),
+          10.horizontalSpace,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  text: slot.title,
+                  fontWeight: FontWeight.w600,
+                ),
+                if (slot.range.isNotEmpty) ...[
+                  2.verticalSpace,
+                  CustomText(
+                    text: slot.range,
+                    fontSize: 12.sp,
+                    color: AppColors.grey,
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -330,6 +411,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
   Widget _serviceImage() {
     final imageUrl = _service?.imageUrl?.trim() ?? '';
+    final isQuickService = _service?.isQuickService == true;
 
     return Container(
       height: 250.h,
@@ -340,8 +422,11 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         color: AppColors.greyBorder.withOpacity(0.2),
       ),
       clipBehavior: Clip.antiAlias,
-      child: imageUrl.isNotEmpty
-          ? Image.network(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (imageUrl.isNotEmpty)
+            Image.network(
               imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Image.asset(
@@ -349,10 +434,38 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 fit: BoxFit.cover,
               ),
             )
-          : Image.asset(
+          else
+            Image.asset(
               AssetPath.tempCleaningImage,
               fit: BoxFit.cover,
             ),
+          if (isQuickService)
+            Positioned(
+              top: 10.h,
+              left: 0,
+              child: _quickServiceBadge(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickServiceBadge() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: AppColors.black,
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(35.r),
+          bottomRight: Radius.circular(35.r),
+        ),
+      ),
+      child: CustomText(
+        text: AppStrings.quickService,
+        color: AppColors.white,
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }

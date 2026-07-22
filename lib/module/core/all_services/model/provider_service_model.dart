@@ -69,8 +69,16 @@ class ProviderServiceModel {
   String get displayTimeSlots {
     if (timeSlots.isEmpty) return '-';
 
-    return ProviderServiceFieldMapper.mapTimeSlotsToUi(timeSlots).join(', ');
+    return ProviderServiceFieldMapper.mapTimeSlotsToDisplay(timeSlots)
+        .map((slot) => slot.range.isEmpty ? slot.title : '${slot.title} (${slot.range})')
+        .join(', ');
   }
+
+  List<TimeSlotDisplayInfo> get timeSlotDisplayItems =>
+      ProviderServiceFieldMapper.mapTimeSlotsToDisplay(timeSlots);
+
+  List<DateTime> get availableCalendarDates =>
+      ProviderServiceFieldMapper.parseCalendarDates(calendar);
 
   String get displayCalendar {
     if (calendar.isEmpty) return '-';

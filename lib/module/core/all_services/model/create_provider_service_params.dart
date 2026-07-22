@@ -30,6 +30,16 @@ class CreateProviderServiceParams {
   });
 }
 
+class TimeSlotDisplayInfo {
+  final String title;
+  final String range;
+
+  const TimeSlotDisplayInfo({
+    required this.title,
+    this.range = '',
+  });
+}
+
 class ProviderServiceFieldMapper {
   ProviderServiceFieldMapper._();
 
@@ -97,6 +107,23 @@ class ProviderServiceFieldMapper {
     }
 
     return uiTimeSlotOptions.where(mapped.contains).toList();
+  }
+
+  static List<TimeSlotDisplayInfo> mapTimeSlotsToDisplay(List<String> apiSlots) {
+    return mapTimeSlotsToUi(apiSlots).map(parseTimeSlotLabel).toList();
+  }
+
+  static TimeSlotDisplayInfo parseTimeSlotLabel(String label) {
+    final trimmed = label.trim();
+    final match = RegExp(r'^(.+?)\s*\((.+)\)$').firstMatch(trimmed);
+    if (match != null) {
+      return TimeSlotDisplayInfo(
+        title: match.group(1)?.trim() ?? trimmed,
+        range: match.group(2)?.trim() ?? '',
+      );
+    }
+
+    return TimeSlotDisplayInfo(title: trimmed);
   }
 
   static List<String> mapCalendarDates(List<DateTime> dates) {

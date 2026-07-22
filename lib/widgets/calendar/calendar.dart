@@ -7,12 +7,14 @@ class CustomCalendar extends StatefulWidget {
   final List<DateTime> highlightedDates;
   final Function(List<DateTime>)? onDatesChanged;
   final DateTime? initialFocusedDate;
+  final bool readOnly;
 
   const CustomCalendar({
     Key? key,
     required this.highlightedDates,
     this.onDatesChanged,
     this.initialFocusedDate,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -27,13 +29,14 @@ class _CustomCalendarState extends State<CustomCalendar> {
   void initState() {
     super.initState();
 
-    focusedDay = widget.initialFocusedDate ?? DateTime.now();
+    final normalizedDates = widget.highlightedDates.map(_normalizeDate).toList();
 
-    selectedDates = widget.highlightedDates
-        .map(_normalizeDate)
-        .toSet();
+    focusedDay = widget.initialFocusedDate ??
+        (normalizedDates.isNotEmpty ? normalizedDates.first : DateTime.now());
 
-    if (selectedDates.isEmpty) {
+    selectedDates = normalizedDates.toSet();
+
+    if (selectedDates.isEmpty && !widget.readOnly) {
       selectedDates.add(_normalizeDate(DateTime.now()));
     }
   }
@@ -49,6 +52,13 @@ class _CustomCalendarState extends State<CustomCalendar> {
   }
 
   void _onDayTapped(DateTime day, DateTime focused) {
+    if (widget.readOnly) {
+      setState(() {
+        focusedDay = focused;
+      });
+      return;
+    }
+
     final normalized = _normalizeDate(day);
 
     setState(() {
