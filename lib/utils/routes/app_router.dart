@@ -221,6 +221,7 @@ class AppRouter {
               isBooking: chatArgument.isBooking ?? false,
               chatId: chatArgument.chatId,
               chatType: chatArgument.chatType,
+              isLocked: chatArgument.isLocked,
               otherUserName: chatArgument.otherUserName,
               otherUserId: chatArgument.otherUserId,
               otherUserImage: chatArgument.otherUserImage,

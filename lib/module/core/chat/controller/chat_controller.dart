@@ -75,6 +75,33 @@ class ChatController extends GetxController {
 
   void setProChatSearchQuery(String value) => proChatSearchQuery.value = value;
 
+  MyChatModel? getChatById(String? chatId) {
+    final id = chatId?.trim();
+    if (id == null || id.isEmpty) return null;
+
+    for (final chat in myChats) {
+      if (chat.chatId?.trim() == id) return chat;
+    }
+    return null;
+  }
+
+  bool isPrivateChatLocked({
+    String? chatId,
+    String? chatType,
+    bool? isLocked,
+  }) {
+    final chat = getChatById(chatId);
+    final type = chatType?.trim().toLowerCase() ??
+        chat?.chatType?.trim().toLowerCase() ??
+        'private';
+    final locked = isLocked ?? chat?.isLocked ?? false;
+    return type == 'private' && locked;
+  }
+
+  bool get isActivePrivateChatLocked => isPrivateChatLocked(
+        chatId: _activeChatId,
+      );
+
   Future<void> fetchMyChats() async {
     if (isMyChatsLoading.value) return;
 
@@ -233,6 +260,7 @@ class ChatController extends GetxController {
     final chatId = _activeChatId;
     final text = content.trim();
     if (chatId == null || chatId.isEmpty || text.isEmpty) return;
+    if (isActivePrivateChatLocked) return;
 
     final currentUser = AuthController.i.user.value;
     final userId = currentUser?.sub?.trim();
@@ -266,6 +294,7 @@ class ChatController extends GetxController {
   Future<void> sendChatImage(File image) async {
     final chatId = _activeChatId?.trim();
     if (chatId == null || chatId.isEmpty || isSendingChatImage.value) return;
+    if (isActivePrivateChatLocked) return;
 
     final receiverId = _activeReceiverId?.trim();
     if (receiverId == null || receiverId.isEmpty) {

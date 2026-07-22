@@ -131,6 +131,9 @@ class _BookingDetailsState extends State<BookingDetails> {
     );
     if (!mounted || chatId == null) return;
 
+    await ChatController.i.refreshMyChats();
+    final chat = ChatController.i.getChatById(chatId);
+
     final userName = user?.displayName;
     AppNavigation.navigateTo(
       context,
@@ -138,6 +141,8 @@ class _BookingDetailsState extends State<BookingDetails> {
       arguments: ChatRoutingArgument(
         isBooking: true,
         chatId: chatId,
+        chatType: chat?.chatType ?? 'private',
+        isLocked: chat?.isLocked ?? false,
         otherUserName: userName != '-' ? userName : null,
         otherUserId: otherUserId,
         otherUserImage: user?.profileImage,

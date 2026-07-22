@@ -24,6 +24,7 @@ class ChatScreen extends StatefulWidget {
   final bool isBooking;
   final String? chatId;
   final String? chatType;
+  final bool? isLocked;
   final String? otherUserName;
   final String? otherUserId;
   final String? otherUserImage;
@@ -32,6 +33,7 @@ class ChatScreen extends StatefulWidget {
     this.isBooking = false,
     this.chatId,
     this.chatType,
+    this.isLocked,
     this.otherUserName,
     this.otherUserId,
     this.otherUserImage,
@@ -57,6 +59,15 @@ class _ChatScreenState extends State<ChatScreen> {
   bool get _isProChat =>
       widget.chatType?.trim().toLowerCase() == 'ask_pro';
 
+  bool _isPrivateChatLocked() {
+    _controller.myChats.length;
+    return _controller.isPrivateChatLocked(
+      chatId: widget.chatId,
+      chatType: widget.chatType,
+      isLocked: widget.isLocked,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       _controller.markChatAsRead(chatId);
       _controller.fetchChatHistory(chatId);
+      _controller.refreshMyChats();
     }
   }
 
@@ -148,42 +160,69 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: _hasChatId ? _buildHistoryList() : _buildLocalMessagesList(),
           ),
-          CustomContainer(
-            borderColor: AppColors.transparent,
-            radius: 0,
-            bgColor: AppColors.orange,
-            child: Padding(
-              padding: Platform.isAndroid
-                  ? EdgeInsets.zero
-                  : const EdgeInsets.only(bottom: AppPadding.padding25),
-              child: Obx(
-                () => Row(
-                  children: [
-                    Expanded(child: _messageTextField()),
-                    10.horizontalSpace,
-                    GestureDetector(
-                      onTap: _hasChatId &&
-                              !_controller.isSendingChatImage.value
-                          ? _openImagePicker
-                          : null,
-                      child: Opacity(
-                        opacity: _controller.isSendingChatImage.value
-                            ? 0.5
-                            : 1,
-                        child: Image.asset(
-                          AssetPath.cameraIcon,
-                          width: 30.w,
-                          height: 30.h,
-                        ),
-                      ),
-                    ),
-                    10.horizontalSpace,
-                  ],
+          Obx(() => _isPrivateChatLocked()
+              ? _lockedChatBanner()
+              : _chatInputBar()),
+        ],
+      ),
+    );
+  }
+
+  Widget _chatInputBar() {
+    return CustomContainer(
+      borderColor: AppColors.transparent,
+      radius: 0,
+      bgColor: AppColors.orange,
+      child: Padding(
+        padding: Platform.isAndroid
+            ? EdgeInsets.zero
+            : const EdgeInsets.only(bottom: AppPadding.padding25),
+        child: Obx(
+          () => Row(
+            children: [
+              Expanded(child: _messageTextField()),
+              10.horizontalSpace,
+              GestureDetector(
+                onTap: _hasChatId && !_controller.isSendingChatImage.value
+                    ? _openImagePicker
+                    : null,
+                child: Opacity(
+                  opacity:
+                      _controller.isSendingChatImage.value ? 0.5 : 1,
+                  child: Image.asset(
+                    AssetPath.cameraIcon,
+                    width: 30.w,
+                    height: 30.h,
+                  ),
                 ),
               ),
-            ),
+              10.horizontalSpace,
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _lockedChatBanner() {
+    return CustomContainer(
+      borderColor: AppColors.transparent,
+      radius: 0,
+      bgColor: AppColors.orange,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppPadding.padding12,
+          vertical: Platform.isAndroid ? 14.h : 18.h,
+        ).copyWith(
+          bottom: Platform.isAndroid ? 14.h : AppPadding.padding25,
+        ),
+        child: CustomText(
+          text: AppStrings.chatLockedUntilBooking,
+          color: AppColors.white,
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w500,
+          align: Alignment.center,
+        ),
       ),
     );
   }

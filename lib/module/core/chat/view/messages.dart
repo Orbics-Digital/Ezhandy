@@ -118,6 +118,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           arguments: ChatRoutingArgument(
                             isBooking: true,
                             chatId: chatId,
+                            chatType: chat.chatType,
+                            isLocked: chat.isLocked,
                             otherUserName: chat.otherUser?.displayName,
                             otherUserId: chat.otherUser?.id,
                             otherUserImage: chat.otherUser?.profileImage,

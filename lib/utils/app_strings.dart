@@ -353,6 +353,8 @@ class AppStrings {
   static const String noServiceTypesFound = "No service types found";
   static const String noServicesFound = "No services found";
   static const String noChatsFound = "No chats found";
+  static const String chatLockedUntilBooking =
+      "Chat is locked until you create another booking with this provider.";
   static const String noResultsFound = "No results found";
   static const String pleaseUploadProductImage = "Please upload at least one image";
   static const String maximumFiveImagesAllowed = "You can upload up to 5 images";

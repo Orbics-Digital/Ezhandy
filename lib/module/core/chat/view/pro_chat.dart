@@ -113,6 +113,7 @@ class _ProChatState extends State<ProChat> {
                               isBooking: false,
                               chatId: chatId,
                               chatType: chat.chatType,
+                              isLocked: chat.isLocked,
                               otherUserName: chat.otherUser?.displayName,
                               otherUserId: chat.otherUser?.id,
                               otherUserImage: chat.otherUser?.profileImage,
