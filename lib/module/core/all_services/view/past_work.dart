@@ -181,36 +181,37 @@ class _PastWorkState extends State<PastWork> {
   }
 
   Widget imageListWidget(List<WorkDocumentItemModel> images) {
-    return SizedBox(
-      height: 120.h,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          final imagePath = images[index].displayImagePath;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: images.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 2.5 / 1.5,
+      ),
+      itemBuilder: (context, index) {
+        final imagePath = images[index].displayImagePath;
 
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
-            child: Image.network(
-              imagePath,
-              width: .45.sw,
-              height: 120.h,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: .45.sw,
-                height: 120.h,
-                color: AppColors.greyBorder,
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.broken_image_outlined,
-                  color: AppColors.greyLight,
-                ),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(10.r),
+          child: Image.network(
+            imagePath,
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: AppColors.greyBorder,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.broken_image_outlined,
+                color: AppColors.greyLight,
               ),
             ),
-          );
-        },
-        separatorBuilder: (context, index) => 10.horizontalSpace,
-        itemCount: images.length,
-      ),
+          ),
+        );
+      },
     );
   }
 }
