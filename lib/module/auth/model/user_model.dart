@@ -18,6 +18,8 @@ class UserModel {
   final bool isSubscription;
   final bool isQuickProvider;
   final String? address;
+  final String? aboutUs;
+  final int? experience;
   final String? referralCode;
   final double? hourlyRate;
   final String? latitude;
@@ -41,6 +43,8 @@ class UserModel {
     this.isSubscription = false,
     this.isQuickProvider = false,
     this.address,
+    this.aboutUs,
+    this.experience,
     this.referralCode,
     this.hourlyRate,
     this.latitude,
@@ -65,6 +69,8 @@ class UserModel {
     bool? isSubscription,
     bool? isQuickProvider,
     String? address,
+    String? aboutUs,
+    int? experience,
     String? referralCode,
     double? hourlyRate,
     String? latitude,
@@ -88,6 +94,8 @@ class UserModel {
       isSubscription: isSubscription ?? this.isSubscription,
       isQuickProvider: isQuickProvider ?? this.isQuickProvider,
       address: address ?? this.address,
+      aboutUs: aboutUs ?? this.aboutUs,
+      experience: experience ?? this.experience,
       referralCode: referralCode ?? this.referralCode,
       hourlyRate: hourlyRate ?? this.hourlyRate,
       latitude: latitude ?? this.latitude,
@@ -114,6 +122,8 @@ class UserModel {
       isSubscription: _readBool(json['isSubscription']),
       isQuickProvider: _readBool(json['isQuickProvider']),
       address: json['address']?.toString(),
+      aboutUs: json['aboutUs']?.toString(),
+      experience: _readInt(json['experience']),
       referralCode: json['referralCode']?.toString(),
       hourlyRate: _readDouble(json['hourlyRate']),
       latitude: json['latitude']?.toString(),
@@ -153,6 +163,8 @@ class UserModel {
         'isSubscription': isSubscription,
         'isQuickProvider': isQuickProvider,
         'address': address,
+        'aboutUs': aboutUs,
+        'experience': experience,
         'referralCode': referralCode,
         'hourlyRate': hourlyRate,
         'latitude': latitude,

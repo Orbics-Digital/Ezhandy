@@ -1,6 +1,8 @@
 // ignore_for_file: must_be_immutable
-import 'dart:developer';
 import 'dart:io';
+import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
+import 'package:ezhandy_user/module/auth/model/certificate_model.dart';
+import 'package:ezhandy_user/module/auth/model/user_model.dart';
 import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
@@ -35,44 +37,152 @@ class _EditUserProfileState extends State<EditUserProfile> {
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController languageController = TextEditingController();
+  final TextEditingController experienceController = TextEditingController();
+  final TextEditingController aboutYouController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   File? _profileImage;
+  String? _profileImageUrl;
 
   String? genderValue;
   var genderList = ["Male", "Female"];
 
+  String? languageValue;
+  final languageList = const ["English", "Spanish", "French"];
+
   /// Certificate dynamic fields
-  List<Map<String, TextEditingController>> certificates = [];
+  List<Map<String, dynamic>> certificates = [];
 
   bool keyboardVisible = false;
 
   @override
   void initState() {
     super.initState();
-    addCertificate();
+    _populateFromLoggedInUser();
+  }
+
+  void _populateFromLoggedInUser() {
+    final user = AuthController.i.user.value;
+    fullNameController.text = user?.fullName?.trim() ?? '';
+    emailController.text = user?.email?.trim() ?? '';
+    phoneController.text = user?.mobileNumber?.trim() ?? '';
+    languageValue = _languageLabelFromUser(user);
+    experienceController.text =
+        user?.experience != null ? user!.experience.toString() : '';
+    aboutYouController.text = user?.aboutUs?.trim() ?? '';
+    addressController.text = user?.address?.trim() ?? '';
+    genderValue = _genderLabelFromUser(user);
+    _profileImageUrl = user?.profileImage?.trim();
+
+    _populateCertificates(user?.certifications ?? const []);
+    setState(() {});
+  }
+
+  String? _languageLabelFromUser(UserModel? user) {
+    final title = user?.languageTitle?.trim();
+    if (title != null && title.isNotEmpty) return title;
+
+    switch (user?.languageId) {
+      case 2:
+        return 'Spanish';
+      case 3:
+        return 'French';
+      case 1:
+        return 'English';
+      default:
+        return null;
+    }
+  }
+
+  String? _genderLabelFromUser(UserModel? user) {
+    final title = user?.genderTitle?.trim();
+    if (title != null && genderList.contains(title)) return title;
+
+    switch (user?.gender?.trim().toUpperCase()) {
+      case 'F':
+      case 'FEMALE':
+        return 'Female';
+      case 'M':
+      case 'MALE':
+        return 'Male';
+      default:
+        return null;
+    }
+  }
+
+  void _populateCertificates(List<CertificateModel> items) {
+    _disposeCertificates();
+
+    if (items.isEmpty) {
+      addCertificate();
+      return;
+    }
+
+    certificates = items.map((item) {
+      final url = item.certificatePath?.trim();
+      final hasUrl = url != null && url.isNotEmpty;
+
+      return {
+        'institute': TextEditingController(
+          text: item.institutionName?.trim() ?? '',
+        ),
+        'title': TextEditingController(
+          text: item.certificationTitle?.trim() ?? '',
+        ),
+        'picture': TextEditingController(
+          text: hasUrl ? AppStrings.changeImage : '',
+        ),
+        'pictureFile': null,
+        'pictureUrl': hasUrl ? url : null,
+      };
+    }).toList();
+  }
+
+  void _disposeCertificates() {
+    for (final item in certificates) {
+      (item['institute'] as TextEditingController?)?.dispose();
+      (item['title'] as TextEditingController?)?.dispose();
+      (item['picture'] as TextEditingController?)?.dispose();
+    }
+    certificates.clear();
+  }
+
+  @override
+  void dispose() {
+    fullNameController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    experienceController.dispose();
+    aboutYouController.dispose();
+    addressController.dispose();
+    _disposeCertificates();
+    super.dispose();
   }
 
   void addCertificate() {
     setState(() {
       certificates.add({
-        "institute": TextEditingController(),
-        "title": TextEditingController(),
-        "picture": TextEditingController(),
+        'institute': TextEditingController(),
+        'title': TextEditingController(),
+        'picture': TextEditingController(),
+        'pictureFile': null,
+        'pictureUrl': null,
       });
     });
   }
 
   void removeCertificate(int index) {
     setState(() {
-      certificates.removeAt(index);
+      final item = certificates.removeAt(index);
+      (item['institute'] as TextEditingController?)?.dispose();
+      (item['title'] as TextEditingController?)?.dispose();
+      (item['picture'] as TextEditingController?)?.dispose();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
-    log("Keyboard: $keyboardVisible");
     return BackgroundImage(
       leading: AssetPath.backIcon,
       onclickLead: () => Get.back(),
@@ -113,13 +223,31 @@ class _EditUserProfileState extends State<EditUserProfile> {
                       /// Language
                       CustomText(text: AppStrings.language + "*"),
                       10.verticalSpace,
-                      _languageTextField(),
+                      languageDropDown(),
                       SizedBox(height: 0.02.sh),
 
                       /// Gender
                       CustomText(text: AppStrings.gender + "*"),
                       10.verticalSpace,
                       genderDropDown(),
+                      SizedBox(height: 0.02.sh),
+
+                      /// Experience
+                      CustomText(text: AppStrings.experience + "*"),
+                      10.verticalSpace,
+                      _experienceTextField(),
+                      SizedBox(height: 0.02.sh),
+
+                      /// About You
+                      CustomText(text: AppStrings.aboutYou + "*"),
+                      10.verticalSpace,
+                      _aboutYouTextField(),
+                      SizedBox(height: 0.02.sh),
+
+                      /// Address
+                      CustomText(text: AppStrings.address + "*"),
+                      10.verticalSpace,
+                      _addressTextField(),
                       SizedBox(height: 0.03.sh),
 
                       /// Certificates
@@ -135,7 +263,10 @@ class _EditUserProfileState extends State<EditUserProfile> {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: certificates.length,
                         itemBuilder: (context, index) {
-                          var item = certificates[index];
+                          final item = certificates[index];
+                          final pictureFile = item['pictureFile'] as File?;
+                          final pictureUrl = item['pictureUrl'] as String?;
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -164,17 +295,39 @@ class _EditUserProfileState extends State<EditUserProfile> {
                                 ],
                               ),
                               10.verticalSpace,
-                              _instituteNameTextField(item["institute"]!),
+                              _instituteNameTextField(
+                                item['institute']! as TextEditingController,
+                              ),
                               15.verticalSpace,
                               CustomText(
                                   text: "${AppStrings.certificateTitle} *"),
                               10.verticalSpace,
-                              _degreeTitleTextField(item["title"]!),
+                              _degreeTitleTextField(
+                                item['title']! as TextEditingController,
+                              ),
                               15.verticalSpace,
                               CustomText(
                                   text: "${AppStrings.certificatePicture} *"),
                               10.verticalSpace,
-                              _uploadTextField(item["picture"]!),
+                              _uploadTextField(
+                                item['picture']! as TextEditingController,
+                                imageFile: pictureFile,
+                                imageUrl: pictureUrl,
+                                onFileSelected: (file) {
+                                  certificates[index]['pictureFile'] = file;
+                                  if (file != null) {
+                                    certificates[index]['pictureUrl'] = null;
+                                  }
+                                },
+                              ),
+                              if (pictureFile != null) ...[
+                                10.verticalSpace,
+                                _certificateImagePreview(pictureFile),
+                              ] else if (pictureUrl != null &&
+                                  pictureUrl.isNotEmpty) ...[
+                                10.verticalSpace,
+                                _certificateNetworkImagePreview(pictureUrl),
+                              ],
                               SizedBox(height: 0.03.sh),
                               Divider(
                                   thickness: 1, color: AppColors.greyBorder),
@@ -225,7 +378,8 @@ class _EditUserProfileState extends State<EditUserProfile> {
       showUpload: true,
       setFile: _setFile,
       profileImage: _profileImage,
-      assetPath: null,
+      profileImageUrl: _profileImageUrl,
+      assetPath: AssetPath.tempImage1,
     );
   }
 
@@ -271,13 +425,68 @@ class _EditUserProfileState extends State<EditUserProfile> {
         controller: phoneController,
       );
 
-  Widget _languageTextField() => CustomTextField(
-        hint: AppStrings.enterLanguage,
+  Widget languageDropDown() {
+    return CustomDropDown2(
+      dropDownHeight: 220.h,
+      dropDownWidth: .91.sw,
+      dropDownData: languageList,
+      borderRadius: 10.r,
+      isPrefix: true,
+      hintText: AppStrings.selectLanguage,
+      dropdownValue: languageValue,
+      dropdownListColor: AppColors.white,
+      hintTextColor: AppColors.black,
+      onChanged: (value) {
+        setState(() {
+          languageValue = value?.toString();
+        });
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return AppStrings.selectLanguage;
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _experienceTextField() => CustomTextField(
+        hint: AppStrings.enterExperience,
         divider: false,
-        prefxicon: AssetPath.languageIcon,
+        prefxicon: AssetPath.homeTimeIcon,
         label: false,
-        controller: languageController,
-        validator: (v) => v?.validateEmpty(AppStrings.language),
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(2),
+        ],
+        controller: experienceController,
+        validator: (v) => v?.validateEmpty(AppStrings.experience),
+      );
+
+  Widget _aboutYouTextField() => CustomTextField(
+        hint: AppStrings.enterAboutYou,
+        divider: false,
+        prefxicon: AssetPath.aboutIcon,
+        label: false,
+        borderRadius: 10.r,
+        lines: 5,
+        inputFormatters: [
+          LengthLimitingTextInputFormatter(Constants.descriptionMaxLength),
+        ],
+        controller: aboutYouController,
+        validator: (v) => v?.validateEmpty(AppStrings.aboutYou),
+      );
+
+  Widget _addressTextField() => CustomTextField(
+        hint: AppStrings.enterAddress,
+        divider: false,
+        prefxicon: AssetPath.locationIcon,
+        label: false,
+        borderRadius: 10.r,
+        lines: 3,
+        controller: addressController,
+        validator: (v) => v?.validateEmpty(AppStrings.address),
       );
 
   Widget genderDropDown() {
@@ -327,22 +536,72 @@ class _EditUserProfileState extends State<EditUserProfile> {
         validator: (v) => v?.validateEmpty(AppStrings.certificateTitle),
       );
 
-  Widget _uploadTextField(TextEditingController controller) => CustomTextField(
-        hint: AppStrings.uploadCertificatePicture,
-        divider: false,
-        prefxicon: AssetPath.uploadIcon,
-        label: false,
-        readOnly: true,
-        controller: controller,
-        onTap: () {
-          AppDialogs.showImageSourceDialog(context, setFile: (file) {
-            setState(() {
-              controller.text = file?.path ?? "";
-            });
+  Widget _uploadTextField(
+    TextEditingController controller, {
+    File? imageFile,
+    String? imageUrl,
+    required void Function(File? file) onFileSelected,
+  }) {
+    final hasImage = imageFile != null ||
+        (imageUrl != null && imageUrl.trim().isNotEmpty);
+
+    return CustomTextField(
+      hint: AppStrings.uploadImageLabel,
+      divider: false,
+      prefxicon: AssetPath.uploadIcon,
+      label: false,
+      readOnly: true,
+      controller: controller,
+      onTap: () {
+        AppDialogs.showImageSourceDialog(context, setFile: (file) {
+          setState(() {
+            onFileSelected(file);
+            controller.text = file != null ? AppStrings.changeImage : '';
           });
-        },
-        validator: (v) => v?.validateEmpty(AppStrings.certificatePicture),
-      );
+        });
+      },
+      validator: (_) {
+        if (!hasImage) {
+          return AppStrings.uploadImageLabel;
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _certificateImagePreview(File imageFile) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.r),
+      child: Image.file(
+        imageFile,
+        fit: BoxFit.cover,
+        height: 180.h,
+        width: double.infinity,
+      ),
+    );
+  }
+
+  Widget _certificateNetworkImagePreview(String imageUrl) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.r),
+      child: Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        height: 180.h,
+        width: double.infinity,
+        errorBuilder: (_, __, ___) => Container(
+          height: 180.h,
+          width: double.infinity,
+          color: AppColors.greyBorder,
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.broken_image_outlined,
+            color: AppColors.greyLight,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _updateButton({required BuildContext context}) => CustomButton(
         text: AppStrings.update,
