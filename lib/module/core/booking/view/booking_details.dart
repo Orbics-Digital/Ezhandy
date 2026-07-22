@@ -79,6 +79,8 @@ class _BookingDetailsState extends State<BookingDetails> {
   Future<bool> _updateBookingStatus({
     required int status,
     String? statusReason,
+    bool forAccept = false,
+    bool forReject = false,
   }) async {
     final bookingId = _bookingId;
     if (bookingId == null) {
@@ -90,6 +92,8 @@ class _BookingDetailsState extends State<BookingDetails> {
       bookingId: bookingId,
       status: status,
       statusReason: statusReason,
+      forAccept: forAccept,
+      forReject: forReject,
     );
   }
 
@@ -186,6 +190,10 @@ class _BookingDetailsState extends State<BookingDetails> {
           final isLoading = _bookingsController.isBookingDetailLoading.value;
           final isUpdatingStatus =
               _bookingsController.isUpdatingBookingStatus.value;
+          final isAccepting =
+              _bookingsController.isAcceptingBooking.value;
+          final isRejecting =
+              _bookingsController.isRejectingBooking.value;
           final hasBookingId = widget.bookingId != null;
           final statusInfoMessage = _statusInfoMessage();
 
@@ -260,7 +268,8 @@ class _BookingDetailsState extends State<BookingDetails> {
                         10.verticalSpace,
                         approveRejectButtonRowWidget(
                           context,
-                          isLoading: isUpdatingStatus,
+                          isAcceptLoading: isAccepting,
+                          isRejectLoading: isRejecting,
                         )
                       ],
                       15.verticalSpace,
@@ -429,29 +438,20 @@ class _BookingDetailsState extends State<BookingDetails> {
                     ),
                   ))
             ],
-            if (isUpdatingStatus)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.25),
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(
-                    color: AppColors.orange,
-                  ),
-                ),
-              ),
           ]);
         }));
   }
 
   Row approveRejectButtonRowWidget(
     BuildContext context, {
-    bool isLoading = false,
+    bool isAcceptLoading = false,
+    bool isRejectLoading = false,
   }) {
     return Row(
       children: [
         Expanded(
           child: CustomButton(
-            isLoading: isLoading,
+            isLoading: isRejectLoading,
             onclick: () {
               AppDialogs.showSuccessDialog(
                 context,
@@ -473,6 +473,7 @@ class _BookingDetailsState extends State<BookingDetails> {
                       final success = await _updateBookingStatus(
                         status: BookingStatusEnum.Rejected.id,
                         statusReason: reason,
+                        forReject: true,
                       );
                       if (!mounted || !success) return;
 
@@ -510,7 +511,7 @@ class _BookingDetailsState extends State<BookingDetails> {
         10.horizontalSpace,
         Expanded(
           child: CustomButton(
-            isLoading: isLoading,
+            isLoading: isAcceptLoading,
             onclick: () {
               AppDialogs.showSuccessDialog(
                 context,
@@ -524,6 +525,7 @@ class _BookingDetailsState extends State<BookingDetails> {
 
                   final success = await _updateBookingStatus(
                     status: BookingStatusEnum.Assigned.id,
+                    forAccept: true,
                   );
                   if (!mounted || !success) return;
 

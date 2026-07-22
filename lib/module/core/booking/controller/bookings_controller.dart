@@ -37,6 +37,8 @@ class BookingsController extends GetxController {
   final Rxn<BookingDetailModel> bookingDetail = Rxn<BookingDetailModel>();
   final RxBool isBookingDetailLoading = false.obs;
   final RxBool isUpdatingBookingStatus = false.obs;
+  final RxBool isAcceptingBooking = false.obs;
+  final RxBool isRejectingBooking = false.obs;
 
   String get selectedStatusLabel {
     final statusId = selectedStatusId.value;
@@ -156,10 +158,26 @@ class BookingsController extends GetxController {
     required int bookingId,
     required int status,
     String? statusReason,
+    bool forAccept = false,
+    bool forReject = false,
   }) async {
-    if (isUpdatingBookingStatus.value) return false;
+    if (isUpdatingBookingStatus.value ||
+        isAcceptingBooking.value ||
+        isRejectingBooking.value) {
+      return false;
+    }
 
-    isUpdatingBookingStatus.value = true;
+    void setLoading(bool value) {
+      if (forAccept) {
+        isAcceptingBooking.value = value;
+      } else if (forReject) {
+        isRejectingBooking.value = value;
+      } else {
+        isUpdatingBookingStatus.value = value;
+      }
+    }
+
+    setLoading(true);
     try {
       await _repository.updateBookingStatus(
         bookingId: bookingId,
@@ -179,7 +197,7 @@ class BookingsController extends GetxController {
       AppDialogs.showToast(message: e.toString());
       return false;
     } finally {
-      isUpdatingBookingStatus.value = false;
+      setLoading(false);
     }
   }
 
@@ -187,7 +205,11 @@ class BookingsController extends GetxController {
     required int bookingId,
     required List<File> images,
   }) async {
-    if (isUpdatingBookingStatus.value) return false;
+    if (isUpdatingBookingStatus.value ||
+        isAcceptingBooking.value ||
+        isRejectingBooking.value) {
+      return false;
+    }
 
     if (images.isEmpty) {
       AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
@@ -226,7 +248,11 @@ class BookingsController extends GetxController {
     required int bookingId,
     required List<File> images,
   }) async {
-    if (isUpdatingBookingStatus.value) return false;
+    if (isUpdatingBookingStatus.value ||
+        isAcceptingBooking.value ||
+        isRejectingBooking.value) {
+      return false;
+    }
 
     if (images.isEmpty) {
       AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
