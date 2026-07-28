@@ -223,7 +223,7 @@ static const String s39Icon = "$_icons/ic_s39.png";
     keyboardIcon,
     bookingMenuIcon,
     earningMenuIcon,
-    bookingMenuIcon,
+    // bookingMenuIcon,
     earningsIcon,
     proRequestIcon,
     keyboardIcon,

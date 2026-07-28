@@ -45,7 +45,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
       _paymentLogsTap,
       _newServicesTap,
       _allServicesTap,
-      _earningsTap,
+      // _earningsTap,
       _proRequestTap,
       _subscriptionLogTap,
       _marketPlaceTap,
