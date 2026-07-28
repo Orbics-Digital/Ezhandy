@@ -89,15 +89,15 @@ class _SignUpFormState extends State<SignUpForm> {
   // bool switchOff = false;
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppPadding.padding16,
       ),
       child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: EdgeInsets.only(bottom: bottomInset + 25.h),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          bottom: widget.keyboardVisible ? 16 : 25,
+        ),
         child: Form(
           key: signUpKey,
           child: Column(
