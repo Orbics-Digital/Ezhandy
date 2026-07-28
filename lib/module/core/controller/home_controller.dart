@@ -39,9 +39,10 @@ class HomeController extends GetxController {
   Future<bool> toggleAskProActive(bool value) async {
     if (isAskProToggleLoading.value) return false;
 
+    final previousIsAskPro = isAskPro.value;
     final previousActive = askProActive.value;
     isAskProToggleLoading.value = true;
-    askProActive.value = value;
+    isAskPro.value = value;
 
     try {
       final status = await _askProRepository.toggleProviderActivateFree();
@@ -49,10 +50,12 @@ class HomeController extends GetxController {
       isAskPro.value = status.isAskPro;
       return true;
     } on DioException catch (e) {
+      isAskPro.value = previousIsAskPro;
       askProActive.value = previousActive;
       AppDialogs.showToast(message: ApiHelper.errorMessage(e));
       return false;
     } catch (e) {
+      isAskPro.value = previousIsAskPro;
       askProActive.value = previousActive;
       AppDialogs.showToast(message: e.toString());
       return false;

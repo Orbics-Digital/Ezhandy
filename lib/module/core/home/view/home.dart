@@ -53,7 +53,7 @@ class _HomeState extends State<Home> {
               child: Column(
                 children: [
                   Obx(() {
-                    final askProActive = _controller.askProActive.value;
+                    final isAskPro = _controller.isAskPro.value;
                     final isLoading = _controller.isAskProStatusLoading.value ||
                         _controller.isAskProToggleLoading.value;
 
@@ -63,25 +63,25 @@ class _HomeState extends State<Home> {
                           CustomText(text: "Become A Pro:"),
                           5.horizontalSpace,
                           CustomText(
-                            text: askProActive ? "Active" : "In-Active",
+                            text: isAskPro ? "Active" : "In-Active",
                             color:
-                                askProActive ? AppColors.green : AppColors.red,
+                                isAskPro ? AppColors.green : AppColors.red,
                             fontWeight: FontWeight.bold,
                           ),
                           const Spacer(),
                           IgnorePointer(
                             ignoring: isLoading,
                             child: AnimatedSwitch(
-                              key: ValueKey(askProActive),
-                              isSwitched: askProActive,
+                              key: ValueKey(isAskPro),
+                              isSwitched: isAskPro,
                               onCallBack: (value) async {
-                                final wasActive = _controller.askProActive.value;
+                                final wasAskPro = _controller.isAskPro.value;
                                 final success =
                                     await _controller.toggleAskProActive(value);
                                 if (!success || !context.mounted) return;
 
-                                if (!wasActive &&
-                                    _controller.askProActive.value) {
+                                if (!wasAskPro &&
+                                    _controller.isAskPro.value) {
                                   AppDialogs.showSuccessDialog(
                                     context,
                                     description: AppStrings.nowYouArePro,
