@@ -104,6 +104,19 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> markSubscriptionActive() async {
+    final current = user.value;
+    if (current == null) return;
+
+    final updated = current.copyWith(isSubscription: true);
+    user.value = updated;
+
+    final session = await SessionStorage.i.load();
+    if (session != null) {
+      await SessionStorage.i.save(token: session.token, user: updated);
+    }
+  }
+
   Future<bool> signIn(
     BuildContext context, {
     required String email,
@@ -128,7 +141,9 @@ class AuthController extends GetxController {
       if (context.mounted) {
         AppNavigation.navigateToRemovingAll(
           context,
-          AppRoutes.mainMenuScreenRoute,
+          result.user.isSubscription
+              ? AppRoutes.mainMenuScreenRoute
+              : AppRoutes.subscriptionScreenRoute,
         );
       }
       return true;

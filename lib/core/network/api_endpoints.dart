@@ -34,6 +34,11 @@ class ApiEndpoints {
   static const String askProProviderActivateFree = 'ask-pro/provider/activate-free';
   static const String providerWallet = 'payment/provider-wallet';
   static const String paymentLogs = 'payment/logs';
+  static const String activeSubscriptionPlans = 'subscription-plans/active';
+  static const String createSubscriptionCheckout =
+      'payment/create-subscription-checkout';
+  static const String verifySubscriptionCheckout =
+      'payment/verify-subscription-checkout';
 
   static String page(String slug) => 'pages/$slug';
 

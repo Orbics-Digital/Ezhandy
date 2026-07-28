@@ -56,9 +56,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _onComplete() {
     AppSystemUi.applyDarkContent();
-    final destination = AuthController.i.user.value != null
-        ? AppRoutes.mainMenuScreenRoute
-        : AppRoutes.loginScreenRoute;
+    final user = AuthController.i.user.value;
+    final String destination;
+    if (user == null) {
+      destination = AppRoutes.loginScreenRoute;
+    } else if (!user.isSubscription) {
+      destination = AppRoutes.subscriptionScreenRoute;
+    } else {
+      destination = AppRoutes.mainMenuScreenRoute;
+    }
     AppNavigation.navigateToRemovingAll(context, destination);
   }
 

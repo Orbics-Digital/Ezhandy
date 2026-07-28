@@ -55,6 +55,8 @@ import 'package:ezhandy_user/module/core/profile/view/user_profile.dart';
 import 'package:ezhandy_user/module/core/rating_review_report/view/rating_screen.dart';
 import 'package:ezhandy_user/module/core/rating_review_report/view/report_issue.dart';
 import 'package:ezhandy_user/module/core/rating_review_report/view/write_review_screen.dart';
+import 'package:ezhandy_user/module/core/subscription_n_payment/routing_arguments/checkout_webview_routing_arguments.dart';
+import 'package:ezhandy_user/module/core/subscription_n_payment/view/checkout_webview.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/view/earning_log.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/view/payment_log.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/view/subscription.dart';
@@ -114,6 +116,16 @@ class AppRouter {
             return SubscriptionScreen(
                 // isFromAuth: subscriptionArguments?.isFromAuth ?? false,
                 );
+          case AppRoutes.checkoutWebViewScreenRoute:
+            final checkoutArguments =
+                routeSettings.arguments as CheckoutWebViewRoutingArgument?;
+            return CheckoutWebViewScreen(
+              url: checkoutArguments?.url ?? '',
+              successPath:
+                  checkoutArguments?.successPath ?? 'subscription-success',
+              cancelPath:
+                  checkoutArguments?.cancelPath ?? 'subscription-plans',
+            );
           case AppRoutes.userProfileScreenRoute:
             return UserProfile();
           case AppRoutes.editProfileScreenRoute:

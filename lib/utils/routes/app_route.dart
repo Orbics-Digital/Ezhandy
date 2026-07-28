@@ -17,6 +17,8 @@ class AppRoutes {
   static const String changePasswordScreenRoute = "/change_password_screen";
   static const String mainMenuScreenRoute = "main_menuRoute";
   static const String subscriptionScreenRoute = "subscription_screenRoute";
+  static const String checkoutWebViewScreenRoute =
+      "checkout_webview_screenRoute";
   static const String educationScreenRoute = "education_screenRoute";
   static const String notAvailableScreenRoute = "not_available_screenRoute";
   static const String userProfileScreenRoute = "user_profile_screenRoute";

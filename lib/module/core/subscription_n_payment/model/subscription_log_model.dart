@@ -8,6 +8,12 @@ class SubscriptionPlanModel {
   final String? packageType;
   final String? price;
   final String? priceValue;
+  final String? originalPrice;
+  final List<String> features;
+  final String? color;
+  final String? iconName;
+  final bool popular;
+  final bool isActive;
 
   const SubscriptionPlanModel({
     this.id,
@@ -17,7 +23,48 @@ class SubscriptionPlanModel {
     this.packageType,
     this.price,
     this.priceValue,
+    this.originalPrice,
+    this.features = const [],
+    this.color,
+    this.iconName,
+    this.popular = false,
+    this.isActive = false,
   });
+
+  String get displayTitle {
+    final value = title?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return _formatPackageType(packageType);
+  }
+
+  String get displayPrice {
+    final value = (priceValue ?? price)?.trim();
+    if (value == null || value.isEmpty) return '\$0.00';
+    final parsed = double.tryParse(value);
+    if (parsed != null) return '\$${parsed.toStringAsFixed(2)}';
+    return value.startsWith('\$') ? value : '\$$value';
+  }
+
+  String? get displayOriginalPrice {
+    final value = originalPrice?.trim();
+    if (value == null || value.isEmpty) return null;
+    final parsed = double.tryParse(value);
+    if (parsed != null) return '\$${parsed.toStringAsFixed(2)}';
+    return value.startsWith('\$') ? value : '\$$value';
+  }
+
+  String get displayDuration {
+    final value = duration?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return _formatPackageType(packageType);
+  }
+
+  int get amountInCents {
+    final value = (priceValue ?? price)?.trim();
+    if (value == null || value.isEmpty) return 0;
+    final parsed = double.tryParse(value.replaceAll('\$', '')) ?? 0;
+    return (parsed * 100).round();
+  }
 
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanModel(
@@ -28,6 +75,12 @@ class SubscriptionPlanModel {
       packageType: json['packageType']?.toString(),
       price: json['price']?.toString(),
       priceValue: json['priceValue']?.toString(),
+      originalPrice: json['originalPrice']?.toString(),
+      features: _readStringList(json['features']),
+      color: json['color']?.toString(),
+      iconName: json['iconName']?.toString(),
+      popular: _readBool(json['popular']),
+      isActive: _readBool(json['isActive']),
     );
   }
 }
@@ -126,6 +179,14 @@ bool _readBool(dynamic value) {
     return normalized == 'true' || normalized == '1';
   }
   return false;
+}
+
+List<String> _readStringList(dynamic value) {
+  if (value is! List) return const [];
+  return value
+      .map((item) => item?.toString().trim() ?? '')
+      .where((item) => item.isNotEmpty)
+      .toList();
 }
 
 DateTime? _readDate(dynamic value) {

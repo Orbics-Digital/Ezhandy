@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/data/payment_repository.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/model/provider_wallet_model.dart';
+import 'package:ezhandy_user/module/core/subscription_n_payment/model/subscription_checkout_result.dart';
 import 'package:ezhandy_user/module/core/subscription_n_payment/model/subscription_log_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:get/get.dart';
@@ -21,6 +22,11 @@ class PaymentController extends GetxController {
 
   final RxList<SubscriptionLogModel> subscriptionLogs = <SubscriptionLogModel>[].obs;
   final RxBool isSubscriptionLogsLoading = false.obs;
+
+  final RxList<SubscriptionPlanModel> activePlans = <SubscriptionPlanModel>[].obs;
+  final RxBool isActivePlansLoading = false.obs;
+  final RxBool isCheckoutLoading = false.obs;
+  final RxBool isVerifyCheckoutLoading = false.obs;
 
   List<ProviderPaymentLogModel> get paymentLogs =>
       providerWallet.value?.logs ?? [];
@@ -81,6 +87,79 @@ class PaymentController extends GetxController {
       AppDialogs.showToast(message: ApiHelper.errorMessage(e));
     } catch (e) {
       AppDialogs.showToast(message: e.toString());
+    }
+  }
+
+  Future<void> fetchActiveSubscriptionPlans() async {
+    if (isActivePlansLoading.value) return;
+
+    isActivePlansLoading.value = true;
+    try {
+      activePlans.assignAll(await _repository.getActiveSubscriptionPlans());
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isActivePlansLoading.value = false;
+    }
+  }
+
+  Future<void> refreshActiveSubscriptionPlans() async {
+    try {
+      activePlans.assignAll(await _repository.getActiveSubscriptionPlans());
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    }
+  }
+
+  Future<SubscriptionCheckoutResult?> createSubscriptionCheckout(
+    SubscriptionPlanModel plan,
+  ) async {
+    if (isCheckoutLoading.value) return null;
+    if (plan.id == null) {
+      AppDialogs.showToast(message: 'Invalid subscription plan.');
+      return null;
+    }
+
+    isCheckoutLoading.value = true;
+    try {
+      return await _repository.createSubscriptionCheckout(plan: plan);
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return null;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return null;
+    } finally {
+      isCheckoutLoading.value = false;
+    }
+  }
+
+  Future<bool> verifySubscriptionCheckout(String sessionId) async {
+    final normalizedSessionId = sessionId.trim();
+    if (normalizedSessionId.isEmpty) {
+      AppDialogs.showToast(message: 'Missing checkout session.');
+      return false;
+    }
+    if (isVerifyCheckoutLoading.value) return false;
+
+    isVerifyCheckoutLoading.value = true;
+    try {
+      await _repository.verifySubscriptionCheckout(
+        sessionId: normalizedSessionId,
+      );
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isVerifyCheckoutLoading.value = false;
     }
   }
 }
