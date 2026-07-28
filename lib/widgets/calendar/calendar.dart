@@ -41,6 +41,28 @@ class _CustomCalendarState extends State<CustomCalendar> {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant CustomCalendar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final newDates =
+        widget.highlightedDates.map(_normalizeDate).toSet();
+    final oldDates =
+        oldWidget.highlightedDates.map(_normalizeDate).toSet();
+
+    if (!_areSameDateSets(newDates, oldDates)) {
+      selectedDates = newDates;
+      if (selectedDates.isEmpty && !widget.readOnly) {
+        selectedDates.add(_normalizeDate(DateTime.now()));
+      }
+    }
+  }
+
+  bool _areSameDateSets(Set<DateTime> a, Set<DateTime> b) {
+    if (a.length != b.length) return false;
+    return a.every((date) => b.any((other) => _isSameDay(date, other)));
+  }
+
   DateTime _normalizeDate(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 
@@ -124,6 +146,9 @@ class _CustomCalendarState extends State<CustomCalendar> {
       ),
 
       onDaySelected: _onDayTapped,
+      onPageChanged: (focused) {
+        focusedDay = focused;
+      },
     );
   }
 }

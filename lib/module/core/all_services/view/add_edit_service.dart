@@ -266,9 +266,6 @@ class _AddEditServiceState extends State<AddEditService> {
 
   CustomCalendar calendarWidget() {
     return CustomCalendar(
-      key: ValueKey(
-        selectedCalendarDates.map((date) => date.toIso8601String()).join(','),
-      ),
       highlightedDates: selectedCalendarDates,
       onDatesChanged: (dates) {
         setState(() {
