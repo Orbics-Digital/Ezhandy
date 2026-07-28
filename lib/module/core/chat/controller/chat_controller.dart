@@ -256,15 +256,21 @@ class ChatController extends GetxController {
     return _otherUserImageFromHistory();
   }
 
-  void sendChatMessage(String content) {
+  Future<bool> sendChatMessage(String content) async {
     final chatId = _activeChatId;
     final text = content.trim();
-    if (chatId == null || chatId.isEmpty || text.isEmpty) return;
-    if (isActivePrivateChatLocked) return;
+    if (chatId == null || chatId.isEmpty || text.isEmpty) return false;
+    if (isActivePrivateChatLocked) return false;
 
     final currentUser = AuthController.i.user.value;
     final userId = currentUser?.sub?.trim();
-    if (userId == null || userId.isEmpty) return;
+    if (userId == null || userId.isEmpty) return false;
+
+    final isReady = await SocketService.i.ensureReadyForChat(chatId);
+    if (!isReady) {
+      AppDialogs.showToast(message: 'Chat connection not ready');
+      return false;
+    }
 
     final optimistic = ChatHistoryMessageModel(
       content: text,
@@ -289,6 +295,7 @@ class ChatController extends GetxController {
       senderId: userId,
       receiverId: _activeReceiverId,
     );
+    return true;
   }
 
   Future<void> sendChatImage(File image) async {
@@ -302,7 +309,8 @@ class ChatController extends GetxController {
       return;
     }
 
-    if (!SocketService.i.isUserOnline.value) {
+    final isReady = await SocketService.i.ensureReadyForChat(chatId);
+    if (!isReady) {
       AppDialogs.showToast(message: 'Chat connection not ready');
       return;
     }

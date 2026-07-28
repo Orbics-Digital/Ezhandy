@@ -349,13 +349,15 @@ class _ChatScreenState extends State<ChatScreen> {
       divider: false,
       label: false,
       sufixImage: Image.asset(AssetPath.sendIcon, width: 30.w, height: 30.h),
-      onclickSufix: () {
+      onclickSufix: () async {
         final text = messageController.text.trim();
         if (text.isEmpty) return;
 
         if (_hasChatId) {
-          _controller.sendChatMessage(text);
-          messageController.clear();
+          final sent = await _controller.sendChatMessage(text);
+          if (sent) {
+            messageController.clear();
+          }
           return;
         }
 

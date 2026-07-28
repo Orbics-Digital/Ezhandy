@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:ezhandy_user/core/socket/socket_constants.dart';
@@ -21,6 +22,8 @@ class SocketService extends GetxService {
 
   final RxBool isConnected = false.obs;
   final RxBool isUserOnline = false.obs;
+
+  bool get isReady => isConnected.value && isUserOnline.value;
 
   void Function(Map<String, dynamic> data)? onIncomingMessage;
   void Function(Map<String, dynamic> data)? onChatUpdated;
@@ -117,6 +120,35 @@ class SocketService extends GetxService {
     _socket?.emit(SocketConstants.userOnline, {'userId': userId});
   }
 
+  Future<bool> waitUntilReady({
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    if (isReady) return true;
+
+    await connect();
+    if (isReady) return true;
+
+    final completer = Completer<bool>();
+    late Worker worker;
+    Timer? timer;
+
+    void complete(bool value) {
+      if (completer.isCompleted) return;
+      timer?.cancel();
+      worker.dispose();
+      completer.complete(value);
+    }
+
+    worker = everAll([isConnected, isUserOnline], (_) {
+      if (isReady) {
+        complete(true);
+      }
+    });
+
+    timer = Timer(timeout, () => complete(isReady));
+    return completer.future;
+  }
+
   void joinChat(String chatId) {
     final id = chatId.trim();
     if (id.isEmpty) return;
@@ -135,6 +167,20 @@ class SocketService extends GetxService {
     _socket?.emit(SocketConstants.joinChat, {'chatId': chatId});
     _joinedChatId = chatId;
     _pendingJoinChatIds.remove(chatId);
+  }
+
+  Future<bool> ensureReadyForChat(
+    String chatId, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final id = chatId.trim();
+    if (id.isEmpty) return false;
+
+    final ready = await waitUntilReady(timeout: timeout);
+    if (!ready) return false;
+
+    joinChat(id);
+    return true;
   }
 
   void _processPendingJoins() {
