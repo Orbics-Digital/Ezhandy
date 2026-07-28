@@ -93,54 +93,51 @@ class _WorkDocumentsState extends State<WorkDocuments> {
       );
     }
 
-    return SizedBox(
-      height: 120.h,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: documents.length,
-        itemBuilder: (context, index) {
-          final document = documents[index];
-
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
-            child: Image.network(
-              document.displayImagePath,
-              width: .45.sw,
-              height: 120.h,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) {
-                return Container(
-                  width: .45.sw,
-                  height: 120.h,
-                  color: AppColors.grey.withValues(alpha: 0.2),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.broken_image_outlined,
-                    color: AppColors.grey,
-                  ),
-                );
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-
-                return Container(
-                  width: .45.sw,
-                  height: 120.h,
-                  color: AppColors.grey.withValues(alpha: 0.1),
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(
-                    color: AppColors.orange,
-                    strokeWidth: 2,
-                  ),
-                );
-              },
-            ),
-          );
-        },
-        separatorBuilder: (context, index) {
-          return 10.horizontalSpace;
-        },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: documents.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 2.5 / 1.5,
       ),
+      itemBuilder: (context, index) {
+        final document = documents[index];
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(10.r),
+          child: Image.network(
+            document.displayImagePath,
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) {
+              return Container(
+                color: AppColors.grey.withValues(alpha: 0.2),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.broken_image_outlined,
+                  color: AppColors.grey,
+                ),
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+
+              return Container(
+                color: AppColors.grey.withValues(alpha: 0.1),
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(
+                  color: AppColors.orange,
+                  strokeWidth: 2,
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
