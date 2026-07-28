@@ -59,6 +59,10 @@ class BookingDetailUserModel {
     if (value != null && value.isNotEmpty) return value;
     return '-';
   }
+
+  double? get parsedLatitude => double.tryParse(latitude?.trim() ?? '');
+
+  double? get parsedLongitude => double.tryParse(longitude?.trim() ?? '');
 }
 
 class BookingDetailProviderModel {

@@ -20,6 +20,7 @@ import 'package:ezhandy_user/widgets/Container/custom_container.dart';
 import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:ezhandy_user/widgets/row/two_text_row.dart';
+import 'package:ezhandy_user/widgets/map/booking_location_map.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
 class BookingDetails extends StatefulWidget {
@@ -381,19 +382,9 @@ class _BookingDetailsState extends State<BookingDetails> {
                         // endWorkButtonWidget(),
                         goingButtonWidget(isLoading: isUpdatingStatus),
                       ],
-                      // HomeController.i.jobStatus.value == AppStrings.inRoute
-                      //     ? CustomContainer(
-                      //         onTap: () {
-                      //           // AppNavigation.navigateTo(
-                      //           //     context, AppRoutes.MyAppointmentScreenRoute);
-                      //         },
-                      //         height: 200.h,
-                      //         width: 1.sw,
-                      //         isPadding: false,
-                      //         child: Image.asset(AssetPath.map,
-                      //             fit: BoxFit.cover))
-                      //     : SizedBox.shrink(),
-                      const SizedBox.shrink(),
+                      if (HomeController.i.jobStatus.value ==
+                          AppStrings.inRoute)
+                        bookingLocationMapWidget(),
                       25.verticalSpace,
                       if (HomeController.i.jobStatus.value ==
                               AppStrings.inRoute ||
@@ -699,6 +690,39 @@ class _BookingDetailsState extends State<BookingDetails> {
           10.verticalSpace,
         ],
       ),
+    );
+  }
+
+  Widget bookingLocationMapWidget() {
+    final user = _detail?.user;
+
+    return Column(
+      children: [
+        15.verticalSpace,
+        CustomContainer(
+          isPadding: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppPadding.padding12),
+                child: CustomText(
+                  text: AppStrings.location,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Divider(color: AppColors.blueDark),
+              BookingLocationMap(
+                destinationLatitude: user?.parsedLatitude,
+                destinationLongitude: user?.parsedLongitude,
+                address: user?.address,
+              ),
+              10.verticalSpace,
+            ],
+          ),
+        ),
+      ],
     );
   }
 
