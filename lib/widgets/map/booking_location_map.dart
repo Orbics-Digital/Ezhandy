@@ -13,12 +13,18 @@ class BookingLocationMap extends StatefulWidget {
   final double? destinationLatitude;
   final double? destinationLongitude;
   final String? address;
+  final bool fullScreen;
+  final VoidCallback? onTap;
+  final String recenterHeroTag;
 
   const BookingLocationMap({
     super.key,
     this.destinationLatitude,
     this.destinationLongitude,
     this.address,
+    this.fullScreen = false,
+    this.onTap,
+    this.recenterHeroTag = 'booking_map_recenter',
   });
 
   @override
@@ -43,6 +49,8 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
     if (!_hasValidDestination) return null;
     return LatLng(widget.destinationLatitude!, widget.destinationLongitude!);
   }
+
+  bool get _gesturesEnabled => widget.fullScreen || widget.onTap == null;
 
   @override
   void initState() {
@@ -128,12 +136,12 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
     if (isFirstFix && !_hasFittedCamera) {
       _hasFittedCamera = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _fitMapToMarkers(animate: false);
+        _fitMapToMarkers();
       });
     }
   }
 
-  void _fitMapToMarkers({bool animate = true}) {
+  void _fitMapToMarkers() {
     final points = <LatLng>[
       if (_currentLocation != null) _currentLocation!,
       if (_destinationLocation != null) _destinationLocation!,
@@ -142,10 +150,7 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
     if (points.isEmpty) return;
 
     if (points.length == 1) {
-      _mapController.move(
-        points.first,
-        15,
-      );
+      _mapController.move(points.first, 15);
       return;
     }
 
@@ -207,14 +212,14 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
   }
 
   LatLng _initialCenter() {
-    return _currentLocation ??
-        _destinationLocation ??
-        const LatLng(0, 0);
+    return _currentLocation ?? _destinationLocation ?? const LatLng(0, 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasValidDestination && _currentLocation == null && !_isLoadingLocation) {
+    if (!_hasValidDestination &&
+        _currentLocation == null &&
+        !_isLoadingLocation) {
       final trimmedAddress = widget.address?.trim();
       if (trimmedAddress != null && trimmedAddress.isNotEmpty) {
         return Padding(
@@ -238,77 +243,90 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
     }
 
     final markers = _buildMarkers();
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10.sp),
-      child: SizedBox(
-        height: 220.h,
-        width: double.infinity,
-        child: Stack(
+    final mapContent = Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: _initialCenter(),
+            initialZoom: 15,
+            interactionOptions: InteractionOptions(
+              flags: _gesturesEnabled
+                  ? InteractiveFlag.all & ~InteractiveFlag.rotate
+                  : InteractiveFlag.none,
+            ),
+          ),
           children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _initialCenter(),
-                initialZoom: 15,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.pixelgenesys.ezhandy.provider',
-                ),
-                if (markers.isNotEmpty) MarkerLayer(markers: markers),
-              ],
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.pixelgenesys.ezhandy.provider',
             ),
-            if (_isLoadingLocation)
-              Container(
-                color: AppColors.white.withValues(alpha: 0.7),
-                alignment: Alignment.center,
-                child: const CircularProgressIndicator(color: AppColors.orange),
-              ),
-            if (_locationError != null)
-              Positioned(
-                left: AppPadding.padding12,
-                right: AppPadding.padding12,
-                bottom: AppPadding.padding12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppPadding.padding12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(8.sp),
-                    border: Border.all(color: AppColors.greyBorder),
-                  ),
-                  child: CustomText(
-                    text: _locationError!,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            Positioned(
-              top: 12.h,
-              right: 12.w,
-              child: FloatingActionButton.small(
-                heroTag: 'booking_map_recenter',
-                backgroundColor: AppColors.green,
-                onPressed:
-                    _currentLocation == null ? null : _recenterOnCurrentLocation,
-                child: Icon(
-                  Icons.my_location,
-                  color: AppColors.white,
-                  size: 20.sp,
-                ),
-              ),
-            ),
+            if (markers.isNotEmpty) MarkerLayer(markers: markers),
           ],
         ),
-      ),
+        if (_isLoadingLocation)
+          Container(
+            color: AppColors.white.withValues(alpha: 0.7),
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(color: AppColors.orange),
+          ),
+        if (_locationError != null)
+          Positioned(
+            left: AppPadding.padding12,
+            right: AppPadding.padding12,
+            bottom: AppPadding.padding12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppPadding.padding12,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(8.sp),
+                border: Border.all(color: AppColors.greyBorder),
+              ),
+              child: CustomText(
+                text: _locationError!,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        Positioned(
+          top: widget.fullScreen ? (MediaQuery.paddingOf(context).top + 12.h) : 12.h,
+          right: 12.w,
+          child: FloatingActionButton.small(
+            heroTag: widget.recenterHeroTag,
+            backgroundColor: AppColors.green,
+            onPressed:
+                _currentLocation == null ? null : _recenterOnCurrentLocation,
+            child: Icon(
+              Icons.my_location,
+              color: AppColors.white,
+              size: 20.sp,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final sizedMap = widget.fullScreen
+        ? SizedBox.expand(child: mapContent)
+        : ClipRRect(
+            borderRadius: BorderRadius.circular(10.sp),
+            child: SizedBox(
+              height: 220.h,
+              width: double.infinity,
+              child: mapContent,
+            ),
+          );
+
+    if (widget.onTap == null) return sizedMap;
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: sizedMap,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
+import 'package:ezhandy_user/module/core/booking/routing_arguments/full_screen_map_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/work_documents_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/chat/controller/chat_controller.dart';
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
@@ -706,10 +707,34 @@ class _BookingDetailsState extends State<BookingDetails> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(AppPadding.padding12),
-                child: CustomText(
-                  text: AppStrings.location,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
+                child: Row(
+                  children: [
+                    CustomText(
+                      text: AppStrings.location,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        AppNavigation.navigateTo(
+                          context,
+                          AppRoutes.fullScreenBookingMapScreenRoute,
+                          arguments: FullScreenMapRoutingArgument(
+                            destinationLatitude: user?.parsedLatitude,
+                            destinationLongitude: user?.parsedLongitude,
+                            address: user?.address,
+                          ),
+                        );
+                      },
+                      child: CustomText(
+                        text: 'View Map',
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.orange,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Divider(color: AppColors.blueDark),

@@ -48,6 +48,8 @@ class AppRoutes {
   static const String ratingScreenRoute = "rating_screenRoute";
   static const String MyAppointmentScreenRoute = "/my_appointment_screenRoute";
   static const String bookingScreenRoute = "/booking_screen_screenRoute";
+  static const String fullScreenBookingMapScreenRoute =
+      "/full_screen_booking_map_screenRoute";
   static const String uploadPictureBeforeWorkScreenRoute =
       "/upload_picture_before_work_screen_screenRoute";
   static const String uploadPictureAfterWorkScreenRoute =

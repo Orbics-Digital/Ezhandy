@@ -26,9 +26,11 @@ import 'package:ezhandy_user/module/core/all_services/view/service_selection.dar
 import 'package:ezhandy_user/module/core/all_services/view/signin_with_affirm.dart';
 import 'package:ezhandy_user/module/core/all_services/view/single_service.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/booking_routing_arguments.dart';
+import 'package:ezhandy_user/module/core/booking/routing_arguments/full_screen_map_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/booking/view/booking_details.dart';
 import 'package:ezhandy_user/module/core/booking/view/booking_history.dart';
 import 'package:ezhandy_user/module/core/booking/view/edit_invoice.dart';
+import 'package:ezhandy_user/module/core/booking/view/full_screen_booking_map.dart';
 import 'package:ezhandy_user/module/core/booking/view/invoice_screen.dart';
 import 'package:ezhandy_user/module/core/booking/view/upload_picture_after_work.dart';
 import 'package:ezhandy_user/module/core/booking/view/upload_picture_before_work.dart';
@@ -195,6 +197,10 @@ class AppRouter {
               status: bookingArgument.Status,
               bookingId: bookingArgument.bookingId,
             );
+          case AppRoutes.fullScreenBookingMapScreenRoute:
+            final mapArguments =
+                routeSettings.arguments as FullScreenMapRoutingArgument?;
+            return FullScreenBookingMapScreen(arguments: mapArguments);
           case AppRoutes.uploadPictureBeforeWorkScreenRoute:
             return UploadPictureBeforeWork();
           case AppRoutes.uploadPictureAfterWorkScreenRoute:
