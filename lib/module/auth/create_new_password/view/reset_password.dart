@@ -25,7 +25,19 @@ class _ResetPasswordState extends State<ResetPassword> {
       // appBarheight: 50.h,
       // title: AppStrings.resetPassword,
       // is_registration: true,
-      child: ResetPasswordForm(email: widget.email),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: ResetPasswordForm(email: widget.email),
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -42,17 +42,29 @@ class _OTPVerificationState extends State<OTPVerification> {
         },
         // title: AppStrings.otp,
         // appBarheight: 50.h,
-        child: OtpVerificationForm(
-          type: widget.type!,
-          iso_code: "",
-          country_code: "",
-          emailAndPhone: widget.emailAndPhone,
-          text: widget.text,
-          duration: _duration,
-          isTimeComplete: isTimeComplete,
-          user_id: " ",
-          phone_verication: " ",
-          keyboardVisible: keyboardVisible,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: OtpVerificationForm(
+                  type: widget.type!,
+                  iso_code: "",
+                  country_code: "",
+                  emailAndPhone: widget.emailAndPhone,
+                  text: widget.text,
+                  duration: _duration,
+                  isTimeComplete: isTimeComplete,
+                  user_id: " ",
+                  phone_verication: " ",
+                  keyboardVisible: keyboardVisible,
+                ),
+              ),
+            );
+          },
         ));
   }
 }

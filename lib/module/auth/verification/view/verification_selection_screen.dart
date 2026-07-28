@@ -18,7 +18,19 @@ class VerificationSelection extends StatelessWidget {String? type;
       // title: AppStrings.forgotPassword,
       // is_registration: true,
       //----------------Form----------------
-      child: VerificationSelectionForm(type: type,),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: VerificationSelectionForm(type: type),
+            ),
+          );
+        },
+      ),
     );
   }
 }

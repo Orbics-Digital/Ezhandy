@@ -38,6 +38,7 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Non-scrollable content (e.g., logo)
           AppLogo(scale: 3.5.sp),
@@ -49,21 +50,16 @@ class _VerificationSelectionFormState extends State<VerificationSelectionForm> {
               is_alignLeft: false),
 
           25.verticalSpace,
-          // Scrollable content starts here
-          Expanded(
-            child: SingleChildScrollView(
-              child: Form(
-                key: verificationFormKey,
-                child: Column(children: [
-                  CustomText(text: '${AppStrings.emailAddress}*'),
-                  10.verticalSpace,
-                  _emailTextField(),
-                  SizedBox(height: 30.h),
-                  //----------------Get Code Button----------------
-                  buttonWidget(context),
-                ]),
-              ),
-            ),
+          Form(
+            key: verificationFormKey,
+            child: Column(children: [
+              CustomText(text: '${AppStrings.emailAddress}*'),
+              10.verticalSpace,
+              _emailTextField(),
+              SizedBox(height: 30.h),
+              //----------------Get Code Button----------------
+              buttonWidget(context),
+            ]),
           ),
         ],
       ),

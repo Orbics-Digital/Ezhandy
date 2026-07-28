@@ -39,6 +39,7 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Non-scrollable content (e.g., logo)
           // AppLogo(scale: 5.sp),
@@ -47,28 +48,23 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
           passwordRecoveryTextWidget(),
          
           5.verticalSpace,
-          // Scrollable content starts here
-          Expanded(
-            child: SingleChildScrollView(
-              child: Form(
-                key: rsesetpassKey,
-                child: Column(children: [
-                  //----------------Email Address Field----------------
-                  CustomText(is_alignLeft: false ,text: AppStrings.forgotYourPasswordNoWorries),
-                  20.verticalSpace,
-                  CustomText(text: AppStrings.password ),
-                  10.verticalSpace,
-                  _passwordTextField(),
-                  20.verticalSpace,
-                  CustomText(text: AppStrings.confirmPassword ),
-                  10.verticalSpace,
-                  _confirmPasswordTextField(),
-                  SizedBox(height: 30.h),
-                  //----------------Get Code Button----------------
-                  buttonWidget(context),
-                ]),
-              ),
-            ),
+          Form(
+            key: rsesetpassKey,
+            child: Column(children: [
+              //----------------Email Address Field----------------
+              CustomText(is_alignLeft: false ,text: AppStrings.forgotYourPasswordNoWorries),
+              20.verticalSpace,
+              CustomText(text: AppStrings.password ),
+              10.verticalSpace,
+              _passwordTextField(),
+              20.verticalSpace,
+              CustomText(text: AppStrings.confirmPassword ),
+              10.verticalSpace,
+              _confirmPasswordTextField(),
+              SizedBox(height: 30.h),
+              //----------------Get Code Button----------------
+              buttonWidget(context),
+            ]),
           ),
         ],
       ),

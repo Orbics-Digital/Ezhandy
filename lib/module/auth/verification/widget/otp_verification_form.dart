@@ -82,39 +82,35 @@ class _OtpVerificationFormState extends State<OtpVerificationForm> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           AppLogo(scale: 3.5.sp),
           15.verticalSpace,
           passwordRecoveryTextWidget(),
           5.verticalSpace,
-
-          Expanded(
-            child: SingleChildScrollView(
-              child: Form(
-                key: otpKey,
-                child: Column(
-                  children: [
-                    CustomText(
-                      is_alignLeft: false,
-                      text: widget.type == OtpType.forget.name
-                          ? AppStrings.otpCodeForgetMessage
-                          : widget.type == OtpType.signup.name
-                              ? AppStrings.otpCodeSignupMessage
-                              : widget.emailAndPhone == OtpCodeType.email.name
-                                  ? AppStrings.otpCodeEmailMessage
-                                  : AppStrings.otpCodePhoneMessage,
-                    ),
-                    20.verticalSpace,
-                    // CustomText(text: AppStrings.verificationCode + "*"),
-                    // 10.verticalSpace,
-                    pinCodeWidget(context),
-                    20.verticalSpace,
-                    _verifyButton(context),
-                    10.verticalSpace,
-                    _otpResendTextTimerWidget(),
-                  ],
+          Form(
+            key: otpKey,
+            child: Column(
+              children: [
+                CustomText(
+                  is_alignLeft: false,
+                  text: widget.type == OtpType.forget.name
+                      ? AppStrings.otpCodeForgetMessage
+                      : widget.type == OtpType.signup.name
+                          ? AppStrings.otpCodeSignupMessage
+                          : widget.emailAndPhone == OtpCodeType.email.name
+                              ? AppStrings.otpCodeEmailMessage
+                              : AppStrings.otpCodePhoneMessage,
                 ),
-              ),
+                20.verticalSpace,
+                // CustomText(text: AppStrings.verificationCode + "*"),
+                // 10.verticalSpace,
+                pinCodeWidget(context),
+                20.verticalSpace,
+                _verifyButton(context),
+                10.verticalSpace,
+                _otpResendTextTimerWidget(),
+              ],
             ),
           ),
           // Visibility(
