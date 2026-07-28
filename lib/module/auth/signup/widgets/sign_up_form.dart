@@ -18,7 +18,6 @@ import 'package:ezhandy_user/widgets/dropdown/custom_dropdown.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
 import 'package:ezhandy_user/widgets/profile_widget/profile_picture_widget.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
-import 'package:ezhandy_user/widgets/text_widgets/rich_text_widget.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -392,16 +391,28 @@ class _SignUpFormState extends State<SignUpForm> {
   }
 
   Widget alreadyHaveAnAccountWidget() {
-    return RichTextWidget(
-        text: AppStrings.alreadyHaveAnAccount,
-        subText: AppStrings.logIn,
-        onSubTextPress: () {
-          FocusScope.of(context).unfocus();
-          AppNavigation.navigatorPop(context);
-
-          // AppNavigation.navigateTo(context, AppRoutes.signupScreenRoute);
-          // Get.toNamed(Paths.SIGNUP_SCREEN_ROUTE);
-        });
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CustomText(
+          text: AppStrings.alreadyHaveAnAccount,
+          is_alignLeft: false,
+        ),
+        GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            AppNavigation.navigatorPop(context);
+          },
+          child: CustomText(
+            text: AppStrings.logIn,
+            is_alignLeft: false,
+            color: AppColors.orange,
+            fontWeight: FontWeight.bold,
+            textDecoration: TextDecoration.underline,
+          ),
+        ),
+      ],
+    );
   }
 
   // Modified field builders to accept controller
