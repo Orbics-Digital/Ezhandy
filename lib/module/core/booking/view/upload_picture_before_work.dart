@@ -36,88 +36,71 @@ class _UploadPictureBeforeWorkState extends State<UploadPictureBeforeWork> {
         Get.back();
       },
       title: AppStrings.uploadPictureBeforeWork,
-      child: Stack(
-        children: [
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-            child: Column(
-              children: [
-                15.verticalSpace,
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: imageList.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 2.5 / 1.5,
-                  ),
-                  itemBuilder: (context, index) {
-                    return imageContainerWidget(
-                      ontap: () {
-                        Utils.openImagePicker(
-                          action: false,
-                          source: ImageSource.camera,
-                          context: context,
-                          setFile: (file) => _setFile(file, index),
-                        );
-                      },
-                      imagePath: imageList[index],
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
+        child: Column(
+          children: [
+            15.verticalSpace,
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: imageList.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 2.5 / 1.5,
+              ),
+              itemBuilder: (context, index) {
+                return imageContainerWidget(
+                  ontap: () {
+                    Utils.openImagePicker(
+                      action: false,
+                      source: ImageSource.camera,
+                      context: context,
+                      setFile: (file) => _setFile(file, index),
                     );
                   },
-                ),
-                const SizedBox(height: 20),
-                Obx(
-                  () => CustomButton(
-                    isLoading:
-                        BookingsController.i.isUpdatingBookingStatus.value,
-                    text: "Start Job",
-                    onclick: () async {
-                      final bookingId =
-                          BookingsController.i.bookingDetail.value?.id;
-                      if (bookingId == null) {
-                        AppDialogs.showToast(message: 'Booking not found');
-                        return;
-                      }
-
-                      final images = imageList
-                          .whereType<File>()
-                          .toList(growable: false);
-
-                      final success = await BookingsController.i
-                          .submitBeforeWorkAndStartJob(
-                        bookingId: bookingId,
-                        images: images,
-                      );
-
-                      if (!context.mounted || !success) return;
-
-                      AppNavigation.navigatorPopUntil(
-                        context,
-                        AppRoutes.bookingScreenRoute,
-                      );
-                    },
-                  ),
-                ),
-              ],
+                  imagePath: imageList[index],
+                );
+              },
             ),
-          ),
-          Obx(
-            () => BookingsController.i.isUpdatingBookingStatus.value
-                ? Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      alignment: Alignment.center,
-                      child: const CircularProgressIndicator(
-                        color: AppColors.orange,
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
+            const SizedBox(height: 20),
+            Obx(
+              () => CustomButton(
+                isLoading:
+                    BookingsController.i.isUpdatingBookingStatus.value,
+                text: "Start Job",
+                onclick: () async {
+                  final bookingId =
+                      BookingsController.i.bookingDetail.value?.id;
+                  if (bookingId == null) {
+                    AppDialogs.showToast(message: 'Booking not found');
+                    return;
+                  }
+
+                  final images = imageList
+                      .whereType<File>()
+                      .toList(growable: false);
+
+                  final success = await BookingsController.i
+                      .submitBeforeWorkAndStartJob(
+                    bookingId: bookingId,
+                    images: images,
+                  );
+
+                  if (!context.mounted || !success) return;
+
+                  AppNavigation.navigatorPopUntil(
+                    context,
+                    AppRoutes.bookingScreenRoute,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

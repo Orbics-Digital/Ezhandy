@@ -263,15 +263,6 @@ class _BookingDetailsState extends State<BookingDetails> {
                               // reScheduleWidget(),
                             ],
                           )),
-                      if (HomeController.i.jobStatus.value ==
-                          AppStrings.pending) ...[
-                        10.verticalSpace,
-                        approveRejectButtonRowWidget(
-                          context,
-                          isAcceptLoading: isAccepting,
-                          isRejectLoading: isRejecting,
-                        )
-                      ],
                       15.verticalSpace,
                       CustomContainer(
                         isPadding: false,
@@ -291,6 +282,15 @@ class _BookingDetailsState extends State<BookingDetails> {
                           ],
                         ),
                       ),
+                      if (HomeController.i.jobStatus.value ==
+                          AppStrings.pending) ...[
+                        10.verticalSpace,
+                        approveRejectButtonRowWidget(
+                          context,
+                          isAcceptLoading: isAccepting,
+                          isRejectLoading: isRejecting,
+                        ),
+                      ],
                       rejectReasonWidget(),
                       15.verticalSpace,
                       if (HomeController.i.jobStatus.value ==

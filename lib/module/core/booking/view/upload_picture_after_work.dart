@@ -36,96 +36,79 @@ class _UploadPictureAfterWorkState extends State<UploadPictureAfterWork> {
         Get.back();
       },
       title: AppStrings.uploadPictureAfterWork,
-      child: Stack(
-        children: [
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-            child: Column(
-              children: [
-                15.verticalSpace,
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: imageList.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 2.5 / 1.5,
-                  ),
-                  itemBuilder: (context, index) {
-                    return imageContainerWidget(
-                      ontap: () {
-                        Utils.openImagePicker(
-                          action: false,
-                          source: ImageSource.camera,
-                          context: context,
-                          setFile: (file) => _setFile(file, index),
-                        );
-                      },
-                      imagePath: imageList[index],
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
+        child: Column(
+          children: [
+            15.verticalSpace,
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: imageList.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 2.5 / 1.5,
+              ),
+              itemBuilder: (context, index) {
+                return imageContainerWidget(
+                  ontap: () {
+                    Utils.openImagePicker(
+                      action: false,
+                      source: ImageSource.camera,
+                      context: context,
+                      setFile: (file) => _setFile(file, index),
                     );
                   },
-                ),
-                const SizedBox(height: 20),
-                Obx(
-                  () => CustomButton(
-                    isLoading:
-                        BookingsController.i.isUpdatingBookingStatus.value,
-                    text: "End Job",
-                    onclick: () async {
-                      final bookingId =
-                          BookingsController.i.bookingDetail.value?.id;
-                      if (bookingId == null) {
-                        AppDialogs.showToast(message: 'Booking not found');
-                        return;
-                      }
+                  imagePath: imageList[index],
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            Obx(
+              () => CustomButton(
+                isLoading:
+                    BookingsController.i.isUpdatingBookingStatus.value,
+                text: "End Job",
+                onclick: () async {
+                  final bookingId =
+                      BookingsController.i.bookingDetail.value?.id;
+                  if (bookingId == null) {
+                    AppDialogs.showToast(message: 'Booking not found');
+                    return;
+                  }
 
-                      final images = imageList
-                          .whereType<File>()
-                          .toList(growable: false);
+                  final images = imageList
+                      .whereType<File>()
+                      .toList(growable: false);
 
-                      final success = await BookingsController.i
-                          .submitAfterWorkAndEndJob(
-                        bookingId: bookingId,
-                        images: images,
-                      );
+                  final success = await BookingsController.i
+                      .submitAfterWorkAndEndJob(
+                    bookingId: bookingId,
+                    images: images,
+                  );
 
-                      if (!context.mounted || !success) return;
+                  if (!context.mounted || !success) return;
 
-                      AppDialogs.showSuccessDialog(
+                  AppDialogs.showSuccessDialog(
+                    context,
+                    description: "Job ended successfully",
+                    title: AppStrings.congratulation,
+                    btnTxt1: AppStrings.ok,
+                    onTap1: () {
+                      AppNavigation.navigatorPopUntil(
                         context,
-                        description: "Job ended successfully",
-                        title: AppStrings.congratulation,
-                        btnTxt1: AppStrings.ok,
-                        onTap1: () {
-                          AppNavigation.navigatorPopUntil(
-                            context,
-                            AppRoutes.bookingScreenRoute,
-                          );
-                        },
+                        AppRoutes.bookingScreenRoute,
                       );
                     },
-                  ),
-                ),
-              ],
+                  );
+                },
+              ),
             ),
-          ),
-          Obx(
-            () => BookingsController.i.isUpdatingBookingStatus.value
-                ? Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      alignment: Alignment.center,
-                      child: const CircularProgressIndicator(
-                        color: AppColors.orange,
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
