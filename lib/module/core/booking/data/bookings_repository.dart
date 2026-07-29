@@ -6,6 +6,7 @@ import 'package:ezhandy_user/core/network/api_constants.dart';
 import 'package:ezhandy_user/core/network/api_endpoints.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_invoice_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/provider_booking_model.dart';
 import 'package:ezhandy_user/module/core/all_services/model/past_work_booking_model.dart';
 
@@ -57,6 +58,48 @@ class BookingsRepository {
     final response = await _client.dio.patch(
       ApiEndpoints.updateBookingStatus,
       data: body,
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
+
+  Future<void> createBookingInvoice(int bookingId) async {
+    final response = await _client.dio.post(
+      ApiEndpoints.bookingInvoice(bookingId),
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
+    }
+  }
+
+  Future<BookingInvoiceModel> getBookingInvoice(int bookingId) async {
+    final response = await _client.dio.get(
+      ApiEndpoints.bookingInvoice(bookingId),
+    );
+    final data = ApiHelper.dataObject(response.data);
+    return BookingInvoiceModel.fromJson(data);
+  }
+
+  Future<void> addBookingExtraTime({
+    required int bookingId,
+    required String extraAmount,
+    required String extraNote,
+  }) async {
+    final response = await _client.dio.patch(
+      ApiEndpoints.bookingExtraTime(bookingId),
+      data: {
+        'extraAmount': extraAmount,
+        'extraNote': extraNote,
+      },
     );
 
     if (response.data is! Map) return;

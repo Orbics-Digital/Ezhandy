@@ -8,6 +8,7 @@ import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/widgets/toast_dialogs_sheet/compliance_dialog.dart';
 import 'package:ezhandy_user/widgets/toast_dialogs_sheet/custom_reject_dialog.dart';
 import 'package:ezhandy_user/widgets/toast_dialogs_sheet/delete_and_all_dialoge.dart';
+import 'package:ezhandy_user/widgets/toast_dialogs_sheet/extra_time_dialog.dart';
 import 'package:ezhandy_user/widgets/toast_dialogs_sheet/show_file_image_source_dialog.dart';
 import 'package:ezhandy_user/widgets/toast_dialogs_sheet/show_image_source_dialog.dart';
 import 'package:ezhandy_user/widgets/toast_dialogs_sheet/successful_dialog.dart';
@@ -237,6 +238,34 @@ class AppDialogs {
           btnTxt2: btnTxt2,
           isDoneShow: isDoneShow,
           title: title,
+          onTap1: onTap1,
+          onTap2: onTap2,
+        );
+      },
+    );
+  }
+
+  static Future showExtraTimeDialog(
+    context, {
+    String? title,
+    String? btnTxt1,
+    String? btnTxt2,
+    String? image,
+    bool barrierDismissible = true,
+    final Function(String amount, String notes)? onTap1,
+    final Function()? onTap2,
+  }) {
+    return showDialog(
+      barrierDismissible: barrierDismissible,
+      barrierColor: AppColors.orange.withOpacity(0.8),
+      context: context,
+      builder: (dialogContext) {
+        return ExtraTimeDialog(
+          title: title,
+          btnTxt1: btnTxt1,
+          btnTxt2: btnTxt2,
+          image: image,
+          barrierDismissible: barrierDismissible,
           onTap1: onTap1,
           onTap2: onTap2,
         );

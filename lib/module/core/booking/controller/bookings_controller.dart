@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/core/booking/data/bookings_repository.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
+import 'package:ezhandy_user/module/core/booking/model/booking_invoice_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
 import 'package:ezhandy_user/module/core/booking/model/provider_booking_model.dart';
 import 'package:ezhandy_user/module/core/controller/home_controller.dart';
@@ -39,6 +40,9 @@ class BookingsController extends GetxController {
   final RxBool isUpdatingBookingStatus = false.obs;
   final RxBool isAcceptingBooking = false.obs;
   final RxBool isRejectingBooking = false.obs;
+  final Rxn<BookingInvoiceModel> bookingInvoice = Rxn<BookingInvoiceModel>();
+  final RxBool isBookingInvoiceLoading = false.obs;
+  final RxBool isAddingExtraTime = false.obs;
 
   String get selectedStatusLabel {
     final statusId = selectedStatusId.value;
@@ -154,6 +158,58 @@ class BookingsController extends GetxController {
     bookingDetail.value = null;
   }
 
+  Future<void> fetchBookingInvoice(int bookingId) async {
+    if (isBookingInvoiceLoading.value) return;
+
+    isBookingInvoiceLoading.value = true;
+    try {
+      bookingInvoice.value = await _repository.getBookingInvoice(bookingId);
+    } on DioException catch (e) {
+      bookingInvoice.value = null;
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      bookingInvoice.value = null;
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isBookingInvoiceLoading.value = false;
+    }
+  }
+
+  void clearBookingInvoice() {
+    bookingInvoice.value = null;
+  }
+
+  Future<bool> addBookingExtraTime({
+    required int bookingId,
+    required String extraAmount,
+    required String extraNote,
+  }) async {
+    if (isAddingExtraTime.value) return false;
+
+    isAddingExtraTime.value = true;
+    try {
+      await _repository.addBookingExtraTime(
+        bookingId: bookingId,
+        extraAmount: extraAmount,
+        extraNote: extraNote,
+      );
+
+      final detail = await _repository.getBookingDetail(bookingId);
+      bookingDetail.value = detail;
+      HomeController.i.jobStatus.value = detail.jobStatusLabel;
+      await refreshProviderBookings();
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isAddingExtraTime.value = false;
+    }
+  }
+
   Future<bool> updateBookingStatus({
     required int bookingId,
     required int status,
@@ -184,6 +240,9 @@ class BookingsController extends GetxController {
         status: status,
         statusReason: statusReason,
       );
+      if (status == BookingStatusEnum.Completed.id) {
+        await _repository.createBookingInvoice(bookingId);
+      }
 
       final detail = await _repository.getBookingDetail(bookingId);
       bookingDetail.value = detail;
@@ -270,6 +329,7 @@ class BookingsController extends GetxController {
         bookingId: bookingId,
         status: BookingStatusEnum.Completed.id,
       );
+      await _repository.createBookingInvoice(bookingId);
 
       final detail = await _repository.getBookingDetail(bookingId);
       bookingDetail.value = detail;

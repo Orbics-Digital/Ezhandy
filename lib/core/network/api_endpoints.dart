@@ -58,6 +58,9 @@ class ApiEndpoints {
       'provider-services/status/$serviceId';
   static String product(String productId) => 'products/$productId';
   static String ownerProducts(String ownerId) => 'products/owner/$ownerId';
+  static String bookingInvoice(int bookingId) => 'bookings/$bookingId/invoice';
+  static String bookingExtraTime(int bookingId) =>
+      'bookings/$bookingId/extra-time';
 
   static String notificationRead(String id) => 'notifications/$id/read';
   static String postComments(String postId) =>
@@ -69,4 +72,7 @@ class ApiEndpoints {
 
   static String providerRatings(String providerId) =>
       'admin/providers/$providerId/ratings';
+
+  static const String updateProfile = 'user/profile';
+  static const String profileDetails = 'user/profile-details';
 }

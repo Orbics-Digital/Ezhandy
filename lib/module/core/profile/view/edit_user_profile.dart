@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/auth/model/certificate_model.dart';
+import 'package:ezhandy_user/module/auth/model/register_provider_params.dart';
 import 'package:ezhandy_user/module/auth/model/user_model.dart';
 import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
@@ -603,22 +604,45 @@ class _EditUserProfileState extends State<EditUserProfile> {
     );
   }
 
-  Widget _updateButton({required BuildContext context}) => CustomButton(
-        text: AppStrings.update,
-        onclick: () {
-          if (editProfileKey.currentState!.validate()) {
-            AppDialogs.showSuccessDialog(
-              context,
-              description: AppStrings.profileUpdatedSuccessful,
-              title: AppStrings.congratulation,
-              btnTxt1: AppStrings.ok,
-              onTap1: () {
-                AppNavigation.navigatorPopUntil(
-                    context, AppRoutes.userProfileScreenRoute);
-              },
-            );
-          }
-          FocusScope.of(context).unfocus();
-        },
+  Widget _updateButton({required BuildContext context}) => Obx(
+        () => CustomButton(
+          text: AppStrings.update,
+          isLoading: AuthController.i.isUpdateProfileLoading.value,
+          onclick: () => _onUpdate(context),
+        ),
       );
+
+  Future<void> _onUpdate(BuildContext context) async {
+    FocusScope.of(context).unfocus();
+
+    if (!editProfileKey.currentState!.validate()) return;
+
+    final languageId = SignUpFieldMapper.languageIdFromLabel(languageValue);
+    final gender = SignUpFieldMapper.genderCode(genderValue);
+    final experience = int.tryParse(experienceController.text.trim());
+
+    final success = await AuthController.i.updateProfile(
+      fullName: fullNameController.text.trim(),
+      gender: gender,
+      address: addressController.text.trim(),
+      mobileNumber: phoneController.text.trim(),
+      languageId: languageId,
+      aboutUs: aboutYouController.text.trim(),
+      experience: experience,
+      profileImage: _profileImage,
+    );
+
+    if (!success || !mounted) return;
+
+    AppDialogs.showSuccessDialog(
+      context,
+      description: AppStrings.profileUpdatedSuccessful,
+      title: AppStrings.congratulation,
+      btnTxt1: AppStrings.ok,
+      onTap1: () {
+        AppNavigation.navigatorPopUntil(
+            context, AppRoutes.userProfileScreenRoute);
+      },
+    );
+  }
 }

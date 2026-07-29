@@ -449,8 +449,14 @@ class AppStrings {
       "Starter Package - Legal Intelligence & Support";
   static const String planName = "Plan Name";
   static const String amount = "Amount";
+  static const String notes = "Notes";
   static const String earningType = "Earning Type";
   static const String enterAmount = "Enter Amount";
+  static const String enterNotes = "Enter Notes";
+  static const String addExtraTime = "Add Extra Time";
+  static const String extraTime = "Extra Time";
+  static const String extraTimeAddedSuccessfully =
+      "Extra time has been added successfully.";
   static const String enterRadius = "Enter Radius";
   static const String purchasedDate = "Purchased Date";
   static const String expiryDate = "Expiry Date";

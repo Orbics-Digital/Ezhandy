@@ -8,6 +8,7 @@ import 'package:ezhandy_user/core/network/api_endpoints.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/auth/model/login_result.dart';
 import 'package:ezhandy_user/module/auth/model/register_provider_params.dart';
+import 'package:ezhandy_user/module/auth/model/user_model.dart';
 
 class AuthRepository {
   AuthRepository({ApiClient? apiClient}) : _apiClient = apiClient;
@@ -188,6 +189,76 @@ class AuthRepository {
     if (!ApiHelper.isSuccessResponse(root)) {
       throw Exception(ApiHelper.responseMessage(root) ?? 'Request failed');
     }
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    required String fullName,
+    required String gender,
+    required String address,
+    required String? mobileNumber,
+    required int languageId,
+    required String aboutUs,
+    required int? experience,
+    File? profileImage,
+    List<String> institutionNames = const [],
+    List<String> certificationTitles = const [],
+    List<File> certificationImages = const [],
+  }) async {
+    final formData = FormData.fromMap({
+      'fullName': fullName,
+      'gender': gender,
+      'address': address,
+      if (mobileNumber != null && mobileNumber.isNotEmpty)
+        'mobileNumber': mobileNumber,
+      'languageId': languageId,
+      'aboutUs': aboutUs,
+      if (experience != null) 'experience': experience,
+      if (institutionNames.isNotEmpty)
+        'institutionNames': jsonEncode(institutionNames),
+      if (certificationTitles.isNotEmpty)
+        'certificationTitles': jsonEncode(certificationTitles),
+    });
+
+    if (profileImage != null) {
+      formData.files.add(
+        MapEntry(
+          'profileImage',
+          await MultipartFile.fromFile(
+            profileImage.path,
+            filename: profileImage.path.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+
+    for (final image in certificationImages) {
+      formData.files.add(
+        MapEntry(
+          'certificationImages',
+          await MultipartFile.fromFile(
+            image.path,
+            filename: image.path.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+
+    final response = await _client.dio.patch(
+      ApiEndpoints.updateProfile,
+      data: formData,
+      options: Options(
+        contentType: Headers.multipartFormDataContentType,
+        headers: {'Accept': ApiConstants.acceptJson},
+      ),
+    );
+
+    return ApiHelper.dataObject(response.data);
+  }
+
+  Future<UserModel> getProfileDetails() async {
+    final response = await _client.dio.get(ApiEndpoints.profileDetails);
+    final data = ApiHelper.dataObject(response.data);
+    return UserModel.fromJson(data);
   }
 
   Future<void> changePassword({

@@ -3,6 +3,7 @@ import 'package:ezhandy_user/module/core/booking/controller/bookings_controller.
 import 'package:ezhandy_user/module/core/booking/model/booking_detail_model.dart';
 import 'package:ezhandy_user/module/core/booking/model/booking_status_enum.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/full_screen_map_routing_arguments.dart';
+import 'package:ezhandy_user/module/core/booking/routing_arguments/invoice_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/work_documents_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/chat/controller/chat_controller.dart';
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
@@ -159,6 +160,12 @@ class _BookingDetailsState extends State<BookingDetails> {
     );
   }
 
+  Future<void> _refreshBookingDetail() async {
+    final bookingId = _bookingId;
+    if (bookingId == null) return;
+    await _bookingsController.fetchBookingDetail(bookingId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -207,18 +214,70 @@ class _BookingDetailsState extends State<BookingDetails> {
 
           return Stack(children: [
             Positioned.fill(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppPadding.padding12),
-                  child: Column(
-                    children: [
-                      15.verticalSpace,
-                      if (statusInfoMessage != null) ...[
-                        _statusInfoCard(statusInfoMessage),
+              child: RefreshIndicator(
+                color: AppColors.orange,
+                onRefresh: _refreshBookingDetail,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppPadding.padding12),
+                    child: Column(
+                      children: [
+                        15.verticalSpace,
+                        if (statusInfoMessage != null) ...[
+                          _statusInfoCard(statusInfoMessage),
+                          10.verticalSpace,
+                        ],
+                        CustomContainer(
+                            isPadding: false,
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.all(AppPadding.padding12),
+                                  child: CustomText(
+                                      text: AppStrings.serviceName,
+                                      // color: AppColors.blueDark,
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Divider(color: AppColors.blueDark),
+                                serviceDetailsWidget(),
+                                // reScheduleWidget(),
+                              ],
+                            )),
                         10.verticalSpace,
-                      ],
-                      CustomContainer(
+                        CustomContainer(
+                            isPadding: false,
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.all(AppPadding.padding12),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      CustomText(
+                                          text: AppStrings.bookingDetails,
+                                          // color: AppColors.blueDark,
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.bold),
+                                      CustomText(
+                                          text:
+                                              "${AppStrings.status}: ${HomeController.i.jobStatus.value}",
+                                          fontWeight: FontWeight.w600),
+                                    ],
+                                  ),
+                                ),
+                                Divider(color: AppColors.blueDark),
+                                bookingDetailsWidget(),
+                                // reScheduleWidget(),
+                              ],
+                            )),
+                        15.verticalSpace,
+                        CustomContainer(
                           isPadding: false,
                           child: Column(
                             children: [
@@ -226,174 +285,137 @@ class _BookingDetailsState extends State<BookingDetails> {
                                 padding:
                                     const EdgeInsets.all(AppPadding.padding12),
                                 child: CustomText(
-                                    text: AppStrings.serviceName,
-                                    // color: AppColors.blueDark,
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Divider(color: AppColors.blueDark),
-                              serviceDetailsWidget(),
-                              // reScheduleWidget(),
-                            ],
-                          )),
-                      10.verticalSpace,
-                      CustomContainer(
-                          isPadding: false,
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.all(AppPadding.padding12),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    CustomText(
-                                        text: AppStrings.bookingDetails,
-                                        // color: AppColors.blueDark,
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold),
-                                    CustomText(
-                                        text:
-                                            "${AppStrings.status}: ${HomeController.i.jobStatus.value}",
-                                        fontWeight: FontWeight.w600),
-                                  ],
+                                  text: AppStrings.userDetails,
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Divider(color: AppColors.blueDark),
-                              bookingDetailsWidget(),
-                              // reScheduleWidget(),
+                              userDetailsWidget(),
                             ],
-                          )),
-                      15.verticalSpace,
-                      CustomContainer(
-                        isPadding: false,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.all(AppPadding.padding12),
-                              child: CustomText(
-                                text: AppStrings.userDetails,
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Divider(color: AppColors.blueDark),
-                            userDetailsWidget(),
-                          ],
+                          ),
                         ),
-                      ),
-                      if (HomeController.i.jobStatus.value ==
-                          AppStrings.pending) ...[
-                        10.verticalSpace,
-                        approveRejectButtonRowWidget(
-                          context,
-                          isAcceptLoading: isAccepting,
-                          isRejectLoading: isRejecting,
-                        ),
-                      ],
-                      rejectReasonWidget(),
-                      15.verticalSpace,
-                      if (HomeController.i.jobStatus.value ==
-                              AppStrings.approved ||
-                          HomeController.i.jobStatus.value ==
-                              AppStrings.inRoute ||
-                          HomeController.i.jobStatus.value ==
-                              AppStrings.started ||
-                          _isCompletedOrVerified) ...[
-                        if (_isStarted || _isCompletedOrVerified) ...[
-                          CustomContainer(
-                              isPadding: false,
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(
-                                        AppPadding.padding12),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        CustomText(
-                                            text: AppStrings.workDocuments,
-                                            // color: AppColors.blueDark,
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.bold),
-                                        HomeController.i.jobStatus.value ==
-                                                AppStrings.started
-                                            ? SizedBox.shrink()
-                                            : CustomText(
-                                                text: AppStrings.invoice,
-                                                // color: AppColors.blueDark,
-                                                fontSize: 16.sp,
-                                                fontWeight: FontWeight.bold),
-                                      ],
+                        if (HomeController.i.jobStatus.value ==
+                            AppStrings.pending) ...[
+                          10.verticalSpace,
+                          approveRejectButtonRowWidget(
+                            context,
+                            isAcceptLoading: isAccepting,
+                            isRejectLoading: isRejecting,
+                          ),
+                        ],
+                        rejectReasonWidget(),
+                        15.verticalSpace,
+                        if (HomeController.i.jobStatus.value ==
+                                AppStrings.approved ||
+                            HomeController.i.jobStatus.value ==
+                                AppStrings.inRoute ||
+                            HomeController.i.jobStatus.value ==
+                                AppStrings.started ||
+                            _isCompletedOrVerified) ...[
+                          if (_isStarted || _isCompletedOrVerified) ...[
+                            CustomContainer(
+                                isPadding: false,
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(
+                                          AppPadding.padding12),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          CustomText(
+                                              text: AppStrings.workDocuments,
+                                              // color: AppColors.blueDark,
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.bold),
+                                          HomeController.i.jobStatus.value ==
+                                                  AppStrings.started
+                                              ? SizedBox.shrink()
+                                              : CustomText(
+                                                  text: AppStrings.invoice,
+                                                  // color: AppColors.blueDark,
+                                                  fontSize: 16.sp,
+                                                  fontWeight: FontWeight.bold),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Divider(color: AppColors.blueDark),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      children: [
-                                        10.horizontalSpace,
-                                        GestureDetector(
-                                          onTap: () {
-                                            AppNavigation.navigateTo(
-                                              context,
-                                              AppRoutes
-                                                  .workDocumentsScreenRoute,
-                                              arguments:
-                                                  WorkDocumentsRoutingArgument(
-                                                serviceName: _detail
-                                                    ?.service?.displayTitle,
-                                              ),
-                                            );
-                                          },
-                                          child: Image.asset(
-                                              AssetPath.documentTotalIcon,
-                                              width: 50.w,
-                                              height: 50.h),
-                                        ),
-                                        Spacer(),
-                                        HomeController.i.jobStatus.value ==
-                                                AppStrings.started
-                                            ? SizedBox.shrink()
-                                            : GestureDetector(
-                                                onTap: () {
-                                                  AppNavigation.navigateTo(
+                                    Divider(color: AppColors.blueDark),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: [
+                                          10.horizontalSpace,
+                                          GestureDetector(
+                                            onTap: () {
+                                              AppNavigation.navigateTo(
+                                                context,
+                                                AppRoutes
+                                                    .workDocumentsScreenRoute,
+                                                arguments:
+                                                    WorkDocumentsRoutingArgument(
+                                                  serviceName: _detail
+                                                      ?.service?.displayTitle,
+                                                ),
+                                              );
+                                            },
+                                            child: Image.asset(
+                                                AssetPath.documentTotalIcon,
+                                                width: 50.w,
+                                                height: 50.h),
+                                          ),
+                                          Spacer(),
+                                          HomeController.i.jobStatus.value ==
+                                                  AppStrings.started
+                                              ? SizedBox.shrink()
+                                              : GestureDetector(
+                                                  onTap: () {
+                                                    AppNavigation.navigateTo(
                                                       context,
                                                       AppRoutes
-                                                          .editInvoiceScreenRoute);
-                                                },
-                                                child: Image.asset(
-                                                    AssetPath.documentTotalIcon,
-                                                    width: 50.w,
-                                                    height: 50.h),
-                                              ),
-                                        10.horizontalSpace,
-                                      ],
+                                                          .invoiceScreenRoute,
+                                                      arguments:
+                                                          InvoiceRoutingArgument(
+                                                        bookingId: _bookingId,
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Image.asset(
+                                                      AssetPath
+                                                          .documentTotalIcon,
+                                                      width: 50.w,
+                                                      height: 50.h),
+                                                ),
+                                          10.horizontalSpace,
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  // reScheduleWidget(),
-                                ],
-                              )),
-                          15.verticalSpace,
+                                    // reScheduleWidget(),
+                                  ],
+                                )),
+                            15.verticalSpace,
+                          ],
+                          // reportReviewButtonWidget(),
+                          // endWorkButtonWidget(),
+                          goingButtonWidget(isLoading: isUpdatingStatus),
                         ],
-                        // reportReviewButtonWidget(),
-                        // endWorkButtonWidget(),
-                        goingButtonWidget(isLoading: isUpdatingStatus),
+                        if (_bookingStatus == BookingStatusEnum.Completed) ...[
+                          10.verticalSpace,
+                          addExtraTimeButtonWidget(context),
+                        ],
+                        if (HomeController.i.jobStatus.value ==
+                            AppStrings.inRoute)
+                          bookingLocationMapWidget(),
+                        25.verticalSpace,
+                        if (HomeController.i.jobStatus.value ==
+                                AppStrings.inRoute ||
+                            HomeController.i.jobStatus.value ==
+                                AppStrings.started) ...[
+                          45.verticalSpace,
+                        ]
                       ],
-                      if (HomeController.i.jobStatus.value ==
-                          AppStrings.inRoute)
-                        bookingLocationMapWidget(),
-                      25.verticalSpace,
-                      if (HomeController.i.jobStatus.value ==
-                              AppStrings.inRoute ||
-                          HomeController.i.jobStatus.value ==
-                              AppStrings.started) ...[
-                        45.verticalSpace,
-                      ]
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -927,6 +949,53 @@ class _BookingDetailsState extends State<BookingDetails> {
                 },
               );
             }));
+  }
+
+  Widget addExtraTimeButtonWidget(BuildContext context) {
+    return Obx(
+      () => CustomButton(
+        text: AppStrings.addExtraTime,
+        isLoading: _bookingsController.isAddingExtraTime.value,
+        onclick: () {
+          AppDialogs.showExtraTimeDialog(
+            context,
+            title: AppStrings.addExtraTime,
+            image: AssetPath.tumbIcon,
+            btnTxt1: AppStrings.submit,
+            btnTxt2: AppStrings.cancel,
+            onTap1: (amount, notes) async {
+              final bookingId = _bookingId;
+              if (bookingId == null) {
+                AppDialogs.showToast(message: 'Booking not found');
+                return;
+              }
+
+              AppNavigation.navigatorPop(context);
+
+              final success = await _bookingsController.addBookingExtraTime(
+                bookingId: bookingId,
+                extraAmount: amount,
+                extraNote: notes,
+              );
+              if (!mounted || !success) return;
+
+              AppDialogs.showSuccessDialog(
+                context,
+                description: AppStrings.extraTimeAddedSuccessfully,
+                title: AppStrings.congratulation,
+                btnTxt1: AppStrings.ok,
+                onTap1: () {
+                  AppNavigation.navigatorPop(context);
+                },
+              );
+            },
+            onTap2: () {
+              AppNavigation.navigatorPop(context);
+            },
+          );
+        },
+      ),
+    );
   }
 
   Widget buttonWidget(BuildContext context) {

@@ -222,6 +222,7 @@ class _CustomDropDown2State extends State<CustomDropDown2> {
   @override
   Widget build(BuildContext context) {
     return FormField<String>(
+      initialValue: widget.dropdownValue,
       validator: widget.validator,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       builder: (FormFieldState<String> state) {

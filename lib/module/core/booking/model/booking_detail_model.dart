@@ -26,7 +26,7 @@ class BookingDetailUserModel {
   factory BookingDetailUserModel.fromJson(Map<String, dynamic> json) {
     return BookingDetailUserModel(
       id: json['id']?.toString(),
-      fullName: json['fullName']?.toString(),
+      fullName: (json['fullName'] ?? json['name'])?.toString(),
       email: json['email']?.toString(),
       mobileNumber: json['mobileNumber']?.toString(),
       profileImage: json['profileImage']?.toString(),

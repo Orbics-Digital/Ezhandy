@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/core/socket/socket_service.dart';
@@ -37,6 +39,7 @@ class AuthController extends GetxController {
   final RxBool isChangePasswordLoading = false.obs;
   final RxBool isQuickProviderLoading = false.obs;
   final RxBool isLoginSignUp = true.obs;
+  final RxBool isUpdateProfileLoading = false.obs;
 
   String get userDisplayName {
     final name = user.value?.fullName?.trim();
@@ -114,6 +117,25 @@ class AuthController extends GetxController {
     final session = await SessionStorage.i.load();
     if (session != null) {
       await SessionStorage.i.save(token: session.token, user: updated);
+    }
+  }
+
+  Future<bool> fetchProfileDetails() async {
+    try {
+      final profile = await _authRepository.getProfileDetails();
+      user.value = profile;
+
+      final session = await SessionStorage.i.load();
+      if (session != null) {
+        await SessionStorage.i.save(token: session.token, user: profile);
+      }
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
     }
   }
 
@@ -320,6 +342,56 @@ class AuthController extends GetxController {
       return false;
     } finally {
       isChangePasswordLoading.value = false;
+    }
+  }
+
+  Future<bool> updateProfile({
+    required String fullName,
+    required String gender,
+    required String address,
+    String? mobileNumber,
+    required int languageId,
+    required String aboutUs,
+    int? experience,
+    File? profileImage,
+    List<String> institutionNames = const [],
+    List<String> certificationTitles = const [],
+    List<File> certificationImages = const [],
+  }) async {
+    if (isUpdateProfileLoading.value) return false;
+
+    isUpdateProfileLoading.value = true;
+    try {
+      final data = await _authRepository.updateProfile(
+        fullName: fullName,
+        gender: gender,
+        address: address,
+        mobileNumber: mobileNumber,
+        languageId: languageId,
+        aboutUs: aboutUs,
+        experience: experience,
+        profileImage: profileImage,
+        institutionNames: institutionNames,
+        certificationTitles: certificationTitles,
+        certificationImages: certificationImages,
+      );
+
+      final updated = UserModel.fromJson(data);
+      user.value = updated;
+
+      final session = await SessionStorage.i.load();
+      if (session != null) {
+        await SessionStorage.i.save(token: session.token, user: updated);
+      }
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isUpdateProfileLoading.value = false;
     }
   }
 

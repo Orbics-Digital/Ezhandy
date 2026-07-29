@@ -129,10 +129,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     AppLoader.show();
     final verified = await _controller.verifySubscriptionCheckout(sessionId);
-    AppLoader.hide();
-    if (!verified || !context.mounted) return;
+    if (!verified) {
+      AppLoader.hide();
+      return;
+    }
 
-    await AuthController.i.markSubscriptionActive();
+    final profileLoaded = await AuthController.i.fetchProfileDetails();
+    if (!profileLoaded) {
+      await AuthController.i.markSubscriptionActive();
+    }
+    AppLoader.hide();
     if (!context.mounted) return;
 
     AppDialogs.showSuccessDialog(

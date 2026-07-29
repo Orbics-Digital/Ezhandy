@@ -34,6 +34,7 @@ import 'package:ezhandy_user/module/core/booking/view/full_screen_booking_map.da
 import 'package:ezhandy_user/module/core/booking/view/invoice_screen.dart';
 import 'package:ezhandy_user/module/core/booking/view/upload_picture_after_work.dart';
 import 'package:ezhandy_user/module/core/booking/view/upload_picture_before_work.dart';
+import 'package:ezhandy_user/module/core/booking/routing_arguments/invoice_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/booking/routing_arguments/work_documents_routing_arguments.dart';
 import 'package:ezhandy_user/module/core/booking/view/work_document.dart';
 import 'package:ezhandy_user/module/core/chat/routing_arguments/chat_routing_arguments.dart';
@@ -212,7 +213,11 @@ class AppRouter {
               serviceName: workDocumentsArguments?.serviceName,
             );
           case AppRoutes.invoiceScreenRoute:
-            return InvoiceScreen();
+            final invoiceArguments =
+                routeSettings.arguments as InvoiceRoutingArgument?;
+            return InvoiceScreen(
+              bookingId: invoiceArguments?.bookingId,
+            );
           case AppRoutes.editInvoiceScreenRoute:
             return EditInvoice();
           // case AppRoutes.reportIssueScreenRoute:
