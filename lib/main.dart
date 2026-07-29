@@ -1,5 +1,6 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:ezhandy_user/core/network/api_client.dart';
+import 'package:ezhandy_user/core/notification/firebase_messaging_service.dart';
 import 'package:ezhandy_user/core/socket/socket_service.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/content/controller/pages_controller.dart';
@@ -29,6 +30,7 @@ import 'package:get/get.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseMessagingService.instance.initialize();
   Get.put(ApiClient(), permanent: true);
   Get.put(SessionStorage(), permanent: true);
   await SessionStorage.i.init();

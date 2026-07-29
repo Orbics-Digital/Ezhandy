@@ -20,12 +20,14 @@ class AuthRepository {
   Future<LoginResult> login({
     required String email,
     required String password,
+    String? fcmToken,
   }) async {
     final response = await _client.dio.post(
       ApiEndpoints.login,
       data: {
         'email': email,
         'password': password,
+        if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
       },
     );
 

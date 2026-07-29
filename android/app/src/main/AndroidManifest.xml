@@ -3,6 +3,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="Ezhandy - Provider"
         android:name="${applicationName}"
@@ -38,6 +39,10 @@
             android:theme="@style/UCropTheme"
             android:exported="false"
         />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="ezhandy_provider_notifications" />
        
         <meta-data
             android:name="flutterEmbedding"

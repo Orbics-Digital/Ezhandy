@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
+import 'package:ezhandy_user/core/notification/firebase_messaging_service.dart';
 import 'package:ezhandy_user/core/socket/socket_service.dart';
 import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/data/auth_repository.dart';
@@ -148,9 +149,11 @@ class AuthController extends GetxController {
 
     isLoginLoading.value = true;
     try {
+      final fcmToken = await FirebaseMessagingService.instance.getStoredToken();
       final result = await _authRepository.login(
         email: email.trim(),
         password: password,
+        fcmToken: fcmToken,
       );
 
       await SessionStorage.i.save(token: result.token, user: result.user);

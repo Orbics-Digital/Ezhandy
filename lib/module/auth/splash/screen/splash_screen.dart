@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ezhandy_user/core/notification/firebase_messaging_service.dart';
 import 'package:ezhandy_user/core/socket/socket_service.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
@@ -42,16 +43,11 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void registeredNotificationListener() {
-    // FirebaseMessagingService().initializeNotificationSettings();
-    // print("registeredNotificationListener");
-    // //Firebase Notification registered for app in background when it is terminated
-    // FirebaseMessagingService().terminateTapNotification();
-
-    // //Firebase Notification registered for foreground
-    // FirebaseMessagingService().foregroundNotification();
-
-    // //Firebase Notification registered for background
-    // FirebaseMessagingService().backgroundTapNotification();
+    final messaging = FirebaseMessagingService.instance;
+    messaging.initializeNotificationSettings();
+    messaging.terminateTapNotification();
+    messaging.foregroundNotification();
+    messaging.backgroundTapNotification();
   }
 
   void _onComplete() {
@@ -79,35 +75,15 @@ class _SplashScreenState extends State<SplashScreen> {
           width: 1.sw,
           height: 1.sh,
           decoration: const BoxDecoration(
-            color: AppColors.black
+              color: AppColors.black
               // image: DecorationImage(
               //     image: AssetImage(AssetPath.splashImage), fit: BoxFit.cover)
-                  ),
+              ),
           child: logoWidget(),
         ),
       ),
     );
   }
-
-  // CustomButton buttonWidget() {
-  //   return CustomButton(
-  //     onclick: () {
-  //       AppNavigation.navigateToRemovingAll(
-  //           context, AppRoutes.selectUserScreenRoute);
-  //     },
-  //     text: AppStrings.getStarted,
-  //     color: AppColors.white,
-  //     textcolor: AppColors.purple,
-  //   );
-  // }
-
-  // Widget descriptionWidget() {
-  //   return CustomText(
-  //     text: AppStrings.lorem5,
-  //     color: AppColors.white,
-  //     is_alignLeft: false,
-  //   );
-  // }
 
   Widget logoWidget() {
     return Entry.scale(
