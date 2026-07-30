@@ -19,6 +19,12 @@ class PaymentRepository {
     return ProviderWalletModel.fromJson(data);
   }
 
+  Future<ProviderWalletModel> getProviderEarnings() async {
+    final response = await _client.dio.get(ApiEndpoints.providerEarnings);
+    final data = ApiHelper.dataObject(response.data);
+    return ProviderWalletModel.fromJson(data);
+  }
+
   Future<List<SubscriptionLogModel>> getSubscriptionLogs() async {
     final response = await _client.dio.get(ApiEndpoints.paymentLogs);
     final data = ApiHelper.dataList(response.data);

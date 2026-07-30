@@ -236,7 +236,7 @@ static const String s39Icon = "$_icons/ic_s39.png";
     // orderIcon,
     // marketPlaceIcon,
     privacyIcon,
-    // convertIcon,
+    convertIcon,
     logoutIcon,
     deleteAccountIcon,
   ];

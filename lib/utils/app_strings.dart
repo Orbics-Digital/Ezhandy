@@ -57,7 +57,7 @@ class AppStrings {
     paymentLogs,
     newServices,
     allServices,
-    // earnings,
+    earnings,
     proRequest,
     subscriptionLog,
     marketPlace,

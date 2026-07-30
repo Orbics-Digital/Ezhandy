@@ -20,6 +20,9 @@ class PaymentController extends GetxController {
   final Rxn<ProviderWalletModel> providerWallet = Rxn<ProviderWalletModel>();
   final RxBool isProviderWalletLoading = false.obs;
 
+  final Rxn<ProviderWalletModel> providerEarnings = Rxn<ProviderWalletModel>();
+  final RxBool isProviderEarningsLoading = false.obs;
+
   final RxList<SubscriptionLogModel> subscriptionLogs = <SubscriptionLogModel>[].obs;
   final RxBool isSubscriptionLogsLoading = false.obs;
 
@@ -31,6 +34,9 @@ class PaymentController extends GetxController {
   List<ProviderPaymentLogModel> get paymentLogs =>
       providerWallet.value?.logs ?? [];
 
+  List<ProviderPaymentLogModel> get earningLogs =>
+      providerEarnings.value?.logs ?? [];
+
   List<SubscriptionLogModel> get currentSubscriptions =>
       subscriptionLogs.where((log) => !log.isExpired).toList();
 
@@ -39,6 +45,9 @@ class PaymentController extends GetxController {
 
   String get totalEarnedDisplay =>
       providerWallet.value?.displayTotalEarned ?? '\$0.00';
+
+  String get earningsTotalDisplay =>
+      providerEarnings.value?.displayTotalEarned ?? '\$0.00';
 
   Future<void> fetchProviderWallet() async {
     if (isProviderWalletLoading.value) return;
@@ -58,6 +67,31 @@ class PaymentController extends GetxController {
   Future<void> refreshProviderWallet() async {
     try {
       providerWallet.value = await _repository.getProviderWallet();
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    }
+  }
+
+  Future<void> fetchProviderEarnings() async {
+    if (isProviderEarningsLoading.value) return;
+
+    isProviderEarningsLoading.value = true;
+    try {
+      providerEarnings.value = await _repository.getProviderEarnings();
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+    } finally {
+      isProviderEarningsLoading.value = false;
+    }
+  }
+
+  Future<void> refreshProviderEarnings() async {
+    try {
+      providerEarnings.value = await _repository.getProviderEarnings();
     } on DioException catch (e) {
       AppDialogs.showToast(message: ApiHelper.errorMessage(e));
     } catch (e) {

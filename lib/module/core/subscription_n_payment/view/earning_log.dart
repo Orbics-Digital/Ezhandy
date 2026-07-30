@@ -1,3 +1,5 @@
+import 'package:ezhandy_user/module/core/subscription_n_payment/controller/payment_controller.dart';
+import 'package:ezhandy_user/module/core/subscription_n_payment/model/provider_wallet_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -22,6 +24,14 @@ class EarningsLog extends StatefulWidget {
 }
 
 class _EarningsLogState extends State<EarningsLog> {
+  final PaymentController _controller = PaymentController.i;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.fetchProviderEarnings();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -34,59 +44,73 @@ class _EarningsLogState extends State<EarningsLog> {
 
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
-        child: Column(
-          children: [
-            CustomContainer(
-              bgColor: AppColors.orange,
-              borderColor: AppColors.transparent,
-              radius: 5.r,
-              child: CustomText(
-                  text: "${AppStrings.totalEarnings} \$100",
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.white,
-                  fontSize: 16.sp),
-            ),
-            10.verticalSpace,
+        child: Obx(() {
+          final logs = _controller.earningLogs;
+          final isLoading = _controller.isProviderEarningsLoading.value;
 
-            Expanded(
-              child: ListView.separated(
-                // physics: NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: 15,
-                padding: EdgeInsets.only(bottom: AppPadding.padding18),
-                itemBuilder: (BuildContext ctxt, int index) {
-                  return pastSubscriptionWidget();
-                },
-                separatorBuilder: (BuildContext context, int index) {
-                  return 10.verticalSpace;
-                },
+          return Column(
+            children: [
+              CustomContainer(
+                bgColor: AppColors.orange,
+                borderColor: AppColors.transparent,
+                radius: 5.r,
+                child: CustomText(
+                    text:
+                        "${AppStrings.totalEarnings} ${_controller.earningsTotalDisplay}",
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                    fontSize: 16.sp),
               ),
-            ),
-            // 25.verticalSpace
-          ],
-        ),
+              10.verticalSpace,
+              Expanded(
+                child: isLoading && logs.isEmpty
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.orange,
+                        ),
+                      )
+                    : ListView.separated(
+                        // physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: logs.length,
+                        padding:
+                            EdgeInsets.only(bottom: AppPadding.padding18),
+                        itemBuilder: (BuildContext ctxt, int index) {
+                          return pastSubscriptionWidget(logs[index]);
+                        },
+                        separatorBuilder: (BuildContext context, int index) {
+                          return 10.verticalSpace;
+                        },
+                      ),
+              ),
+              // 25.verticalSpace
+            ],
+          );
+        }),
       ),
     );
   }
 
-  Widget pastSubscriptionWidget() {
+  Widget pastSubscriptionWidget(ProviderPaymentLogModel log) {
     return CustomContainer(
       child: Column(
         children: [
           10.verticalSpace,
           TwoTextRow(
-              firstText: "${AppStrings.username}:", secondText: "ABC User"),
+              firstText: "${AppStrings.username}:",
+              secondText: log.displayCustomerName),
           10.verticalSpace,
           TwoTextRow(
               firstText: "${AppStrings.date}:",
-              secondText: AppStrings.dummyDate),
+              secondText: log.displayPaymentDate),
           10.verticalSpace,
           TwoTextRow(
               firstText: "${AppStrings.amount}:",
-              secondText: AppStrings.dummyAmount),
+              secondText: log.displayPaymentAmount),
           10.verticalSpace,
           TwoTextRow(
-              firstText: "${AppStrings.earningType}:", secondText: "Chat"),
+              firstText: "${AppStrings.earningType}:",
+              secondText: log.displayEarningType),
           10.verticalSpace,
         ],
       ),

@@ -33,6 +33,7 @@ class ApiEndpoints {
   static const String askProStatus = 'ask-pro/status';
   static const String askProProviderActivateFree = 'ask-pro/provider/activate-free';
   static const String providerWallet = 'payment/provider-wallet';
+  static const String providerEarnings = 'payment/provider-earnings';
   static const String paymentLogs = 'payment/logs';
   static const String activeSubscriptionPlans = 'subscription-plans/active';
   static const String createSubscriptionCheckout =

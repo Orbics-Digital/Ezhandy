@@ -55,6 +55,7 @@ class ProviderPaymentLogModel {
   final double netAmount;
   final String? currency;
   final String? status;
+  final String? type;
   final DateTime? date;
 
   const ProviderPaymentLogModel({
@@ -69,6 +70,7 @@ class ProviderPaymentLogModel {
     this.netAmount = 0,
     this.currency,
     this.status,
+    this.type,
     this.date,
   });
 
@@ -97,6 +99,12 @@ class ProviderPaymentLogModel {
     return '-';
   }
 
+  String get displayEarningType {
+    final value = type?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return '-';
+  }
+
   String get displayGrossAmount => _formatMoney(grossAmount, currency);
 
   String get displayCommission => _formatMoney(commission, currency);
@@ -116,6 +124,7 @@ class ProviderPaymentLogModel {
       netAmount: _readDouble(json['netAmount']),
       currency: json['currency']?.toString(),
       status: json['status']?.toString(),
+      type: json['type']?.toString(),
       date: _readDate(json['date']),
     );
   }
