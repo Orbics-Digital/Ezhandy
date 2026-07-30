@@ -43,6 +43,10 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="ezhandy_provider_notifications" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAzIYAkAbTuRDoWIT3bs81rkZG6sCmWTuw" />
        
         <meta-data
             android:name="flutterEmbedding"

@@ -405,7 +405,9 @@ class _BookingDetailsState extends State<BookingDetails> {
                           addExtraTimeButtonWidget(context),
                         ],
                         if (HomeController.i.jobStatus.value ==
-                            AppStrings.inRoute)
+                                AppStrings.inRoute ||
+                            // TODO: temporary — allow map on completed
+                            _isCompletedOrVerified)
                           bookingLocationMapWidget(),
                         25.verticalSpace,
                         if (HomeController.i.jobStatus.value ==

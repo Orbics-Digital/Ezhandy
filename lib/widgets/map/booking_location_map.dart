@@ -4,10 +4,9 @@ import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class BookingLocationMap extends StatefulWidget {
   final double? destinationLatitude;
@@ -32,7 +31,7 @@ class BookingLocationMap extends StatefulWidget {
 }
 
 class _BookingLocationMapState extends State<BookingLocationMap> {
-  final MapController _mapController = MapController();
+  GoogleMapController? _mapController;
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionSubscription;
   String? _locationError;
@@ -61,7 +60,7 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
   @override
   void dispose() {
     _positionSubscription?.cancel();
-    _mapController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -133,15 +132,18 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
       _isLoadingLocation = false;
     });
 
-    if (isFirstFix && !_hasFittedCamera) {
-      _hasFittedCamera = true;
+    if (isFirstFix) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _fitMapToMarkers();
+        _fitMapToMarkers(force: true);
       });
     }
   }
 
-  void _fitMapToMarkers() {
+  Future<void> _fitMapToMarkers({bool force = false}) async {
+    final controller = _mapController;
+    if (controller == null) return;
+    if (_hasFittedCamera && !force) return;
+
     final points = <LatLng>[
       if (_currentLocation != null) _currentLocation!,
       if (_destinationLocation != null) _destinationLocation!,
@@ -149,39 +151,59 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
 
     if (points.isEmpty) return;
 
+    _hasFittedCamera = true;
+
     if (points.length == 1) {
-      _mapController.move(points.first, 15);
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(points.first, 15),
+      );
       return;
     }
 
-    final bounds = LatLngBounds.fromPoints(points);
-    _mapController.fitCamera(
-      CameraFit.bounds(
-        bounds: bounds,
-        padding: EdgeInsets.all(48.w),
-        maxZoom: 16,
+    double minLat = points.first.latitude;
+    double maxLat = points.first.latitude;
+    double minLng = points.first.longitude;
+    double maxLng = points.first.longitude;
+
+    for (final point in points.skip(1)) {
+      minLat = minLat < point.latitude ? minLat : point.latitude;
+      maxLat = maxLat > point.latitude ? maxLat : point.latitude;
+      minLng = minLng < point.longitude ? minLng : point.longitude;
+      maxLng = maxLng > point.longitude ? maxLng : point.longitude;
+    }
+
+    await controller.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat, minLng),
+          northeast: LatLng(maxLat, maxLng),
+        ),
+        48,
       ),
     );
   }
 
-  void _recenterOnCurrentLocation() {
-    if (_currentLocation == null) return;
-    _mapController.move(_currentLocation!, 15);
+  Future<void> _recenterOnCurrentLocation() async {
+    if (_currentLocation == null || _mapController == null) return;
+    await _mapController!.animateCamera(
+      CameraUpdate.newLatLngZoom(_currentLocation!, 15),
+    );
   }
 
-  List<Marker> _buildMarkers() {
-    final markers = <Marker>[];
+  Set<Marker> _buildMarkers() {
+    final markers = <Marker>{};
 
     if (_destinationLocation != null) {
       markers.add(
         Marker(
-          point: _destinationLocation!,
-          width: 40.w,
-          height: 40.h,
-          child: Icon(
-            Icons.location_on,
-            color: AppColors.orange,
-            size: 40.sp,
+          markerId: const MarkerId('destination'),
+          position: _destinationLocation!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+          infoWindow: InfoWindow(
+            title: 'Destination',
+            snippet: widget.address?.trim().isNotEmpty == true
+                ? widget.address!.trim()
+                : null,
           ),
         ),
       );
@@ -190,20 +212,10 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
     if (_currentLocation != null) {
       markers.add(
         Marker(
-          point: _currentLocation!,
-          width: 44.w,
-          height: 44.h,
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.blueDark.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.my_location,
-              color: AppColors.blueDark,
-              size: 28.sp,
-            ),
-          ),
+          markerId: const MarkerId('current'),
+          position: _currentLocation!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          infoWindow: const InfoWindow(title: 'You'),
         ),
       );
     }
@@ -242,27 +254,30 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
       );
     }
 
-    final markers = _buildMarkers();
     final mapContent = Stack(
       children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: _initialCenter(),
-            initialZoom: 15,
-            interactionOptions: InteractionOptions(
-              flags: _gesturesEnabled
-                  ? InteractiveFlag.all & ~InteractiveFlag.rotate
-                  : InteractiveFlag.none,
-            ),
+        GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: _initialCenter(),
+            zoom: 15,
           ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.pixelgenesys.ezhandy.provider',
-            ),
-            if (markers.isNotEmpty) MarkerLayer(markers: markers),
-          ],
+          markers: _buildMarkers(),
+          myLocationEnabled: false,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          compassEnabled: false,
+          mapToolbarEnabled: false,
+          rotateGesturesEnabled: false,
+          scrollGesturesEnabled: _gesturesEnabled,
+          zoomGesturesEnabled: _gesturesEnabled,
+          tiltGesturesEnabled: _gesturesEnabled,
+          onMapCreated: (controller) {
+            _mapController = controller;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _fitMapToMarkers();
+            });
+          },
+          onTap: widget.onTap == null ? null : (_) => widget.onTap?.call(),
         ),
         if (_isLoadingLocation)
           Container(
@@ -293,7 +308,9 @@ class _BookingLocationMapState extends State<BookingLocationMap> {
             ),
           ),
         Positioned(
-          top: widget.fullScreen ? (MediaQuery.paddingOf(context).top + 12.h) : 12.h,
+          top: widget.fullScreen
+              ? (MediaQuery.paddingOf(context).top + 12.h)
+              : 12.h,
           right: 12.w,
           child: FloatingActionButton.small(
             heroTag: widget.recenterHeroTag,
