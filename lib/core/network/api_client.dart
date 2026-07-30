@@ -14,6 +14,7 @@ class ApiClient extends GetxService {
 
   late final Dio dio;
   String? _authToken;
+  Future<void> Function()? onUnauthorized;
 
   ApiClient() {
     dio = Dio(
@@ -26,7 +27,12 @@ class ApiClient extends GetxService {
     );
 
     dio.interceptors.add(
-      AppApiInterceptor(getToken: () => _authToken),
+      AppApiInterceptor(
+        getToken: () => _authToken,
+        onUnauthorized: () async {
+          await onUnauthorized?.call();
+        },
+      ),
     );
   }
 

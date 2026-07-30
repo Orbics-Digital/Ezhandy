@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:ezhandy_user/core/network/api_client.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/core/notification/firebase_messaging_service.dart';
 import 'package:ezhandy_user/core/socket/socket_service.dart';
@@ -16,6 +17,7 @@ import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_loader.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
+import 'package:ezhandy_user/utils/constant.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,11 @@ class AuthController extends GetxController {
   final ProviderServicesRepository _providerServicesRepository =
       ProviderServicesRepository();
 
+  @override
+  void onInit() {
+    super.onInit();
+    ApiClient.i.onUnauthorized = forceLogoutDueToUnauthorized;
+  }
   final Rxn<UserModel> user = Rxn<UserModel>();
   final RxBool isLoginLoading = false.obs;
   final RxBool isRegisterLoading = false.obs;
@@ -440,6 +447,30 @@ class AuthController extends GetxController {
           AppRoutes.loginScreenRoute,
         );
       }
+    }
+  }
+
+  Future<void> forceLogoutDueToUnauthorized() async {
+    if (isLogoutLoading.value || user.value == null) return;
+
+    isLogoutLoading.value = true;
+    try {
+      SocketService.i.disconnect();
+      await SessionStorage.i.clear();
+      user.value = null;
+      NotificationController.i.clearUnreadCount();
+
+      AppDialogs.showToast(message: 'Session expired. Please login again.');
+
+      final context = Constants.navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        AppNavigation.navigateToRemovingAll(
+          context,
+          AppRoutes.loginScreenRoute,
+        );
+      }
+    } finally {
+      isLogoutLoading.value = false;
     }
   }
 }
