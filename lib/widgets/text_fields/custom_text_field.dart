@@ -70,53 +70,19 @@ class CustomTextField extends StatefulWidget {
 class _CustomTextFieldState extends State<CustomTextField> {
   bool get _isMultiline => (widget.lines ?? 1) > 1;
 
-  Widget? _buildPrefixIcon() {
-    if (widget.prefixImage != null) {
-      if (!_isMultiline) return widget.prefixImage;
+  bool get _hasPrefix =>
+      widget.prefixImage != null || widget.prefxicon != null;
 
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 12.h, left: 15.w, right: 5.w),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: widget.prefixImage,
-            ),
-          ),
-        ],
-      );
-    }
+  /// Multiline + prefix: icon is laid out outside InputDecoration so it can
+  /// top-align. Flutter's prefixIcon is always vertically centered.
+  bool get _useExternalPrefix => _isMultiline && _hasPrefix;
+
+  Widget? _buildInlinePrefixIcon() {
+    if (_useExternalPrefix) return null;
+
+    if (widget.prefixImage != null) return widget.prefixImage;
 
     if (widget.prefxicon == null) return null;
-
-    final icon = Image.asset(
-      widget.prefxicon!,
-      color: widget.prefixIconColor ?? AppColors.orange,
-      scale: 3,
-    );
-
-    if (_isMultiline) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 12.h),
-            child: GestureDetector(
-              onTap: widget.onPrefixTap,
-              child: Container(
-                width: 30.w,
-                margin: EdgeInsets.only(left: 15.w, right: 5.w),
-                alignment: Alignment.centerLeft,
-                child: icon,
-              ),
-            ),
-          ),
-        ],
-      );
-    }
 
     return GestureDetector(
       onTap: widget.onPrefixTap,
@@ -133,101 +99,164 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 border: Border(right: BorderSide(color: AppColors.white)),
               )
             : null,
-        child: icon,
+        child: Image.asset(
+          widget.prefxicon!,
+          color: widget.prefixIconColor ?? AppColors.orange,
+          scale: 3,
+        ),
       ),
+    );
+  }
+
+  Widget _buildExternalPrefixIcon() {
+    if (widget.prefixImage != null) {
+      return widget.prefixImage!;
+    }
+
+    return GestureDetector(
+      onTap: widget.onPrefixTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 22.w,
+        height: 22.w,
+        child: Image.asset(
+          widget.prefxicon!,
+          color: widget.prefixIconColor ?? AppColors.orange,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _buildDecoration({required bool includePrefix}) {
+    return InputDecoration(
+      filled: !_useExternalPrefix,
+      fillColor: widget.fillColor ?? AppColors.white,
+      enabledBorder: _useExternalPrefix
+          ? InputBorder.none
+          : OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius ?? 10.r),
+              borderSide: BorderSide(
+                  color: widget.borderColor ?? AppColors.greyBorder),
+            ),
+      focusedBorder: _useExternalPrefix
+          ? InputBorder.none
+          : OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius ?? 10.r),
+              borderSide:
+                  BorderSide(color: widget.borderColor ?? AppColors.orange),
+            ),
+      focusedErrorBorder: _useExternalPrefix
+          ? InputBorder.none
+          : OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius ?? 10.r),
+              borderSide:
+                  BorderSide(color: widget.borderColor ?? AppColors.red),
+            ),
+      errorBorder: _useExternalPrefix
+          ? InputBorder.none
+          : OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius ?? 10.r),
+              borderSide:
+                  BorderSide(color: widget.borderColor ?? AppColors.red),
+            ),
+      contentPadding: widget.contentPadding ??
+          (_useExternalPrefix
+              ? EdgeInsets.fromLTRB(42.w, 10.h, 15.w, 10.h)
+              : (!_hasPrefix
+                  ? EdgeInsets.only(
+                      top: 15.sp,
+                      left: 15.sp,
+                      bottom: 15.sp,
+                      right: 15.sp,
+                    )
+                  : null)),
+      label: widget.label ? Text(widget.hint) : null,
+      labelStyle: TextStyle(
+          color: widget.hintColor ?? AppColors.black, fontSize: 15),
+      border: InputBorder.none,
+      isDense: true,
+      alignLabelWithHint: _isMultiline,
+      hintStyle: TextStyle(
+          color: widget.hintColor ?? AppColors.black, fontSize: 15),
+      hintText: !widget.label ? widget.hint : null,
+      errorStyle: const TextStyle(
+          overflow: TextOverflow.visible, color: AppColors.red),
+      errorMaxLines: 3,
+      prefixIcon: includePrefix ? _buildInlinePrefixIcon() : null,
+      prefixIconConstraints: const BoxConstraints(),
+      suffixIcon: widget.sufixImage != null
+          ? GestureDetector(
+              onTap: widget.onclickSufix,
+              child: Container(
+                  height: 15,
+                  margin: const EdgeInsets.only(
+                      top: 5, bottom: 5, right: 10, left: 5),
+                  decoration: widget.suffix_divider == true
+                      ? BoxDecoration(
+                          border: Border(
+                              left: BorderSide(
+                                  color: AppColors.black.withOpacity(0.5))))
+                      : null,
+                  child: widget.sufixImage),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildTextFormField({required bool includePrefix}) {
+    return TextFormField(
+      focusNode: widget.focusNode,
+      onTap: widget.onTap,
+      readOnly: widget.readOnly,
+      keyboardType: widget.keyboardType,
+      onChanged: widget.onchange,
+      validator: widget.validator,
+      controller: widget.controller,
+      obscureText: widget.obscureText!,
+      minLines: widget.lines ?? 1,
+      maxLines: widget.lines ?? 1,
+      textAlignVertical:
+          _isMultiline ? TextAlignVertical.top : TextAlignVertical.center,
+      cursorColor: AppColors.orange,
+      inputFormatters: widget.inputFormatters,
+      style: TextStyle(
+          fontSize: widget.fontSize ?? 14.sp,
+          color: widget.fontColor ?? AppColors.black,
+          height: 1.3),
+      decoration: _buildDecoration(includePrefix: includePrefix),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_useExternalPrefix) {
+      return Container(
+        decoration: BoxDecoration(
+          color: widget.fillColor ?? AppColors.white,
+          borderRadius: BorderRadius.circular(widget.borderRadius ?? 10.r),
+          border: Border.all(
+            color: widget.borderColor ?? AppColors.greyBorder,
+          ),
+        ),
+        child: Stack(
+          children: [
+            _buildTextFormField(includePrefix: false),
+            Positioned(
+              top: 10.h,
+              left: 12.w,
+              child: _buildExternalPrefixIcon(),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
-        // boxShadow: AppShadows.shadow1,
         borderRadius: BorderRadius.circular(widget.borderRadius ?? 10.r),
       ),
-      child: TextFormField(
-        // autovalidateMode: ,
-        focusNode: widget.focusNode,
-        onTap: widget.onTap,
-        readOnly: widget.readOnly,
-        keyboardType: widget.keyboardType,
-        onChanged: widget.onchange,
-        validator: widget.validator,
-        controller: widget.controller,
-        obscureText: widget.obscureText!,
-        minLines: widget.lines ?? 1,
-        maxLines: widget.lines ?? 1,
-        cursorColor: AppColors.orange,
-        inputFormatters: widget.inputFormatters,
-        style: TextStyle(
-            fontSize: widget.fontSize ?? 14.sp,
-            color: widget.fontColor ?? AppColors.black),
-        decoration: InputDecoration(
-            filled: true,
-            fillColor: widget.fillColor ?? AppColors.white,
-            enabledBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(widget.borderRadius ?? 10.r),
-                borderSide: BorderSide(
-                    color: widget.borderColor ?? AppColors.greyBorder)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(widget.borderRadius ?? 10.r),
-                borderSide: BorderSide(
-                    color: widget.borderColor ?? AppColors.orange)),
-            focusedErrorBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(widget.borderRadius ?? 10.r),
-                borderSide:
-                    BorderSide(color: widget.borderColor ?? AppColors.red)),
-            errorBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(widget.borderRadius ?? 10.r),
-                borderSide:
-                    BorderSide(color: widget.borderColor ?? AppColors.red)),
-            contentPadding: widget.contentPadding ??
-                (widget.prefxicon == null
-                    ? EdgeInsets.only(
-                        top: 15.sp,
-                        left: 15.sp,
-                        bottom: 15.sp,
-                        right: 15.sp,
-                      )
-                    : _isMultiline
-                        ? EdgeInsets.fromLTRB(0, 14.h, 15.w, 14.h)
-                        : null),
-            label: widget.label ? Text(widget.hint) : null,
-            labelStyle: TextStyle(
-                color: widget.hintColor ?? AppColors.black, fontSize: 15),
-            border: InputBorder.none,
-            isDense: true,
-            hintStyle: TextStyle(
-                color: widget.hintColor ?? AppColors.black, fontSize: 15),
-            hintText: !widget.label ? widget.hint : null,
-            errorStyle: const TextStyle(
-                overflow: TextOverflow.visible, color: AppColors.red),
-            errorMaxLines: 3,
-            prefixIcon: _buildPrefixIcon(),
-            prefixIconConstraints: _isMultiline
-                ? BoxConstraints(minWidth: 50.w, minHeight: 0)
-                : const BoxConstraints(),
-            suffixIcon: widget.sufixImage != null
-                ? GestureDetector(
-                    onTap: widget.onclickSufix,
-                    child: Container(
-                        height: 15,
-                        margin: EdgeInsets.only(top: 5,bottom: 5,right: 10,left: 5),
-                        decoration: widget.suffix_divider == true
-                            ? BoxDecoration(
-                                border: Border(
-                                    left: BorderSide(
-                                        color:
-                                            AppColors.black.withOpacity(0.5))))
-                            : null,
-                        child: widget.sufixImage),
-                  )
-                : null),
-      ),
+      child: _buildTextFormField(includePrefix: true),
     );
   }
 }
