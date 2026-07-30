@@ -33,7 +33,7 @@ class FullScreenBookingMapScreen extends StatelessWidget {
               top: MediaQuery.paddingOf(context).top + 8,
               left: 12,
               child: Material(
-                color: AppColors.white,
+                color: AppColors.orange,
                 shape: const CircleBorder(),
                 elevation: 2,
                 child: InkWell(
