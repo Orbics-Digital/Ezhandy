@@ -274,7 +274,10 @@ class _ServiceDetailsState extends State<ServiceDetails> {
           ),
           TwoTextRow(
             firstText: '${AppStrings.radius}:',
-            secondText: _service?.displayRadius ?? '-',
+            secondText: (_service?.displayRadius == null ||
+                    _service!.displayRadius == '-')
+                ? '-'
+                : '${_service!.displayRadius} ${AppStrings.miles}',
           ),
           TwoTextRow(
             firstText: '${AppStrings.status}:',
