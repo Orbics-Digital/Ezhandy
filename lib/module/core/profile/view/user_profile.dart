@@ -108,6 +108,24 @@ class _UserProfileState extends State<UserProfile> {
                       user?.genderTitle ?? user?.gender,
                     ),
                   ),
+                  if (user?.experience != null) ...[
+                    Divider(color: AppColors.blueDark),
+                    10.verticalSpace,
+                    TwoTextRow(
+                      secondColor: AppColors.black,
+                      firstText: AppStrings.experience,
+                      secondText: user!.experience.toString(),
+                    ),
+                  ],
+                  if (user?.aboutUs?.trim().isNotEmpty ?? false) ...[
+                    Divider(color: AppColors.blueDark),
+                    10.verticalSpace,
+                    TwoTextRow(
+                      secondColor: AppColors.black,
+                      firstText: AppStrings.aboutUs,
+                      secondText: DisplayHelper.displayValue(user?.aboutUs),
+                    ),
+                  ],
                   Divider(color: AppColors.blueDark),
                   10.verticalSpace,
                   certificateSection(user?.certifications ?? const []),
