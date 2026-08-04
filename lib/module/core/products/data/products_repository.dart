@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -5,6 +6,7 @@ import 'package:ezhandy_user/core/network/api_client.dart';
 import 'package:ezhandy_user/core/network/api_constants.dart';
 import 'package:ezhandy_user/core/network/api_endpoints.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
+import 'package:ezhandy_user/module/core/products/model/product_image_slot_update.dart';
 import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 
 class ProductsRepository {
@@ -63,15 +65,15 @@ class ProductsRepository {
     required String description,
     required String price,
     required String categoryId,
-    List<File> images = const [],
+    required List<ProductImageSlotUpdate> imageSlots,
     bool isActive = true,
   }) async {
-    final formData = await _buildProductFormData(
+    final formData = await _buildUpdateProductFormData(
       title: title,
       description: description,
       price: price,
       categoryId: categoryId,
-      images: images,
+      imageSlots: imageSlots,
       isActive: isActive,
     );
 
@@ -119,6 +121,56 @@ class ProductsRepository {
           'images',
           await MultipartFile.fromFile(
             image.path,
+            filename: fileName,
+          ),
+        ),
+      );
+    }
+
+    return formData;
+  }
+
+  Future<FormData> _buildUpdateProductFormData({
+    required String title,
+    required String description,
+    required String price,
+    required String categoryId,
+    required List<ProductImageSlotUpdate> imageSlots,
+    required bool isActive,
+  }) async {
+    final existingImages = <String>[];
+    final newFiles = <File>[];
+
+    for (final slot in imageSlots) {
+      if (slot.isRemoved) continue;
+
+      if (slot.newFile != null) {
+        newFiles.add(slot.newFile!);
+        continue;
+      }
+
+      final existingUrl = slot.existingUrl?.trim();
+      if (existingUrl != null && existingUrl.isNotEmpty) {
+        existingImages.add(existingUrl);
+      }
+    }
+
+    final formData = FormData.fromMap({
+      'title': title,
+      'description': description,
+      'price': price,
+      'categoryId': categoryId,
+      'isActive': isActive,
+      'existingImages': jsonEncode(existingImages),
+    });
+
+    for (final file in newFiles) {
+      final fileName = file.path.split(Platform.pathSeparator).last;
+      formData.files.add(
+        MapEntry(
+          'images',
+          await MultipartFile.fromFile(
+            file.path,
             filename: fileName,
           ),
         ),

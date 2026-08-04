@@ -311,6 +311,13 @@ class _MarketPlaceState extends State<MarketPlace>
 
   Widget _myProductListItem(ProductModel product) {
     return CustomContainer(
+      onTap: () {
+        AppNavigation.navigateTo(
+          context,
+          AppRoutes.productDetailScreenRoute,
+          arguments: ProductDetailRoutingArgument(product: product),
+        );
+      },
       child: Row(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,

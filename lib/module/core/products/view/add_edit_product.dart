@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
+import 'package:ezhandy_user/module/core/products/model/product_image_slot_update.dart';
 import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/enums.dart';
@@ -52,7 +53,8 @@ class _AddEditProductState extends State<AddEditProduct> {
   TextEditingController priceController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   bool keyboardVisible = false;
-  final List<_ProductImageItem> imageItems = [];
+  final List<_ProductImageSlot> _imageSlots =
+      List.generate(_maxImages, (_) => _ProductImageSlot());
   String? categoryValue;
   String? selectedCategoryId;
 
@@ -85,16 +87,72 @@ class _AddEditProductState extends State<AddEditProduct> {
           : categoryName;
     }
 
+    var slotIndex = 0;
     final mainImage = product.mainImagePath?.trim();
     if (mainImage != null && mainImage.isNotEmpty) {
-      imageItems.add(_ProductImageItem(networkUrl: mainImage));
+      _imageSlots[slotIndex].networkUrl = mainImage;
+      slotIndex++;
     }
 
     for (final imageUrl in product.additionalImages) {
+      if (slotIndex >= _maxImages) break;
       final trimmed = imageUrl.trim();
       if (trimmed.isEmpty) continue;
-      imageItems.add(_ProductImageItem(networkUrl: trimmed));
+      _imageSlots[slotIndex].networkUrl = trimmed;
+      slotIndex++;
     }
+  }
+
+  List<int> get _visibleSlotIndices => [
+        for (var i = 0; i < _imageSlots.length; i++)
+          if (_imageSlots[i].hasContent) i,
+      ];
+
+  int get _lastRelevantSlotIndex {
+    var lastIndex = -1;
+    for (var i = 0; i < _imageSlots.length; i++) {
+      final slot = _imageSlots[i];
+      if (slot.hasContent || slot.isRemoved) {
+        lastIndex = i;
+      }
+    }
+    return lastIndex;
+  }
+
+  int? _nextAvailableSlotIndex() {
+    for (var i = 0; i < _imageSlots.length; i++) {
+      final slot = _imageSlots[i];
+      if (slot.isAvailableForUpload) return i;
+    }
+    return null;
+  }
+
+  void _removeSlot(int slotIndex) {
+    setState(() {
+      _imageSlots[slotIndex]
+        ..isRemoved = true
+        ..networkUrl = null
+        ..localFile = null;
+    });
+  }
+
+  List<ProductImageSlotUpdate> _buildImageSlotUpdates() {
+    final lastIndex = _lastRelevantSlotIndex;
+    if (lastIndex < 0) return const [];
+
+    return [
+      for (var i = 0; i <= lastIndex; i++) _toSlotUpdate(_imageSlots[i]),
+    ];
+  }
+
+  ProductImageSlotUpdate _toSlotUpdate(_ProductImageSlot slot) {
+    if (slot.isRemoved) {
+      return ProductImageSlotUpdate.remove();
+    }
+    if (slot.localFile != null) {
+      return ProductImageSlotUpdate.upload(slot.localFile!);
+    }
+    return ProductImageSlotUpdate.keep(slot.networkUrl!);
   }
 
   @override
@@ -164,13 +222,19 @@ class _AddEditProductState extends State<AddEditProduct> {
 
   void _setCameraDocumentFile(File? file) {
     if (file == null) return;
-    if (imageItems.length >= _maxImages) {
+
+    final slotIndex = _nextAvailableSlotIndex();
+    if (slotIndex == null) {
       AppDialogs.showToast(message: AppStrings.maximumFiveImagesAllowed);
       return;
     }
 
     setState(() {
-      imageItems.add(_ProductImageItem(localFile: file));
+      final slot = _imageSlots[slotIndex];
+      slot
+        ..isRemoved = false
+        ..networkUrl = null
+        ..localFile = file;
     });
   }
 
@@ -216,23 +280,21 @@ class _AddEditProductState extends State<AddEditProduct> {
   }
 
   Widget documentWidget() {
+    final visibleIndices = _visibleSlotIndices;
+
     return Container(
       height: 117.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          return index == imageItems.length
+          return index == visibleIndices.length
               ? Padding(
                   padding: EdgeInsets.symmetric(vertical: 4.h),
-                  child: uploadWidget(imageItems.length),
+                  child: uploadWidget(visibleIndices.length),
                 )
               : _imageCard(
-                  item: imageItems[index],
-                  onRemoveTapped: () {
-                    setState(() {
-                      imageItems.removeAt(index);
-                    });
-                  },
+                  item: _imageSlots[visibleIndices[index]],
+                  onRemoveTapped: () => _removeSlot(visibleIndices[index]),
                 );
         },
         separatorBuilder: (context, index) {
@@ -240,15 +302,15 @@ class _AddEditProductState extends State<AddEditProduct> {
             width: 5,
           );
         },
-        itemCount: imageItems.length >= _maxImages
-            ? imageItems.length
-            : imageItems.length + 1,
+        itemCount: visibleIndices.length >= _maxImages
+            ? visibleIndices.length
+            : visibleIndices.length + 1,
       ),
     );
   }
 
   Widget _imageCard({
-    required _ProductImageItem item,
+    required _ProductImageSlot item,
     Function()? onRemoveTapped,
   }) {
     return Stack(
@@ -415,7 +477,7 @@ class _AddEditProductState extends State<AddEditProduct> {
     final isValid = formKey.currentState!.validate();
     if (!isValid) return;
 
-    if (imageItems.isEmpty) {
+    if (_visibleSlotIndices.isEmpty) {
       AppDialogs.showToast(message: AppStrings.pleaseUploadProductImage);
       return;
     }
@@ -426,9 +488,9 @@ class _AddEditProductState extends State<AddEditProduct> {
       return;
     }
 
-    final newImages = imageItems
-        .where((item) => item.localFile != null)
-        .map((item) => item.localFile!)
+    final newImages = _visibleSlotIndices
+        .map((index) => _imageSlots[index].localFile)
+        .whereType<File>()
         .toList();
 
     final title = productNameController.text.trim();
@@ -449,7 +511,7 @@ class _AddEditProductState extends State<AddEditProduct> {
         description: description,
         price: price,
         categoryId: categoryId,
-        images: newImages,
+        imageSlots: _buildImageSlotUpdates(),
         isActive: widget.product?.isActive ?? true,
       );
     } else {
@@ -484,12 +546,14 @@ class _AddEditProductState extends State<AddEditProduct> {
   }
 }
 
-class _ProductImageItem {
-  const _ProductImageItem({
-    this.networkUrl,
-    this.localFile,
-  });
+class _ProductImageSlot {
+  String? networkUrl;
+  File? localFile;
+  bool isRemoved = false;
 
-  final String? networkUrl;
-  final File? localFile;
+  bool get hasContent =>
+      !isRemoved && ((networkUrl?.trim().isNotEmpty ?? false) || localFile != null);
+
+  bool get isAvailableForUpload =>
+      isRemoved || ((networkUrl == null || networkUrl!.trim().isEmpty) && localFile == null);
 }

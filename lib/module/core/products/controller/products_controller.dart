@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:ezhandy_user/core/network/api_helper.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/core/products/data/products_repository.dart';
+import 'package:ezhandy_user/module/core/products/model/product_image_slot_update.dart';
 import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:get/get.dart';
@@ -229,7 +230,7 @@ class ProductsController extends GetxController {
     required String description,
     required String price,
     required String categoryId,
-    List<File> images = const [],
+    required List<ProductImageSlotUpdate> imageSlots,
     bool isActive = true,
   }) async {
     if (isSubmittingProduct.value) return false;
@@ -242,7 +243,7 @@ class ProductsController extends GetxController {
         description: description,
         price: price,
         categoryId: categoryId,
-        images: images,
+        imageSlots: imageSlots,
         isActive: isActive,
       );
       await refreshMyProducts();
