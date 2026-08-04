@@ -393,9 +393,6 @@ class AuthController extends GetxController {
     required String aboutUs,
     int? experience,
     File? profileImage,
-    List<String> institutionNames = const [],
-    List<String> certificationTitles = const [],
-    List<File> certificationImages = const [],
   }) async {
     if (isUpdateProfileLoading.value) return false;
 
@@ -410,9 +407,6 @@ class AuthController extends GetxController {
         aboutUs: aboutUs,
         experience: experience,
         profileImage: profileImage,
-        institutionNames: institutionNames,
-        certificationTitles: certificationTitles,
-        certificationImages: certificationImages,
       );
 
       final updated = UserModel.fromJson(data);

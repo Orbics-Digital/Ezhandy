@@ -232,9 +232,6 @@ class AuthRepository {
     required String aboutUs,
     required int? experience,
     File? profileImage,
-    List<String> institutionNames = const [],
-    List<String> certificationTitles = const [],
-    List<File> certificationImages = const [],
   }) async {
     final formData = FormData.fromMap({
       'fullName': fullName,
@@ -245,10 +242,6 @@ class AuthRepository {
       'languageId': languageId,
       'aboutUs': aboutUs,
       if (experience != null) 'experience': experience,
-      if (institutionNames.isNotEmpty)
-        'institutionNames': jsonEncode(institutionNames),
-      if (certificationTitles.isNotEmpty)
-        'certificationTitles': jsonEncode(certificationTitles),
     });
 
     if (profileImage != null) {
@@ -258,18 +251,6 @@ class AuthRepository {
           await MultipartFile.fromFile(
             profileImage.path,
             filename: profileImage.path.split(Platform.pathSeparator).last,
-          ),
-        ),
-      );
-    }
-
-    for (final image in certificationImages) {
-      formData.files.add(
-        MapEntry(
-          'certificationImages',
-          await MultipartFile.fromFile(
-            image.path,
-            filename: image.path.split(Platform.pathSeparator).last,
           ),
         ),
       );
