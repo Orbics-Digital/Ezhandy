@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:ezhandy_user/core/notification/firebase_messaging_service.dart';
 import 'package:ezhandy_user/core/socket/socket_service.dart';
+import 'package:ezhandy_user/core/storage/session_storage.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
+import 'package:ezhandy_user/module/auth/verification/routing_arguments/otp_verification_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
+import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
 import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/app_logo.dart';
@@ -50,17 +53,33 @@ class _SplashScreenState extends State<SplashScreen> {
     messaging.backgroundTapNotification();
   }
 
-  void _onComplete() {
+  Future<void> _onComplete() async {
     AppSystemUi.applyDarkContent();
     final user = AuthController.i.user.value;
-    final String destination;
     if (user == null) {
-      destination = AppRoutes.loginScreenRoute;
-    } else if (!user.isSubscription) {
-      destination = AppRoutes.subscriptionScreenRoute;
-    } else {
-      destination = AppRoutes.mainMenuScreenRoute;
+      AppNavigation.navigateToRemovingAll(context, AppRoutes.loginScreenRoute);
+      return;
     }
+
+    if (!user.isEmailVerified) {
+      await SessionStorage.i.clear();
+      AuthController.i.user.value = null;
+      if (!mounted) return;
+      AppNavigation.navigateToRemovingAll(
+        context,
+        AppRoutes.otpVerificationScreenRoute,
+        arguments: OtpVerificationRoutingArgument(
+          type: OtpType.signup.name,
+          text: user.email?.trim() ?? '',
+          emailAndPhone: OtpCodeType.email.name,
+        ),
+      );
+      return;
+    }
+
+    final destination = !user.isSubscription
+        ? AppRoutes.subscriptionScreenRoute
+        : AppRoutes.mainMenuScreenRoute;
     AppNavigation.navigateToRemovingAll(context, destination);
   }
 

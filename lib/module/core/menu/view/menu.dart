@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ezhandy_user/module/auth/controller/auth_controller.dart';
 import 'package:ezhandy_user/module/auth/content/routing_arguments/content_routing_arguments.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
-import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/utils/enums.dart';
@@ -339,28 +338,6 @@ class _MenuState extends State<Menu> {
   }
 
   void _deleteAccountTap() {
-    AppDialogs.showSuccessDialog(context,
-        description: AppStrings.areYouSureWantToDeleteThisAccount,
-        title: AppStrings.deleteAccount,
-        image: AssetPath.alertIcon,
-        isDoneShow: false,
-        btnTxt1: AppStrings.no,
-        onTap1: () {
-          AppNavigation.navigatorPop(context);
-        },
-        btnTxt2: AppStrings.yes,
-        onTap2: () {
-          AppNavigation.navigatorPop(context);
-          AppDialogs.showSuccessDialog(
-            context,
-            description: AppStrings.accountDeleteSuccessfully,
-            title: AppStrings.congratulation,
-            btnTxt1: AppStrings.ok,
-            onTap1: () {
-              AppNavigation.navigateToRemovingAll(
-                  context, AppRoutes.loginScreenRoute);
-            },
-          );
-        });
+    AuthController.i.showDeleteAccountConfirmation(context);
   }
 }

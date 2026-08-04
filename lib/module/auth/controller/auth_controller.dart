@@ -39,6 +39,7 @@ class AuthController extends GetxController {
   final RxBool isLoginLoading = false.obs;
   final RxBool isRegisterLoading = false.obs;
   final RxBool isLogoutLoading = false.obs;
+  final RxBool isDeleteAccountLoading = false.obs;
   final RxBool isForgotPasswordLoading = false.obs;
   final RxBool isVerifyResetOtpLoading = false.obs;
   final RxBool isVerifyEmailOtpLoading = false.obs;
@@ -163,8 +164,36 @@ class AuthController extends GetxController {
         fcmToken: fcmToken,
       );
 
-      await SessionStorage.i.save(token: result.token, user: result.user);
-      user.value = result.user;
+      if (result.requiresEmailVerification) {
+        await SessionStorage.i.clear();
+        user.value = null;
+
+        if (context.mounted) {
+          if (result.message != null && result.message!.trim().isNotEmpty) {
+            AppDialogs.showToast(message: result.message!);
+          }
+          AppNavigation.navigateTo(
+            context,
+            AppRoutes.otpVerificationScreenRoute,
+            arguments: OtpVerificationRoutingArgument(
+              type: OtpType.signup.name,
+              text: email.trim(),
+              emailAndPhone: OtpCodeType.email.name,
+            ),
+          );
+        }
+        return true;
+      }
+
+      final token = result.token;
+      final loggedInUser = result.user;
+      if (token == null || token.isEmpty || loggedInUser == null) {
+        AppDialogs.showToast(message: 'Login failed. Please try again.');
+        return false;
+      }
+
+      await SessionStorage.i.save(token: token, user: loggedInUser);
+      user.value = loggedInUser;
       isLoginSignUp.value = true;
 
       await NotificationController.i.fetchUnreadCount();
@@ -173,7 +202,7 @@ class AuthController extends GetxController {
       if (context.mounted) {
         AppNavigation.navigateToRemovingAll(
           context,
-          result.user.isSubscription
+          loggedInUser.isSubscription
               ? AppRoutes.mainMenuScreenRoute
               : AppRoutes.subscriptionScreenRoute,
         );
@@ -422,6 +451,23 @@ class AuthController extends GetxController {
     );
   }
 
+  void showDeleteAccountConfirmation(BuildContext context) {
+    AppDialogs.showSuccessDialog(
+      context,
+      description: AppStrings.areYouSureWantToDeleteThisAccount,
+      title: AppStrings.deleteAccount,
+      image: AssetPath.alertIcon,
+      isDoneShow: false,
+      btnTxt1: AppStrings.no,
+      onTap1: () => AppNavigation.navigatorPop(context),
+      btnTxt2: AppStrings.yes,
+      onTap2: () {
+        AppNavigation.navigatorPop(context);
+        deleteAccount(context);
+      },
+    );
+  }
+
   Future<void> logout(BuildContext context) async {
     if (isLogoutLoading.value) return;
 
@@ -447,6 +493,46 @@ class AuthController extends GetxController {
           AppRoutes.loginScreenRoute,
         );
       }
+    }
+  }
+
+  Future<void> deleteAccount(BuildContext context) async {
+    if (isDeleteAccountLoading.value) return;
+
+    isDeleteAccountLoading.value = true;
+    AppLoader.show();
+    try {
+      await _authRepository.deleteAccount();
+
+      SocketService.i.disconnect();
+      await SessionStorage.i.clear();
+      user.value = null;
+      NotificationController.i.clearUnreadCount();
+      AppLoader.hide();
+      isDeleteAccountLoading.value = false;
+
+      if (!context.mounted) return;
+
+      AppDialogs.showSuccessDialog(
+        context,
+        description: AppStrings.accountDeleteSuccessfully,
+        title: AppStrings.congratulation,
+        btnTxt1: AppStrings.ok,
+        onTap1: () {
+          AppNavigation.navigateToRemovingAll(
+            context,
+            AppRoutes.loginScreenRoute,
+          );
+        },
+      );
+    } on DioException catch (e) {
+      AppLoader.hide();
+      isDeleteAccountLoading.value = false;
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+    } catch (e) {
+      AppLoader.hide();
+      isDeleteAccountLoading.value = false;
+      AppDialogs.showToast(message: e.toString());
     }
   }
 

@@ -6,6 +6,7 @@ class ApiEndpoints {
   static const String verifyOtp = 'verify-otp';
   static const String resendVerification = 'resend-verification';
   static const String logout = 'logout';
+  static const String deleteAccount = 'user/me';
   static const String forgotPassword = 'forgot-password';
   static const String verifyResetOtp = 'verify-reset-otp';
   static const String resetPassword = 'reset-password';

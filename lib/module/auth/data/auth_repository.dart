@@ -22,16 +22,33 @@ class AuthRepository {
     required String password,
     String? fcmToken,
   }) async {
-    final response = await _client.dio.post(
-      ApiEndpoints.login,
-      data: {
-        'email': email,
-        'password': password,
-        if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
-      },
-    );
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.login,
+        data: {
+          'email': email,
+          'password': password,
+          if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
+        },
+      );
 
-    return LoginResult.fromResponse(response.data);
+      return LoginResult.fromResponse(response.data);
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map) {
+        final root = Map<String, dynamic>.from(data);
+        final payload = root['data'];
+        final statusCode = root['statusCode'];
+        final isEmailVerified = payload is Map
+            ? payload['isEmailVerified']
+            : null;
+
+        if (statusCode == 499 || isEmailVerified == false) {
+          return LoginResult.fromResponse(data);
+        }
+      }
+      rethrow;
+    }
   }
 
   Future<void> registerProvider(RegisterProviderParams params) async {
@@ -136,6 +153,19 @@ class AuthRepository {
     final root = Map<String, dynamic>.from(response.data as Map);
     if (!ApiHelper.isSuccessResponse(root)) {
       throw Exception(ApiHelper.responseMessage(root) ?? 'Logout failed');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    final response = await _client.dio.delete(ApiEndpoints.deleteAccount);
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(
+        ApiHelper.responseMessage(root) ?? 'Failed to delete account',
+      );
     }
   }
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
-import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
@@ -17,7 +16,7 @@ import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
 import 'package:ezhandy_user/widgets/profile_widget/profile_picture_widget.dart';
 import 'package:ezhandy_user/widgets/row/two_text_row.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
-import 'package:share_plus/share_plus.dart';
+// import 'package:share_plus/share_plus.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
@@ -35,33 +34,33 @@ class _UserProfileState extends State<UserProfile> {
           Get.back();
         },
         title: AppStrings.myProfile,
-        actionWidget: GestureDetector(
-          onTap: ()  async {
-        await SharePlus.instance.share(
-            ShareParams(text: 'check out my website https://example.com'));
-        // AppNavigation.navigateToRemovingAll(
-        //     context, AppRoutes.mainMenuScreenRoute);
+        // actionWidget: GestureDetector(
+        //   onTap: ()  async {
+        // await SharePlus.instance.share(
+        //     ShareParams(text: 'check out my website https://example.com'));
+        // // AppNavigation.navigateToRemovingAll(
+        // //     context, AppRoutes.mainMenuScreenRoute);
 
 
 
-          },
-          child: Padding(
-            padding: EdgeInsets.only(right:AppPadding.padding16),
-            child: Column(
-              children: [
-                Container(
-                    width: 35.w,
-                    height: 35.h,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.greyLight),
-                        image: DecorationImage(
-                            image: AssetImage(AssetPath.shareIcon),scale: 4.5.sp))),
-                CustomText(text: "Share", fontWeight: FontWeight.bold,fontSize: 12.sp,)
-              ],
-            ),
-          ),
-        ),
+        //   },
+        //   child: Padding(
+        //     padding: EdgeInsets.only(right:AppPadding.padding16),
+        //     child: Column(
+        //       children: [
+        //         Container(
+        //             width: 35.w,
+        //             height: 35.h,
+        //             decoration: BoxDecoration(
+        //                 shape: BoxShape.circle,
+        //                 border: Border.all(color: AppColors.greyLight),
+        //                 image: DecorationImage(
+        //                     image: AssetImage(AssetPath.shareIcon),scale: 4.5.sp))),
+        //         CustomText(text: "Share", fontWeight: FontWeight.bold,fontSize: 12.sp,)
+        //       ],
+        //     ),
+        //   ),
+        // ),
         appBarheight: 50,
         child: Padding(
             padding:
@@ -137,30 +136,7 @@ class _UserProfileState extends State<UserProfile> {
                   20.verticalSpace,
                   GestureDetector(
                     onTap: () {
-                      AppDialogs.showSuccessDialog(context,
-                          description:
-                              AppStrings.areYouSureWantToDeleteThisAccount,
-                          title: AppStrings.deleteAccount,
-                          image: AssetPath.alertIcon,
-                          isDoneShow: false,
-                          btnTxt1: AppStrings.no,
-                          onTap1: () {
-                            AppNavigation.navigatorPop(context);
-                          },
-                          btnTxt2: AppStrings.yes,
-                          onTap2: () {
-                            AppNavigation.navigatorPop(context);
-                            AppDialogs.showSuccessDialog(
-                              context,
-                              description: AppStrings.accountDeleteSuccessfully,
-                              title: AppStrings.congratulation,
-                              btnTxt1: AppStrings.ok,
-                              onTap1: () {
-                                AppNavigation.navigateToRemovingAll(
-                                    context, AppRoutes.loginScreenRoute);
-                              },
-                            );
-                          });
+                      AuthController.i.showDeleteAccountConfirmation(context);
                     },
                     child: CustomText(
                         text: AppStrings.deleteAccount,
