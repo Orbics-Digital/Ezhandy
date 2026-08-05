@@ -53,6 +53,7 @@ class _EditUserProfileState extends State<EditUserProfile> {
 
   /// Certificate dynamic fields
   List<Map<String, dynamic>> certificates = [];
+  final List<String> _removedCertificateIds = [];
 
   bool keyboardVisible = false;
 
@@ -177,6 +178,12 @@ class _EditUserProfileState extends State<EditUserProfile> {
   void removeCertificate(int index) {
     setState(() {
       final item = certificates.removeAt(index);
+
+      final certificationId = item['id'] as String?;
+      if (certificationId != null && certificationId.isNotEmpty) {
+        _removedCertificateIds.add(certificationId);
+      }
+
       (item['institute'] as TextEditingController?)?.dispose();
       (item['title'] as TextEditingController?)?.dispose();
       (item['picture'] as TextEditingController?)?.dispose();
@@ -610,7 +617,8 @@ class _EditUserProfileState extends State<EditUserProfile> {
         () => CustomButton(
           text: AppStrings.update,
           isLoading: AuthController.i.isUpdateProfileLoading.value ||
-              AuthController.i.isAddCertificationLoading.value,
+              AuthController.i.isAddCertificationLoading.value ||
+              AuthController.i.isDeleteCertificationLoading.value,
           onclick: () => _onUpdate(context),
         ),
       );
@@ -618,6 +626,18 @@ class _EditUserProfileState extends State<EditUserProfile> {
   bool get _hasNewCertificates => certificates.any(
         (item) => item['id'] == null && item['pictureFile'] != null,
       );
+
+  bool get _hasRemovedCertificates => _removedCertificateIds.isNotEmpty;
+
+  Future<bool> _deleteRemovedCertificates() async {
+    for (final certificationId in List<String>.from(_removedCertificateIds)) {
+      final deleted =
+          await AuthController.i.deleteCertification(certificationId);
+      if (!deleted) return false;
+      _removedCertificateIds.remove(certificationId);
+    }
+    return true;
+  }
 
   Future<bool> _createNewCertificates() async {
     for (final item in certificates) {
@@ -644,6 +664,11 @@ class _EditUserProfileState extends State<EditUserProfile> {
     FocusScope.of(context).unfocus();
 
     if (!editProfileKey.currentState!.validate()) return;
+
+    if (_hasRemovedCertificates) {
+      final certificatesDeleted = await _deleteRemovedCertificates();
+      if (!certificatesDeleted || !mounted) return;
+    }
 
     if (_hasNewCertificates) {
       final certificatesCreated = await _createNewCertificates();

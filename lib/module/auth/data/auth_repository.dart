@@ -325,6 +325,21 @@ class AuthRepository {
     }
   }
 
+  Future<void> deleteCertification(String certificationId) async {
+    final response = await _client.dio.delete(
+      '${ApiEndpoints.certifications}/$certificationId',
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(
+        ApiHelper.responseMessage(root) ?? 'Failed to delete certification',
+      );
+    }
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
