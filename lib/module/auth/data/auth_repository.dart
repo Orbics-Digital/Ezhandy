@@ -286,6 +286,45 @@ class AuthRepository {
     return UserModel.fromJson(data);
   }
 
+  Future<void> addCertification({
+    required String institutionName,
+    required String certificationTitle,
+    required File certificationImage,
+  }) async {
+    final formData = FormData.fromMap({
+      'institutionName': institutionName,
+      'certificationTitle': certificationTitle,
+    });
+
+    formData.files.add(
+      MapEntry(
+        'certificationImage',
+        await MultipartFile.fromFile(
+          certificationImage.path,
+          filename: certificationImage.path.split(Platform.pathSeparator).last,
+        ),
+      ),
+    );
+
+    final response = await _client.dio.post(
+      ApiEndpoints.certifications,
+      data: formData,
+      options: Options(
+        contentType: Headers.multipartFormDataContentType,
+        headers: {'Accept': ApiConstants.acceptJson},
+      ),
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(
+        ApiHelper.responseMessage(root) ?? 'Failed to add certification',
+      );
+    }
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,

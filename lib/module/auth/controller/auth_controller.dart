@@ -49,6 +49,7 @@ class AuthController extends GetxController {
   final RxBool isQuickProviderLoading = false.obs;
   final RxBool isLoginSignUp = true.obs;
   final RxBool isUpdateProfileLoading = false.obs;
+  final RxBool isAddCertificationLoading = false.obs;
 
   String get userDisplayName {
     final name = user.value?.fullName?.trim();
@@ -428,6 +429,30 @@ class AuthController extends GetxController {
       return false;
     } finally {
       isUpdateProfileLoading.value = false;
+    }
+  }
+
+  Future<bool> addCertification({
+    required String institutionName,
+    required String certificationTitle,
+    required File certificationImage,
+  }) async {
+    isAddCertificationLoading.value = true;
+    try {
+      await _authRepository.addCertification(
+        institutionName: institutionName,
+        certificationTitle: certificationTitle,
+        certificationImage: certificationImage,
+      );
+      return true;
+    } on DioException catch (e) {
+      AppDialogs.showToast(message: ApiHelper.errorMessage(e));
+      return false;
+    } catch (e) {
+      AppDialogs.showToast(message: e.toString());
+      return false;
+    } finally {
+      isAddCertificationLoading.value = false;
     }
   }
 

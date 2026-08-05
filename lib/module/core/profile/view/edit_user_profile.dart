@@ -124,6 +124,7 @@ class _EditUserProfileState extends State<EditUserProfile> {
       final hasUrl = url != null && url.isNotEmpty;
 
       return {
+        'id': item.id,
         'institute': TextEditingController(
           text: item.institutionName?.trim() ?? '',
         ),
@@ -163,6 +164,7 @@ class _EditUserProfileState extends State<EditUserProfile> {
   void addCertificate() {
     setState(() {
       certificates.add({
+        'id': null,
         'institute': TextEditingController(),
         'title': TextEditingController(),
         'picture': TextEditingController(),
@@ -607,15 +609,46 @@ class _EditUserProfileState extends State<EditUserProfile> {
   Widget _updateButton({required BuildContext context}) => Obx(
         () => CustomButton(
           text: AppStrings.update,
-          isLoading: AuthController.i.isUpdateProfileLoading.value,
+          isLoading: AuthController.i.isUpdateProfileLoading.value ||
+              AuthController.i.isAddCertificationLoading.value,
           onclick: () => _onUpdate(context),
         ),
       );
+
+  bool get _hasNewCertificates => certificates.any(
+        (item) => item['id'] == null && item['pictureFile'] != null,
+      );
+
+  Future<bool> _createNewCertificates() async {
+    for (final item in certificates) {
+      if (item['id'] != null) continue;
+
+      final pictureFile = item['pictureFile'] as File?;
+      if (pictureFile == null) continue;
+
+      final institute =
+          (item['institute'] as TextEditingController).text.trim();
+      final title = (item['title'] as TextEditingController).text.trim();
+
+      final created = await AuthController.i.addCertification(
+        institutionName: institute,
+        certificationTitle: title,
+        certificationImage: pictureFile,
+      );
+      if (!created) return false;
+    }
+    return true;
+  }
 
   Future<void> _onUpdate(BuildContext context) async {
     FocusScope.of(context).unfocus();
 
     if (!editProfileKey.currentState!.validate()) return;
+
+    if (_hasNewCertificates) {
+      final certificatesCreated = await _createNewCertificates();
+      if (!certificatesCreated || !mounted) return;
+    }
 
     final languageId = SignUpFieldMapper.languageIdFromLabel(languageValue);
     final gender = SignUpFieldMapper.genderCode(genderValue);
