@@ -104,12 +104,6 @@ class _ProductDetailState extends State<ProductDetail> {
                 ],
               ),
               10.verticalSpace,
-              if ((product.category?.description?.trim().isNotEmpty ?? false))
-                CustomText(
-                  text: DisplayHelper.displayValue(product.category?.description),
-                ),
-              if ((product.category?.description?.trim().isNotEmpty ?? false))
-                10.verticalSpace,
               CustomText(
                 text: '${AppStrings.category}: $_categoryLabel',
               ),

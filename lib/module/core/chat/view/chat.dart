@@ -298,7 +298,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         ? current.displayContent
                         : '-'),
                 imagePath:
-                    current.hasImage ? current.displayFilePath : null,
+                    current.isImageMessage ? current.displayFilePath : null,
+                videoPath:
+                    current.isVideoMessage ? current.displayFilePath : null,
                 isSender: !current.isSentBy(_currentUserId),
                 profileImage: _controller.resolveSenderProfileImage(current),
               ),

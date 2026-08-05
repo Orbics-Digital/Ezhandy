@@ -380,7 +380,7 @@ class _EditUserProfileState extends State<EditUserProfile> {
       setFile: _setFile,
       profileImage: _profileImage,
       profileImageUrl: _profileImageUrl,
-      assetPath: AssetPath.tempImage1,
+      assetPath: AssetPath.userIcon,
     );
   }
 

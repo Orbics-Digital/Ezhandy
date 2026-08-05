@@ -187,7 +187,7 @@ class _UserProfileState extends State<UserProfile> {
     return ProfilePictureWidget(
       is_pickImage: false,
       profileImageUrl: profileImageUrl,
-      assetPath: AssetPath.tempImage1,
+      assetPath: AssetPath.userIcon,
     );
   }
 

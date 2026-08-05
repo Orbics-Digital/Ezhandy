@@ -51,6 +51,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Disable Impeller (Vulkan) rendering backend: video_player's texture
+             rendering triggers a known Impeller/Vulkan pipeline-creation crash
+             ("Could not create graphics pipeline: ErrorUnknown") on some devices.
+             Falling back to the Skia backend avoids this crash. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

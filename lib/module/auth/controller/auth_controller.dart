@@ -409,6 +409,9 @@ class AuthController extends GetxController {
         profileImage: profileImage,
       );
 
+      // final profileLoaded = await fetchProfileDetails();
+      // return profileLoaded;
+
       final updated = UserModel.fromJson(data);
       user.value = updated;
 

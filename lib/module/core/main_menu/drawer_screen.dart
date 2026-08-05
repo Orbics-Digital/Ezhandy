@@ -159,7 +159,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
       size: 60.sp,
       is_pickImage: false,
       profileImageUrl: profileImageUrl,
-      assetPath: AssetPath.tempImage1,
+      assetPath: AssetPath.userIcon,
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ezhandy_user/utils/app_colors.dart';
 import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/utils/utils.dart';
+import 'package:ezhandy_user/widgets/media/full_screen_video_player.dart';
 import 'package:ezhandy_user/widgets/profile_widget/user_image_widget.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
@@ -13,6 +14,7 @@ class ChatBubble extends StatelessWidget {
   final bool isSender;
   final String? profileImage;
   final String? imagePath;
+  final String? videoPath;
 
   const ChatBubble({
     required this.text,
@@ -20,6 +22,7 @@ class ChatBubble extends StatelessWidget {
     required this.isSender,
     this.profileImage,
     this.imagePath,
+    this.videoPath,
     Key? key,
   }) : super(key: key);
 
@@ -34,7 +37,51 @@ class ChatBubble extends StatelessWidget {
     return path != null && path.isNotEmpty;
   }
 
+  bool get _hasMessageVideo {
+    final path = videoPath?.trim();
+    return path != null && path.isNotEmpty;
+  }
+
   Widget _messageContent(BuildContext context) {
+    if (_hasMessageVideo) {
+      final path = videoPath!.trim();
+      final isNetwork =
+          path.startsWith('http://') || path.startsWith('https://');
+
+      return GestureDetector(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                FullScreenVideoPlayer(path: path, isNetwork: isNetwork),
+          ),
+        ),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: AppColors.orange.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: AppColors.orange),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.play_circle_fill,
+                color: AppColors.orange,
+                size: 20.sp,
+              ),
+              8.horizontalSpace,
+              CustomText(
+                text: 'View Video',
+                color: AppColors.orange,
+                fontWeight: FontWeight.w500,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (!_hasMessageImage) {
       return CustomText(
         text: text,

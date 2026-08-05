@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -256,6 +257,12 @@ class AuthRepository {
       );
     }
 
+    log(
+      '[UpdateProfile] fields: '
+      '${{for (final entry in formData.fields) entry.key: entry.value}}, '
+      'files: ${formData.files.map((entry) => entry.key).toList()}',
+    );
+
     final response = await _client.dio.patch(
       ApiEndpoints.updateProfile,
       data: formData,
@@ -265,7 +272,12 @@ class AuthRepository {
       ),
     );
 
-    return ApiHelper.dataObject(response.data);
+    final data = ApiHelper.dataObject(response.data);
+    final userModel = data['user_model'];
+    if (userModel is Map) {
+      return Map<String, dynamic>.from(userModel);
+    }
+    return data;
   }
 
   Future<UserModel> getProfileDetails() async {

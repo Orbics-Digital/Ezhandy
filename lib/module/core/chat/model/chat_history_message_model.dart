@@ -29,6 +29,12 @@ class ChatHistoryMessageModel {
 
   String get displayFilePath => filePath?.trim() ?? '';
 
+  String get normalizedMessageType => messageType?.trim().toLowerCase() ?? '';
+
+  bool get isImageMessage => normalizedMessageType == 'image';
+
+  bool get isVideoMessage => normalizedMessageType == 'video';
+
   bool get hasImage => displayFilePath.isNotEmpty;
 
   String get senderDisplayName => sender?.displayName ?? '-';
