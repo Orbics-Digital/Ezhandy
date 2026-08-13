@@ -325,9 +325,52 @@ class AuthRepository {
     }
   }
 
+  Future<void> updateCertification({
+    required String certificationId,
+    required String institutionName,
+    required String certificationTitle,
+    File? certificationImage,
+  }) async {
+    final formData = FormData.fromMap({
+      'institutionName': institutionName,
+      'certificationTitle': certificationTitle,
+    });
+
+    if (certificationImage != null) {
+      formData.files.add(
+        MapEntry(
+          'certificationImage',
+          await MultipartFile.fromFile(
+            certificationImage.path,
+            filename:
+                certificationImage.path.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+
+    final response = await _client.dio.patch(
+      ApiEndpoints.certification(certificationId),
+      data: formData,
+      options: Options(
+        contentType: Headers.multipartFormDataContentType,
+        headers: {'Accept': ApiConstants.acceptJson},
+      ),
+    );
+
+    if (response.data is! Map) return;
+
+    final root = Map<String, dynamic>.from(response.data as Map);
+    if (!ApiHelper.isSuccessResponse(root)) {
+      throw Exception(
+        ApiHelper.responseMessage(root) ?? 'Failed to update certification',
+      );
+    }
+  }
+
   Future<void> deleteCertification(String certificationId) async {
     final response = await _client.dio.delete(
-      '${ApiEndpoints.certifications}/$certificationId',
+      ApiEndpoints.certification(certificationId),
     );
 
     if (response.data is! Map) return;

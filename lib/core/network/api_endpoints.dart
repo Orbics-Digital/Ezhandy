@@ -78,4 +78,5 @@ class ApiEndpoints {
   static const String updateProfile = 'user/profile';
   static const String profileDetails = 'user/profile-details';
   static const String certifications = 'user/certifications';
+  static String certification(String id) => 'user/certifications/$id';
 }

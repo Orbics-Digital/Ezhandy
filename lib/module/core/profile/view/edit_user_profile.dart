@@ -123,20 +123,20 @@ class _EditUserProfileState extends State<EditUserProfile> {
     certificates = items.map((item) {
       final url = item.certificatePath?.trim();
       final hasUrl = url != null && url.isNotEmpty;
+      final institute = item.institutionName?.trim() ?? '';
+      final title = item.certificationTitle?.trim() ?? '';
 
       return {
         'id': item.id,
-        'institute': TextEditingController(
-          text: item.institutionName?.trim() ?? '',
-        ),
-        'title': TextEditingController(
-          text: item.certificationTitle?.trim() ?? '',
-        ),
+        'institute': TextEditingController(text: institute),
+        'title': TextEditingController(text: title),
         'picture': TextEditingController(
           text: hasUrl ? AppStrings.changeImage : '',
         ),
         'pictureFile': null,
         'pictureUrl': hasUrl ? url : null,
+        'originalInstitute': institute,
+        'originalTitle': title,
       };
     }).toList();
   }
@@ -618,6 +618,7 @@ class _EditUserProfileState extends State<EditUserProfile> {
           text: AppStrings.update,
           isLoading: AuthController.i.isUpdateProfileLoading.value ||
               AuthController.i.isAddCertificationLoading.value ||
+              AuthController.i.isUpdateCertificationLoading.value ||
               AuthController.i.isDeleteCertificationLoading.value,
           onclick: () => _onUpdate(context),
         ),
@@ -629,12 +630,59 @@ class _EditUserProfileState extends State<EditUserProfile> {
 
   bool get _hasRemovedCertificates => _removedCertificateIds.isNotEmpty;
 
+  bool get _hasUpdatedCertificates =>
+      certificates.any(_isExistingCertificateChanged);
+
+  bool _isExistingCertificateChanged(Map<String, dynamic> item) {
+    final certificationId = item['id'] as String?;
+    if (certificationId == null || certificationId.isEmpty) return false;
+
+    final institute =
+        (item['institute'] as TextEditingController).text.trim();
+    final title = (item['title'] as TextEditingController).text.trim();
+    final pictureFile = item['pictureFile'] as File?;
+    final originalInstitute =
+        (item['originalInstitute'] as String?)?.trim() ?? '';
+    final originalTitle = (item['originalTitle'] as String?)?.trim() ?? '';
+
+    return institute != originalInstitute ||
+        title != originalTitle ||
+        pictureFile != null;
+  }
+
   Future<bool> _deleteRemovedCertificates() async {
     for (final certificationId in List<String>.from(_removedCertificateIds)) {
       final deleted =
           await AuthController.i.deleteCertification(certificationId);
       if (!deleted) return false;
       _removedCertificateIds.remove(certificationId);
+    }
+    return true;
+  }
+
+  Future<bool> _updateChangedCertificates() async {
+    for (final item in certificates) {
+      if (!_isExistingCertificateChanged(item)) continue;
+
+      final certificationId = item['id'] as String?;
+      if (certificationId == null || certificationId.isEmpty) continue;
+
+      final institute =
+          (item['institute'] as TextEditingController).text.trim();
+      final title = (item['title'] as TextEditingController).text.trim();
+      final pictureFile = item['pictureFile'] as File?;
+
+      final updated = await AuthController.i.updateCertification(
+        certificationId: certificationId,
+        institutionName: institute,
+        certificationTitle: title,
+        certificationImage: pictureFile,
+      );
+      if (!updated) return false;
+
+      item['originalInstitute'] = institute;
+      item['originalTitle'] = title;
+      item['pictureFile'] = null;
     }
     return true;
   }
@@ -668,6 +716,11 @@ class _EditUserProfileState extends State<EditUserProfile> {
     if (_hasRemovedCertificates) {
       final certificatesDeleted = await _deleteRemovedCertificates();
       if (!certificatesDeleted || !mounted) return;
+    }
+
+    if (_hasUpdatedCertificates) {
+      final certificatesUpdated = await _updateChangedCertificates();
+      if (!certificatesUpdated || !mounted) return;
     }
 
     if (_hasNewCertificates) {
