@@ -48,6 +48,17 @@ class AddEditService extends StatefulWidget {
 
 class _AddEditServiceState extends State<AddEditService> {
   final GlobalKey<FormState> serviceKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
+
+  final GlobalKey _titleKey = GlobalKey();
+  final GlobalKey _descriptionKey = GlobalKey();
+  final GlobalKey _visitChargesKey = GlobalKey();
+  final GlobalKey _hourlyRateKey = GlobalKey();
+  final GlobalKey _radiusKey = GlobalKey();
+  final GlobalKey _imageKey = GlobalKey();
+  final GlobalKey _calendarKey = GlobalKey();
+  final GlobalKey _timeSlotsKey = GlobalKey();
+  final GlobalKey _quickServiceExtraFeeKey = GlobalKey();
 
   bool isQuickService = false;
   File? serviceImageFile;
@@ -114,6 +125,7 @@ class _AddEditServiceState extends State<AddEditService> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     titleController.dispose();
     descriptionController.dispose();
     imageController.dispose();
@@ -135,55 +147,131 @@ class _AddEditServiceState extends State<AddEditService> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
         child: SingleChildScrollView(
+          controller: _scrollController,
           child: Form(
             key: serviceKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(text: '${AppStrings.title}*'),
-                5.verticalSpace,
-                _titleField(),
+                KeyedSubtree(
+                  key: _titleKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: '${AppStrings.title}*'),
+                      5.verticalSpace,
+                      _titleField(),
+                    ],
+                  ),
+                ),
                 10.verticalSpace,
-                CustomText(text: AppStrings.description),
-                5.verticalSpace,
-                _descriptionField(),
+                KeyedSubtree(
+                  key: _descriptionKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: '${AppStrings.description}*'),
+                      5.verticalSpace,
+                      _descriptionField(),
+                    ],
+                  ),
+                ),
                 10.verticalSpace,
-                CustomText(text: AppStrings.visitCharges),
-                5.verticalSpace,
-                _visitChargesTextField(),
+                KeyedSubtree(
+                  key: _visitChargesKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: '${AppStrings.visitCharges}*'),
+                      5.verticalSpace,
+                      _visitChargesTextField(),
+                    ],
+                  ),
+                ),
                 10.verticalSpace,
-                CustomText(text: AppStrings.hourlyRate),
-                5.verticalSpace,
-                _hourlyRateTextField(),
+                KeyedSubtree(
+                  key: _hourlyRateKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: '${AppStrings.hourlyRate}*'),
+                      5.verticalSpace,
+                      _hourlyRateTextField(),
+                    ],
+                  ),
+                ),
                 10.verticalSpace,
-                CustomText(text: AppStrings.radius),
-                5.verticalSpace,
-                _radiusTextField(),
+                KeyedSubtree(
+                  key: _radiusKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: '${AppStrings.radius}*'),
+                      5.verticalSpace,
+                      _radiusTextField(),
+                    ],
+                  ),
+                ),
                 10.verticalSpace,
-                CustomText(text: AppStrings.uploadImage),
-                5.verticalSpace,
-                _serviceImageField(),
+                KeyedSubtree(
+                  key: _imageKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: '${AppStrings.uploadImage}*'),
+                      5.verticalSpace,
+                      _serviceImageField(),
+                    ],
+                  ),
+                ),
                 if (_hasServiceImagePreview) ...[
                   10.verticalSpace,
                   _serviceImagePreview(),
                 ],
                 10.verticalSpace,
-                calendarWidget(),
-                10.verticalSpace,
-                CustomText(
-                  text: AppStrings.timeSlots,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
+                KeyedSubtree(
+                  key: _calendarKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: '${AppStrings.availableDates}*'),
+                      5.verticalSpace,
+                      calendarWidget(),
+                    ],
+                  ),
                 ),
                 10.verticalSpace,
-                hourListWidget(),
+                KeyedSubtree(
+                  key: _timeSlotsKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        text: '${AppStrings.timeSlots}*',
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      10.verticalSpace,
+                      hourListWidget(),
+                    ],
+                  ),
+                ),
                 10.verticalSpace,
                 _quickServiceSection(),
                 if (isQuickService) ...[
                   10.verticalSpace,
-                  CustomText(text: '${AppStrings.quickServiceExtraFee}*'),
-                  5.verticalSpace,
-                  _quickServiceExtraFeeField(),
+                  KeyedSubtree(
+                    key: _quickServiceExtraFeeKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                            text: '${AppStrings.quickServiceExtraFee}*'),
+                        5.verticalSpace,
+                        _quickServiceExtraFeeField(),
+                      ],
+                    ),
+                  ),
                 ],
                 10.verticalSpace,
                 _button(),
@@ -449,6 +537,59 @@ class _AddEditServiceState extends State<AddEditService> {
     return true;
   }
 
+  bool _hasImageError() {
+    if (serviceImageFile != null) return false;
+    if (widget.isEdit &&
+        existingImageUrl != null &&
+        existingImageUrl!.isNotEmpty) {
+      return false;
+    }
+    return imageController.text.validateEmpty(AppStrings.uploadImage) != null;
+  }
+
+  /// First invalid field key in form order (matches validators).
+  GlobalKey? _firstInvalidFieldKey() {
+    if (titleController.text.validateEmpty(AppStrings.title) != null) {
+      return _titleKey;
+    }
+    if (descriptionController.text.validateEmpty(AppStrings.description) !=
+        null) {
+      return _descriptionKey;
+    }
+    if (visitChargesController.text.validateEmpty(AppStrings.visitCharges) !=
+        null) {
+      return _visitChargesKey;
+    }
+    if (hourlyRateController.text.validateEmpty(AppStrings.hourlyRate) !=
+        null) {
+      return _hourlyRateKey;
+    }
+    if (radiusController.text.validateEmpty(AppStrings.radius) != null) {
+      return _radiusKey;
+    }
+    if (_hasImageError()) return _imageKey;
+    if (selectedCalendarDates.isEmpty) return _calendarKey;
+    if (selectedShiftList.isEmpty) return _timeSlotsKey;
+    if (isQuickService &&
+        quickServiceExtraFeeController.text
+                .validateEmpty(AppStrings.quickServiceExtraFee) !=
+            null) {
+      return _quickServiceExtraFeeKey;
+    }
+    return null;
+  }
+
+  Future<void> _scrollToField(GlobalKey key) async {
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+      alignment: 0.15,
+    );
+  }
+
   Widget _button() {
     return Obx(
       () => CustomButton(
@@ -491,8 +632,24 @@ class _AddEditServiceState extends State<AddEditService> {
   }
 
   Future<void> _handleSubmit() async {
-    if (!serviceKey.currentState!.validate()) return;
-    if (!_validateScheduleFields()) return;
+    FocusScope.of(context).unfocus();
+
+    final firstErrorKey = _firstInvalidFieldKey();
+    final formValid = serviceKey.currentState?.validate() ?? false;
+
+    if (!formValid) {
+      if (firstErrorKey != null) {
+        await _scrollToField(firstErrorKey);
+      }
+      return;
+    }
+
+    if (!_validateScheduleFields()) {
+      final scheduleKey =
+          selectedCalendarDates.isEmpty ? _calendarKey : _timeSlotsKey;
+      await _scrollToField(scheduleKey);
+      return;
+    }
 
     if (widget.isEdit) {
       final serviceId = widget.service?.id?.trim() ?? '';
@@ -501,10 +658,9 @@ class _AddEditServiceState extends State<AddEditService> {
         return;
       }
 
-      final serviceTypeId =
-          widget.serviceTypeId.trim().isNotEmpty
-              ? widget.serviceTypeId.trim()
-              : widget.service?.serviceTypeId?.trim() ?? '';
+      final serviceTypeId = widget.serviceTypeId.trim().isNotEmpty
+          ? widget.serviceTypeId.trim()
+          : widget.service?.serviceTypeId?.trim() ?? '';
       if (serviceTypeId.isEmpty) {
         AppDialogs.showToast(message: AppStrings.selectServiceType);
         return;
@@ -513,6 +669,7 @@ class _AddEditServiceState extends State<AddEditService> {
       if (serviceImageFile == null &&
           (existingImageUrl == null || existingImageUrl!.isEmpty)) {
         AppDialogs.showToast(message: AppStrings.uploadImage);
+        await _scrollToField(_imageKey);
         return;
       }
 
@@ -560,6 +717,7 @@ class _AddEditServiceState extends State<AddEditService> {
 
     if (serviceImageFile == null) {
       AppDialogs.showToast(message: AppStrings.uploadImage);
+      await _scrollToField(_imageKey);
       return;
     }
 

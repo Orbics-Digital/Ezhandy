@@ -17,6 +17,19 @@ class ApiEndpoints {
   static const String communityPosts = 'community/posts';
   static const String products = 'products';
   static const String categories = 'categories';
+
+  /// Marketplace product listing subscription (separate from provider plan).
+  static const String marketplaceSubscriptionStatus =
+      'marketplace-subscriptions/my-status';
+  static const String marketplaceSubscriptionPlans =
+      'marketplace-subscriptions/plans';
+  static const String marketplaceSubscriptionHistory =
+      'marketplace-subscriptions/my-history';
+  static const String marketplaceSubscriptionCheckout =
+      'marketplace-subscriptions/create-checkout-session';
+  static const String marketplaceSubscriptionVerifyCheckout =
+      'marketplace-subscriptions/verify-checkout-session';
+
   static const String serviceTypes = 'service-type/types';
   static const String providerServices = 'provider-services/services';
   static const String providerServicesList = 'provider-services/provider';

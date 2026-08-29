@@ -1307,6 +1307,29 @@ class AppStrings {
   static const String subscribedSuccessful =
       'Thankyou! \nYou have been subscribed successfully';
 
+  /// Marketplace product subscription
+  static const String marketplaceSubscriptionRequiredMessage =
+      "You need to purchase a Marketplace Subscription to add products.";
+  static const String productLimitReachedMessage =
+      "Product limit reached. Upgrade your plan to add more products.";
+  static const String unableToCheckMarketplaceSubscription =
+      "Unable to check marketplace subscription status";
+  static const String noActiveMarketplaceSubscription =
+      "No active marketplace subscription";
+  static const String remainingProducts = "Remaining Products";
+  static const String productsUsed = "Products Published";
+  static const String currentPlan = "Current Plan";
+  static const String viewSubscriptions = "View Subscriptions";
+  static const String marketplaceSubscriptions = "Marketplace Subscriptions";
+  static const String subscriptionStats = "Subscription Stats";
+  static const String viewSubscriptionStats = "View subscription stats";
+  static const String maxProductsLabel = "Max Products";
+  static const String noSubscriptionPlansFound = "No subscription plans found";
+  static const String noSubscriptionLogsFound = "No subscription logs found";
+  static const String pleaseSelectAPlan = "Please select a subscription plan";
+  static const String alreadyOnThisPlan = "You are already on this plan";
+  static const String popular = "Popular";
+
   ///Chart
   static const String bookingChart = "Booking Chart";
   static const String totalBookings = "Total Bookings";

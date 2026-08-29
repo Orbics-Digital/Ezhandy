@@ -67,6 +67,12 @@ class AppRoutes {
       "add_edit_product_screenRoute";
   static const String productDetailScreenRoute = "product_detail_screenRoute";
   static const String addToCartScreenRoute = "add_to_cart_screenRoute";
+  static const String marketplaceSubscriptionPlansScreenRoute =
+      "marketplace_subscription_plans_screenRoute";
+  static const String marketplaceSubscriptionStatsScreenRoute =
+      "marketplace_subscription_stats_screenRoute";
+  static const String marketplaceSubscriptionLogsScreenRoute =
+      "marketplace_subscription_logs_screenRoute";
   static const String aiDocumentFeedbackScreenRoute =
       "ai_document_feedback_screenRoute";
   static const String ordersScreenRoute = "orders_screenRoute";

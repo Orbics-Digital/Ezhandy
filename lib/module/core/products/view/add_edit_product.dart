@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
+import 'package:ezhandy_user/module/core/products/controller/marketplace_subscription_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
 import 'package:ezhandy_user/module/core/products/model/product_image_slot_update.dart';
 import 'package:ezhandy_user/module/core/products/model/product_model.dart';
@@ -17,13 +18,13 @@ import 'package:get/get.dart';
 import 'package:ezhandy_user/utils/app_dialogs.dart';
 import 'package:ezhandy_user/utils/constant.dart';
 import 'package:ezhandy_user/utils/routes/app_navigation.dart';
-import 'package:ezhandy_user/utils/routes/app_route.dart';
 import 'package:ezhandy_user/utils/validator_extensions.dart';
 import 'package:ezhandy_user/utils/app_padding.dart';
 import 'package:ezhandy_user/utils/app_strings.dart';
 import 'package:ezhandy_user/utils/asset_path.dart';
 import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/logo_and_backgrounds/background.dart';
+import 'package:ezhandy_user/widgets/switch/animated_switch.dart';
 import 'package:ezhandy_user/widgets/text_fields/custom_text_field.dart';
 import 'package:ezhandy_user/widgets/text_widgets/text_widget.dart';
 
@@ -57,6 +58,7 @@ class _AddEditProductState extends State<AddEditProduct> {
       List.generate(_maxImages, (_) => _ProductImageSlot());
   String? categoryValue;
   String? selectedCategoryId;
+  bool isActiveProduct = true;
 
   bool get _isEditMode => widget.type == AddEditType.edit.name;
 
@@ -73,6 +75,7 @@ class _AddEditProductState extends State<AddEditProduct> {
     productNameController.text = product.title?.trim() ?? '';
     priceController.text = product.price?.trim() ?? '';
     descriptionController.text = product.description?.trim() ?? '';
+    isActiveProduct = product.isActive;
 
     selectedCategoryId = product.category?.id?.trim();
     final cachedCategory =
@@ -184,6 +187,22 @@ class _AddEditProductState extends State<AddEditProduct> {
                     key: formKey,
                     child: Column(children: [
                       //----------------Email Address Field----------------
+                      20.verticalSpace,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomText(text: AppStrings.active),
+                          ),
+                          AnimatedSwitch(
+                            isSwitched: isActiveProduct,
+                            onCallBack: (value) {
+                              setState(() {
+                                isActiveProduct = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                       20.verticalSpace,
                       CustomText(text: "Product Name" + "*"),
                       10.verticalSpace,
@@ -512,7 +531,7 @@ class _AddEditProductState extends State<AddEditProduct> {
         price: price,
         categoryId: categoryId,
         imageSlots: _buildImageSlotUpdates(),
-        isActive: widget.product?.isActive ?? true,
+        isActive: isActiveProduct,
       );
     } else {
       if (newImages.isEmpty) {
@@ -526,10 +545,15 @@ class _AddEditProductState extends State<AddEditProduct> {
         price: price,
         categoryId: categoryId,
         images: newImages,
+        isActive: isActiveProduct,
       );
     }
 
     if (!success || !mounted) return;
+
+    if (Get.isRegistered<MarketplaceSubscriptionController>()) {
+      await Get.find<MarketplaceSubscriptionController>().fetchStatus();
+    }
 
     AppNavigation.navigatorPop(context);
     AppDialogs.showSuccessDialog(

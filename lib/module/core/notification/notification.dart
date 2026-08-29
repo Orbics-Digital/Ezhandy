@@ -68,7 +68,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         final item = items[index];
                         return SlidableWidget(
                           child: GestureDetector(
-                            onTap: () => _controller.markAsRead(item),
+                            onTap: () =>
+                                _controller.onNotificationTap(context, item),
+                            behavior: HitTestBehavior.opaque,
                             child: notificationWidget(
                               image: AssetPath.infoIcon,
                               title: item.title ?? '',

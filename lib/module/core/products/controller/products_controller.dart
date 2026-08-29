@@ -199,6 +199,7 @@ class ProductsController extends GetxController {
     required String price,
     required String categoryId,
     required List<File> images,
+    bool isActive = true,
   }) async {
     if (isSubmittingProduct.value) return false;
 
@@ -210,6 +211,7 @@ class ProductsController extends GetxController {
         price: price,
         categoryId: categoryId,
         images: images,
+        isActive: isActive,
       );
       await refreshMyProducts();
       return true;

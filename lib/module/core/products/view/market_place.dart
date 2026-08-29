@@ -1,4 +1,5 @@
 import 'package:ezhandy_user/module/core/categories/controller/categories_controller.dart';
+import 'package:ezhandy_user/module/core/products/controller/marketplace_subscription_controller.dart';
 import 'package:ezhandy_user/module/core/products/controller/products_controller.dart';
 import 'package:ezhandy_user/module/core/products/model/product_model.dart';
 import 'package:ezhandy_user/module/core/products/routing_arguments/add_edit_product_routing_arguments.dart';
@@ -9,6 +10,7 @@ import 'package:ezhandy_user/utils/constant.dart';
 import 'package:ezhandy_user/utils/display_helper.dart';
 import 'package:ezhandy_user/utils/enums.dart';
 import 'package:ezhandy_user/widgets/Container/custom_container.dart';
+import 'package:ezhandy_user/widgets/button_widgets/custom_button.dart';
 import 'package:ezhandy_user/widgets/empty_state/empty_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,6 +39,8 @@ class _MarketPlaceState extends State<MarketPlace>
   final ProductsController _controller = Get.find<ProductsController>();
   final CategoriesController _categoriesController =
       Get.find<CategoriesController>();
+  final MarketplaceSubscriptionController _subscriptionController =
+      Get.put(MarketplaceSubscriptionController());
   final TextEditingController _searchController = TextEditingController();
   late TabController controller;
 
@@ -64,7 +68,13 @@ class _MarketPlaceState extends State<MarketPlace>
         appBarheight: 50.h,
         title: AppStrings.marketPlace,
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: addButtonWidget(context),
+        floatingActionButton: Obx(() {
+          final status = _subscriptionController.status.value;
+          final canShowAdd = status != null &&
+              status.hasActiveSubscription &&
+              !status.isProductLimitReached;
+          return addButtonWidget(context, canShowAdd: canShowAdd);
+        }),
         child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: AppPadding.padding12),
@@ -87,6 +97,7 @@ class _MarketPlaceState extends State<MarketPlace>
                         onTap: (val) {
                           if (val == 1) {
                             _controller.fetchMyProducts();
+                            _subscriptionController.fetchStatus();
                           }
                           setState(() {
                             controller.index = val;
@@ -94,6 +105,7 @@ class _MarketPlaceState extends State<MarketPlace>
                         },
                         labelStyle: TextStyle(
                           fontSize: 14.sp,
+                          fontFamily: AppStrings.montserrat,
                         ),
                         labelColor: AppColors.white,
                         controller: controller,
@@ -123,11 +135,18 @@ class _MarketPlaceState extends State<MarketPlace>
                 ]))));
   }
 
-  Visibility addButtonWidget(BuildContext context) {
+  Visibility addButtonWidget(
+    BuildContext context, {
+    required bool canShowAdd,
+  }) {
     return Visibility(
-        visible: controller.index == 1,
+        visible: controller.index == 1 && canShowAdd,
         child: GestureDetector(
-            onTap: () {
+            onTap: () async {
+              final canAdd =
+                  await _subscriptionController.ensureCanAddProduct(context);
+              if (!canAdd || !context.mounted) return;
+
               AppNavigation.navigateTo(
                   context, AppRoutes.addEditProductScreenRoute,
                   arguments: AddEditProductRoutingArgument(
@@ -206,59 +225,218 @@ class _MarketPlaceState extends State<MarketPlace>
   }
 
   Widget myProductsWidget() {
-    return Column(
-      children: [
-        searchSection(),
-        10.verticalSpace,
-        CustomText(text: AppStrings.products, fontWeight: FontWeight.bold),
-        10.verticalSpace,
-        Expanded(
-          child: Obx(
-            () {
-              final items = _controller.filteredMyProducts;
-              final isLoading = _controller.isMyProductsLoading.value;
+    return Obx(() {
+      final status = _subscriptionController.status.value;
+      final checking = _subscriptionController.isLoadingStatus.value &&
+          status == null;
+      final hasActive = status?.hasActiveSubscription == true;
 
-              if (isLoading && items.isEmpty) {
-                return const Center(
-                  child: CircularProgressIndicator(color: AppColors.orange),
-                );
-              }
+      if (checking) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-              if (!isLoading && items.isEmpty) {
+      if (!hasActive) {
+        return RefreshIndicator(
+          onRefresh: _subscriptionController.fetchStatus,
+          color: AppColors.orange,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            children: [
+              SizedBox(height: 0.12.sh),
+              CustomContainer(
+                borderColor: AppColors.orange.withOpacity(0.35),
+                bgColor: AppColors.white,
+                radius: 14.r,
+                boxShadow: AppShadows.shadow1,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 56.w,
+                      height: 56.w,
+                      decoration: BoxDecoration(
+                        color: AppColors.orange.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.workspace_premium_rounded,
+                        color: AppColors.orange,
+                        size: 28.sp,
+                      ),
+                    ),
+                    14.verticalSpace,
+                    CustomText(
+                      text: AppStrings.subscription,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
+                      is_alignLeft: false,
+                    ),
+                    8.verticalSpace,
+                    CustomText(
+                      text: AppStrings.noActiveMarketplaceSubscription,
+                      color: AppColors.greyLight,
+                      is_alignLeft: false,
+                      textAlign: TextAlign.center,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    8.verticalSpace,
+                    CustomText(
+                      text: AppStrings.marketplaceSubscriptionRequiredMessage,
+                      color: AppColors.greyLight,
+                      fontSize: 12.sp,
+                      is_alignLeft: false,
+                      textAlign: TextAlign.center,
+                    ),
+                    20.verticalSpace,
+                    CustomButton(
+                      text: AppStrings.viewSubscriptions,
+                      onclick: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          AppRoutes.marketplaceSubscriptionPlansScreenRoute,
+                        );
+                        if (!mounted) return;
+                        await _subscriptionController.fetchStatus();
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return Column(
+        children: [
+          searchSection(),
+          10.verticalSpace,
+          _viewSubscriptionStatsLink(),
+          10.verticalSpace,
+          CustomText(text: AppStrings.myProducts, fontWeight: FontWeight.bold),
+          10.verticalSpace,
+          Expanded(
+            child: Obx(
+              () {
+                final items = _controller.filteredMyProducts;
+                final isLoading = _controller.isMyProductsLoading.value;
+
+                if (isLoading && items.isEmpty) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.orange),
+                  );
+                }
+
+                if (!isLoading && items.isEmpty) {
+                  return RefreshIndicator(
+                    color: AppColors.orange,
+                    onRefresh: () async {
+                      await Future.wait([
+                        _controller.refreshMyProducts(),
+                        _subscriptionController.fetchStatus(),
+                      ]);
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(height: 120),
+                        EmptyMessage(message: AppStrings.noProductsFound),
+                      ],
+                    ),
+                  );
+                }
+
                 return RefreshIndicator(
                   color: AppColors.orange,
-                  onRefresh: _controller.refreshMyProducts,
-                  child: ListView(
+                  onRefresh: () async {
+                    await Future.wait([
+                      _controller.refreshMyProducts(),
+                      _subscriptionController.fetchStatus(),
+                    ]);
+                  },
+                  child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: const [
-                      SizedBox(height: 120),
-                      EmptyMessage(message: AppStrings.noProductsFound),
-                    ],
+                    itemCount: items.length,
+                    padding:
+                        const EdgeInsets.only(bottom: AppPadding.padding50),
+                    itemBuilder: (BuildContext ctxt, int index) {
+                      return _myProductListItem(items[index]);
+                    },
+                    separatorBuilder: (BuildContext context, int index) {
+                      return SizedBox(
+                        height: 10.h,
+                      );
+                    },
                   ),
                 );
-              }
-
-              return RefreshIndicator(
-                color: AppColors.orange,
-                onRefresh: _controller.refreshMyProducts,
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: items.length,
-                  padding: const EdgeInsets.only(bottom: AppPadding.padding50),
-                  itemBuilder: (BuildContext ctxt, int index) {
-                    return _myProductListItem(items[index]);
-                  },
-                  separatorBuilder: (BuildContext context, int index) {
-                    return SizedBox(
-                      height: 10.h,
-                    );
-                  },
-                ),
-              );
-            },
+              },
+            ),
           ),
-        )
-      ],
+        ],
+      );
+    });
+  }
+
+  Widget _viewSubscriptionStatsLink() {
+    final status = _subscriptionController.status.value;
+    final planLabel = (status?.planTitle.isNotEmpty == true)
+        ? status!.planTitle
+        : AppStrings.subscription;
+    final remaining = status?.remainingProducts;
+
+    return GestureDetector(
+      onTap: () {
+        AppNavigation.navigateTo(
+          context,
+          AppRoutes.marketplaceSubscriptionStatsScreenRoute,
+        );
+      },
+      child: CustomContainer(
+        borderColor: AppColors.orange.withOpacity(0.35),
+        bgColor: AppColors.orange.withOpacity(0.06),
+        radius: 12.r,
+        isPadding: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+          child: Row(
+            children: [
+              Icon(
+                Icons.insights_rounded,
+                color: AppColors.orange,
+                size: 20.sp,
+              ),
+              10.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      text: AppStrings.viewSubscriptionStats,
+                      color: AppColors.orange,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.sp,
+                    ),
+                    2.verticalSpace,
+                    CustomText(
+                      text: remaining == null
+                          ? planLabel
+                          : '$planLabel · ${AppStrings.remainingProducts}: $remaining',
+                      fontSize: 10.sp,
+                      color: AppColors.greyLight,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.orange,
+                size: 22.sp,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
