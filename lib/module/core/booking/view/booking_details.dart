@@ -573,9 +573,11 @@ class _BookingDetailsState extends State<BookingDetails> {
 
   Widget rejectReasonWidget() {
     final status = _detail?.status;
+    final reason = _detail?.statusReason?.trim();
+    final hasReason = reason != null && reason.isNotEmpty;
 
     return Visibility(
-      visible: BookingStatusEnum.showsReason(status),
+      visible: BookingStatusEnum.showsReason(status) && hasReason,
       child: Column(
         children: [
           15.verticalSpace,
